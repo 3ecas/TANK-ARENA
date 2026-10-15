@@ -60,7 +60,10 @@ final class GameScene: SKScene {
         session.bus.subscribe { [unowned self] event in self.handle(event) }
         layoutForSize()
         cameraController.snap(to: session.player.position)
-        hud.banner.announce("25 vs 25 — eliminate the red team!", color: UIStyle.accent)
+        let sector = session.world.currentSector.name
+        hud.banner.announce(session.world.attackers == session.player.team
+                                ? "ATTACK — capture both zones of sector \(sector)!"
+                                : "DEFEND — hold sector \(sector)!", color: UIStyle.accent)
     }
 
     override func didChangeSize(_ oldSize: CGSize) {

@@ -8,6 +8,7 @@ final class SquadCoordinator {
     private(set) var squads: [Squad] = []
     private var timer: CGFloat = 0
     private var objectiveTimer: CGFloat = 0
+    private var lastSector = 0
 
     init(ctx: BattleContext, bots: [SoldierAI]) {
         self.ctx = ctx
@@ -36,6 +37,11 @@ final class SquadCoordinator {
         timer = AIConfig.squadUpdateInterval
         mergeWeakSquads()
         objectiveTimer -= AIConfig.squadUpdateInterval
+        // A sector just fell: everyone gets a new objective right away.
+        if ctx.world.sector != lastSector {
+            lastSector = ctx.world.sector
+            objectiveTimer = 0
+        }
         if objectiveTimer <= 0 {
             objectiveTimer = AIConfig.objectiveInterval
             // Re-number roles from the surviving squads so merges never leave a team without a defender.
@@ -97,6 +103,12 @@ final class SquadCoordinator {
         let needed = active.filter { zone in
             attacking ? zone.owner != squad.team
                       : zone.owner != squad.team || zone.capturingTeam == world.attackers || zone.isContested
+        }
+        // One attacking squad guards a zone the attackers already hold, so it isn't simply retaken.
+        let held = active.filter { $0.owner == squad.team }
+        if attacking && squad.role == 1, let guardZone = held.first {
+            setObjective(squad, guardZone, flank: false)
+            return
         }
         let pool = needed.isEmpty ? active : needed
         let target = pool[squad.role % pool.count]

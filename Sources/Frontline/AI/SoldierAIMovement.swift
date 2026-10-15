@@ -56,7 +56,7 @@ extension SoldierAI {
     private func approach(_ point: CGPoint, distance: CGFloat, squad: Squad) -> CGPoint {
         let from = squad.centroid ?? soldier.position
         var direction = (from - point).normalized
-        if direction.lengthSquared < 0.01 { direction = CGPoint(x: soldier.team == .blue ? -1 : 1, y: 0) }
+        if direction.lengthSquared < 0.01 { direction = CGPoint(x: soldier.team == ctx.world.attackers ? -1 : 1, y: 0) }
         // Spread members out a little so they don't stack on one spot.
         let spread = direction.perpendicular * CGFloat((soldier.id % 5) - 2) * 40
         let target = (point + direction * distance + spread).clamped(to: ctx.world.map.bounds.insetBy(dx: 30, dy: 30))

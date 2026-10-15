@@ -37,7 +37,7 @@ final class Scoreboard {
             if soldier.isAlive {
                 status = "alive"
             } else if soldier.isAwaitingRespawn {
-                status = "respawn \(Int(soldier.respawnTimer.rounded(.up)))s"
+                status = soldier.respawnTimer > 0 ? "respawn \(Int(soldier.respawnTimer.rounded(.up)))s" : "no tickets"
             } else {
                 status = "out"
             }
