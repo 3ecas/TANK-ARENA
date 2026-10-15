@@ -25,7 +25,11 @@ enum GameConfig {
     /// View cone (radians) — identical for the player and every bot.
     static let fieldOfView: CGFloat = 2.1
     /// How quickly the camera catches up with the player (higher = tighter).
-    static let cameraFollowRate: CGFloat = 22
+    static let cameraFollowRate: CGFloat = 12
+    /// The camera moves this fraction of the way toward the mouse...
+    static let cameraLookAheadFraction: CGFloat = 0.5
+    /// ...but never further than this from the player (keeps the player and their view range on screen).
+    static let cameraLookAhead: CGFloat = 280
     /// Everyone notices enemies this close, even behind them.
     static let peripheralRadius: CGFloat = 70
     /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.

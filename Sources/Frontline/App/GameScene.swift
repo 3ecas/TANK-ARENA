@@ -79,7 +79,7 @@ final class GameScene: SKScene {
         processInput()
         let running = !gamePaused && !gameEnded
         if running { session.update(dt: dt) }
-        cameraController.update(dt: dt, follow: session.viewer?.position)
+        cameraController.update(dt: dt, follow: cameraTarget())
         worldRenderer.update(dt: running ? dt : 0)
         fog.update(viewer: session.viewer, allies: session.world.soldiers,
                    cameraCenter: cameraController.node.position, viewSize: size,
@@ -118,6 +118,14 @@ final class GameScene: SKScene {
         default:
             break
         }
+    }
+
+    /// The camera leans from the player toward the mouse, up to a fixed look-ahead limit.
+    private func cameraTarget() -> CGPoint? {
+        guard let viewer = session.viewer else { return nil }
+        guard viewer === session.player, viewer.isAlive else { return viewer.position }
+        let lean = (mouseScene - viewer.position) * GameConfig.cameraLookAheadFraction
+        return viewer.position + lean.clampedLength(GameConfig.cameraLookAhead)
     }
 
     func showError(_ message: String) {

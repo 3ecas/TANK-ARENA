@@ -85,3 +85,4 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 ## Revision 7
 - New city map: irregular, unmirrored layout (`MapConfig.buildings/crates/barriers/roads`), diagonal spawns, scattered zones. Caves keep their own spawns in `CaveConfig`.
 - Shared team vision: the fog clears every nearby teammate's cone, and enemies seen by any teammate are shown.
+- Camera look-ahead: the focus is player + (mouse − player) × 0.5, capped at `GameConfig.cameraLookAhead`.
