@@ -1,13 +1,13 @@
 import CoreGraphics
 
-/// Maps game events to sounds, attenuated by distance from the camera.
+/// Maps battle events to sounds, attenuated by distance from the camera.
 @MainActor
 final class AudioDirector {
     private let sound: SoundEngine
     private unowned let session: GameSession
     /// Returns the current listener (camera) position.
     var listener: () -> CGPoint = { .zero }
-    private let hearingRange: CGFloat = 1300
+    private let hearingRange: CGFloat = 1400
 
     init(sound: SoundEngine, session: GameSession) {
         self.sound = sound
@@ -16,53 +16,43 @@ final class AudioDirector {
     }
 
     private func volume(at position: CGPoint) -> Float {
-        let distance = position.distance(to: listener())
-        return Float(Swift.max(0, 1 - distance / hearingRange))
+        Float(Swift.max(0, 1 - position.distance(to: listener()) / hearingRange))
     }
 
     private func handle(_ event: GameEvent) {
         let playerId = session.player.id
         switch event {
-        case .shotFired(let sourceId, let from, _, let kind):
-            let v = volume(at: from) * (sourceId == playerId ? 1 : 0.45)
-            sound.play(shotSound(sourceId: sourceId, kind: kind), volume: v)
-        case .explosion(let position, _, let big):
-            sound.play(big ? .explosionBig : .explosionSmall, volume: volume(at: position))
-        case .empPulse(let position, _):
-            sound.play(.emp, volume: volume(at: position))
-        case .strikeIncoming(let team, let position):
-            if team != session.player.team && position.distance(to: session.player.position) < 1400 {
-                sound.play(.alert, volume: 0.8)
+        case .shotFired(let shooterId, let from, _, let weapon, _):
+            let v = volume(at: from) * (shooterId == playerId ? 1 : 0.5)
+            sound.play(shotSound(weapon), volume: v)
+        case .soldierHit(let victimId, let attackerId, _, let position):
+            if victimId == playerId || attackerId == playerId { sound.play(.hit, volume: 0.6 * volume(at: position)) }
+        case .soldierKilled(let victimId, _, _):
+            if let victim = session.world.soldier(victimId) { sound.play(.death, volume: 0.5 * volume(at: victim.position)) }
+        case .reloadStarted(let soldierId):
+            if soldierId == playerId { sound.play(.reload, volume: 0.6) }
+        case .grenadeExploded(let type, let position, _):
+            let v = volume(at: position)
+            switch type {
+            case .frag: sound.play(.explosion, volume: v)
+            case .flash: sound.play(.flash, volume: v)
+            case .stun: sound.play(.stun, volume: v)
             }
-        case .abilityCast(let heroId, _, _):
-            if heroId == playerId { sound.play(.click, volume: 0.7) }
-        case .levelUp(let heroId, _):
-            if heroId == playerId { sound.play(.levelUp) }
-        case .purchase(let heroId):
-            if heroId == playerId { sound.play(.purchase) }
-        case .healed(let targetId, _, _):
-            if targetId == playerId { sound.play(.heal, volume: 0.6) }
-        case .objectiveCaptured:
-            sound.play(.capture, volume: 0.8)
-        case .gameOver:
-            sound.play(.levelUp)
+        case .knifeSwing(_, let position, _, _):
+            sound.play(.knife, volume: volume(at: position))
+        case .matchOver:
+            sound.play(.click)
         default:
             break
         }
     }
 
-    private func shotSound(sourceId: Int, kind: ProjectileKind) -> SoundID {
-        switch kind {
-        case .rocket: return .rocket
-        case .shell, .cannon, .grenade: return .cannon
-        case .bullet:
-            guard let hero = session.world.hero(sourceId) else { return .rifle }
-            switch hero.weaponId {
-            case .pistol, .assaultRifle: return .rifle
-            case .shotgun: return .shotgun
-            case .sniperRifle: return .sniper
-            case .lmg: return .lmg
-            }
+    private func shotSound(_ weapon: WeaponID) -> SoundID {
+        switch weapon {
+        case .assaultRifle: return .rifle
+        case .smg: return .smg
+        case .shotgun: return .shotgun
+        case .pistol: return .pistol
         }
     }
 }

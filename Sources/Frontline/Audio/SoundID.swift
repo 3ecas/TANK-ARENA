@@ -1,18 +1,17 @@
 import Foundation
 
 enum SoundID: CaseIterable {
-    case rifle, shotgun, sniper, lmg, rocket, cannon
-    case explosionSmall, explosionBig, emp
-    case click, levelUp, purchase, error, alert, capture, heal
+    case rifle, smg, shotgun, pistol
+    case explosion, flash, stun, knife, reload, hit, death
+    case click, error
 
-    /// Minimum seconds between two plays of the same sound (prevents noise walls).
+    /// Minimum seconds between two plays of the same sound (prevents noise walls with 50 soldiers).
     var minInterval: TimeInterval {
         switch self {
-        case .rifle, .lmg: return 0.035
-        case .explosionSmall: return 0.06
-        case .explosionBig: return 0.09
-        case .alert: return 0.8
-        default: return 0.05
+        case .rifle, .smg: return 0.03
+        case .pistol, .shotgun: return 0.04
+        case .hit: return 0.05
+        default: return 0.06
         }
     }
 }

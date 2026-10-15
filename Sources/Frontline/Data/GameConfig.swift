@@ -1,24 +1,31 @@
 import CoreGraphics
 
-/// General gameplay constants.
+/// General rules of the 25 vs 25 battle.
 enum GameConfig {
-    static let recallTime: CGFloat = 5
-    /// Fraction of max HP healed per second inside your own base.
-    static let baseHealRate: CGFloat = 0.12
+    static let teamSize = 25
+    static let maxHp: CGFloat = 100
+    /// Each soldier can come back once after dying.
+    static let respawnsPerSoldier = 1
+    static let respawnDelay: CGFloat = 5
+    static let spawnProtection: CGFloat = 2
+    static let soldierRadius: CGFloat = 12
+    /// Walking speed (points per second) before weapon weight.
+    static let walkSpeed: CGFloat = 118
+    /// How far a soldier can see (line of sight is still required).
+    static let visionRange: CGFloat = 1050
     static let visionUpdateInterval: CGFloat = 0.1
-    static let visionCellSize: CGFloat = 40
-    static let spatialCellSize: CGFloat = 200
-    /// Right-click snap radius around the cursor.
-    static let targetSnapRadius: CGFloat = 80
-    /// A locked target is dropped when farther than range * this factor.
-    static let targetDropFactor: CGFloat = 1.6
-    static let supplyDropDelay: CGFloat = 1.5
-    static let stimHpCost: CGFloat = 30
-    static let dashDuration: CGFloat = 0.22
-    /// Built-in combat roll on F.
-    static let dodgeDistance: CGFloat = 240
-    static let dodgeCooldown: CGFloat = 8
-    /// Right-click snap radius for picking an enemy to attack.
-    static let attackClickRadius: CGFloat = 60
-    static let teamSize = 5
+    /// Shots are less accurate while moving.
+    static let movingSpreadMultiplier: CGFloat = 1.8
+    static let weaponSwitchTime: CGFloat = 0.35
+
+    // Knife (F)
+    static let knifeRange: CGFloat = 50
+    static let knifeArc: CGFloat = 1.5
+    static let knifeDamage: CGFloat = 55
+    static let backstabDamage: CGFloat = 100
+    static let knifeCooldown: CGFloat = 0.7
+
+    // Navigation
+    static let navCellSize: CGFloat = 20
+    static let navPadding: CGFloat = 10
 }

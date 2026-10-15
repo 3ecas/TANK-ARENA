@@ -1,32 +1,29 @@
 import CoreGraphics
 
-/// Walkability grid for click-to-move pathfinding (A* with line-of-sight smoothing).
-/// Obstacles are city buildings and structures, padded by the size of a soldier.
+/// Walkability grid for pathfinding (A* with line-of-sight smoothing).
+/// Obstacles are padded by the size of a soldier.
 struct NavGrid {
     let cellSize: CGFloat
     let columns: Int
+    let rows: Int
     private var blocked: [Bool]
     /// Upper bound on A* expansions so a bad request can never stall a frame.
-    private let maxExpansions = 20000
+    private let maxExpansions = 15000
 
-    init(worldSize: CGFloat, cellSize: CGFloat) {
-        let count = Int((worldSize / cellSize).rounded(.up))
+    init(size: CGSize, cellSize: CGFloat) {
         self.cellSize = cellSize
-        self.columns = count
-        self.blocked = Array(repeating: false, count: count * count)
+        self.columns = Int((size.width / cellSize).rounded(.up))
+        self.rows = Int((size.height / cellSize).rounded(.up))
+        self.blocked = Array(repeating: false, count: Int((size.width / cellSize).rounded(.up))
+                                                   * Int((size.height / cellSize).rounded(.up)))
     }
 
-    /// Marks every cell overlapping a (padded) rectangle or circle as blocked.
-    mutating func rebuild(rects: [CGRect], circles: [(CGPoint, CGFloat)], padding: CGFloat) {
+    /// Marks every cell whose centre lies inside a padded rectangle as blocked.
+    mutating func rebuild(rects: [CGRect], padding: CGFloat) {
         for i in blocked.indices { blocked[i] = false }
         for rect in rects {
             let r = rect.insetBy(dx: -padding, dy: -padding)
             for (cell, center) in cells(in: r) where r.contains(center) { blocked[cell] = true }
-        }
-        for (center, radius) in circles {
-            let r = radius + padding
-            let box = CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2)
-            for (cell, cellCenter) in cells(in: box) where cellCenter.distance(to: center) <= r { blocked[cell] = true }
         }
     }
 
@@ -61,7 +58,7 @@ struct NavGrid {
         let goalIndex = index(of: target)
         guard !blocked[goalIndex] else { return nil }
 
-        let total = columns * columns
+        let total = columns * rows
         var gScore = [Float](repeating: .greatestFiniteMagnitude, count: total)
         var cameFrom = [Int32](repeating: -1, count: total)
         var closed = [Bool](repeating: false, count: total)
@@ -81,10 +78,9 @@ struct NavGrid {
             for dy in -1...1 {
                 for dx in -1...1 where dx != 0 || dy != 0 {
                     let nx = cx + dx, ny = cy + dy
-                    guard nx >= 0, ny >= 0, nx < columns, ny < columns else { continue }
+                    guard nx >= 0, ny >= 0, nx < columns, ny < rows else { continue }
                     let next = ny * columns + nx
                     if blocked[next] || closed[next] { continue }
-                    // No corner cutting past buildings.
                     if dx != 0 && dy != 0 && (blocked[cy * columns + nx] || blocked[ny * columns + cx]) { continue }
                     let cost: Float = (dx != 0 && dy != 0) ? 1.4142 : 1
                     let tentative = gScore[current] + cost
@@ -98,14 +94,14 @@ struct NavGrid {
         }
         guard cameFrom[goalIndex] >= 0 || goalIndex == startIndex else { return nil }
 
-        var cells: [CGPoint] = [target]
+        var points: [CGPoint] = [target]
         var node = Int(cameFrom[goalIndex])
         while node >= 0 && node != startIndex {
-            cells.append(center(node))
+            points.append(center(node))
             node = Int(cameFrom[node])
         }
-        cells.reverse()
-        return smooth(cells, from: start)
+        points.reverse()
+        return smooth(points, from: start)
     }
 
     // MARK: Helpers
@@ -137,7 +133,7 @@ struct NavGrid {
             for dy in -radius...radius {
                 for dx in -radius...radius where abs(dx) == radius || abs(dy) == radius {
                     let x = sx + dx, y = sy + dy
-                    guard x >= 0, y >= 0, x < columns, y < columns, !blocked[y * columns + x] else { continue }
+                    guard x >= 0, y >= 0, x < columns, y < rows, !blocked[y * columns + x] else { continue }
                     let d = dx * dx + dy * dy
                     if d < bestDistance { bestDistance = d; best = y * columns + x }
                 }
@@ -148,12 +144,11 @@ struct NavGrid {
     }
 
     private func index(of p: CGPoint) -> Int {
-        coord(p.y) * columns + coord(p.x)
+        row(p.y) * columns + column(p.x)
     }
 
-    private func coord(_ v: CGFloat) -> Int {
-        Swift.min(Swift.max(Int(v / cellSize), 0), columns - 1)
-    }
+    private func column(_ x: CGFloat) -> Int { Swift.min(Swift.max(Int(x / cellSize), 0), columns - 1) }
+    private func row(_ y: CGFloat) -> Int { Swift.min(Swift.max(Int(y / cellSize), 0), rows - 1) }
 
     private func center(_ index: Int) -> CGPoint {
         CGPoint(x: (CGFloat(index % columns) + 0.5) * cellSize, y: (CGFloat(index / columns) + 0.5) * cellSize)
@@ -161,11 +156,9 @@ struct NavGrid {
 
     /// Cell indices and centres overlapping a rectangle.
     private func cells(in rect: CGRect) -> [(Int, CGPoint)] {
-        let minX = coord(rect.minX), maxX = coord(rect.maxX)
-        let minY = coord(rect.minY), maxY = coord(rect.maxY)
         var result: [(Int, CGPoint)] = []
-        for y in minY...maxY {
-            for x in minX...maxX {
+        for y in row(rect.minY)...row(rect.maxY) {
+            for x in column(rect.minX)...column(rect.maxX) {
                 result.append((y * columns + x, CGPoint(x: (CGFloat(x) + 0.5) * cellSize, y: (CGFloat(y) + 0.5) * cellSize)))
             }
         }

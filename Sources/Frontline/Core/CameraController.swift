@@ -6,13 +6,13 @@ final class CameraController {
     let node = SKCameraNode()
     private(set) var isLocked = true
     private(set) var focus: CGPoint
-    private let mapSize: CGFloat
+    private let mapSize: CGSize
     private var shakeTime: CGFloat = 0
     private var shakeDuration: CGFloat = 0
     private var shakeMagnitude: CGFloat = 0
     var viewSize: CGSize = CGSize(width: 1280, height: 800)
 
-    init(mapSize: CGFloat, start: CGPoint) {
+    init(mapSize: CGSize, start: CGPoint) {
         self.mapSize = mapSize
         self.focus = start
         node.position = start
@@ -58,10 +58,12 @@ final class CameraController {
     }
 
     private func clampFocus(_ p: CGPoint) -> CGPoint {
-        let halfW = Swift.min(viewSize.width / 2, mapSize / 2)
-        let halfH = Swift.min(viewSize.height / 2, mapSize / 2)
         let margin: CGFloat = 120
-        return CGPoint(x: p.x.clamped(halfW - margin, mapSize - halfW + margin),
-                       y: p.y.clamped(halfH - margin, mapSize - halfH + margin))
+        let halfW = viewSize.width / 2, halfH = viewSize.height / 2
+        let x = viewSize.width - margin * 2 >= mapSize.width
+            ? mapSize.width / 2 : p.x.clamped(halfW - margin, mapSize.width - halfW + margin)
+        let y = viewSize.height - margin * 2 >= mapSize.height
+            ? mapSize.height / 2 : p.y.clamped(halfH - margin, mapSize.height - halfH + margin)
+        return CGPoint(x: x, y: y)
     }
 }

@@ -46,3 +46,12 @@ neutral camps → objectives → structures → economy → vision → death/cle
 - One customisable soldier type for everyone: pistol and no abilities at the start; everything is bought in the shop (the AI follows its own purchase order too).
 - League-style controls: right-click to move or attack, Q/W/E/R abilities, F combat roll, S stop.
 - City map: procedurally laid out blocks with buildings (solid) and parks between the lanes; heroes, summons and mercenaries use A* on a nav grid.
+
+## Revision 3: close-quarters team shooter
+The game was reworked from a MOBA into a top-down team shooter, as requested:
+- **25 vs 25** (player + 49 bots), hand-made point-symmetric arena (2800×1800) with streets, alleys and choke points.
+- Every soldier: 100 HP, a random primary (rifle / SMG / shotgun), a pistol, one random grenade (frag / flash / stun) and a knife (F).
+- One respawn per soldier; a team loses when it has nobody alive and nobody left to respawn.
+- WASD + mouse aim, left-click to shoot, R reload, 1/2/Q weapons, G grenade.
+- Walls block movement, bullets and sight; enemies are only drawn while in the viewer's line of sight.
+- Single "medium-hard" bot difficulty. The shop and the MOBA systems were removed (still in git history).

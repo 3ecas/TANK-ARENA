@@ -1,60 +1,46 @@
 import CoreGraphics
 
-/// Fog of war: per-team visibility grids recomputed a few times per second.
+/// Line-of-sight checks: what bots can see, and which enemies are shown to the player.
 @MainActor
 final class VisionSystem {
-    unowned let ctx: GameContext
-    private var grids: [VisionGrid]
+    unowned let ctx: BattleContext
+    /// Enemy ids currently visible from the viewer (the player, or the soldier being spectated).
+    private(set) var visibleToViewer = Set<Int>()
     private var timer: CGFloat = 0
-    /// Increments every recompute (renderers use it to refresh the fog texture).
-    private(set) var revision = 0
 
-    init(ctx: GameContext) {
+    init(ctx: BattleContext) {
         self.ctx = ctx
-        let grid = VisionGrid(worldSize: MapConfig.size, cellSize: GameConfig.visionCellSize)
-        grids = [grid, grid]
     }
 
-    func update(dt: CGFloat) {
+    func update(dt: CGFloat, viewer: Soldier?) {
         timer -= dt
         guard timer <= 0 else { return }
         timer = GameConfig.visionUpdateInterval
-        recompute()
-    }
-
-    func recompute() {
-        let world = ctx.world
-        for team in Team.playable {
-            let index = team.rawValue
-            grids[index].clear()
-            let radar = ctx.objectives.hasRadar(team)
-            let multiplier = radar ? ObjectiveConfig.radarSightMultiplier : 1
-            for entity in world.entities where entity.team == team && entity.isAlive && !entity.isRemoved {
-                grids[index].reveal(center: entity.position, radius: entity.sightRange * multiplier)
-            }
-            for zone in world.zones where zone.team == team && zone.kind == .uavReveal && zone.isActive {
-                grids[index].reveal(center: zone.center, radius: zone.radius)
-            }
-            if radar, let point = world.capturePoint(.radar) {
-                grids[index].reveal(center: point.position, radius: ObjectiveConfig.radarRevealRadius)
+        var visible = Set<Int>()
+        if let viewer = viewer, viewer.isAlive {
+            for enemy in ctx.world.soldiers where enemy.isAlive && enemy.team != viewer.team && canSee(viewer, enemy) {
+                visible.insert(enemy.id)
             }
         }
-        revision += 1
+        visibleToViewer = visible
     }
 
-    func grid(for team: Team) -> VisionGrid {
-        grids[team == .red ? 1 : 0]
+    func canSee(_ viewer: Soldier, _ target: Soldier) -> Bool {
+        guard !viewer.isBlind else { return false }
+        return viewer.position.distance(to: target.position) <= GameConfig.visionRange
+            && ctx.world.map.hasLineOfSight(viewer.position, target.position)
     }
 
-    func isVisible(_ point: CGPoint, to team: Team) -> Bool {
-        team == .neutral ? true : grids[team.rawValue].isVisible(point)
-    }
-
-    /// Whether `team` can currently see `entity`.
-    func canSee(_ team: Team, _ entity: Entity) -> Bool {
-        if team == .neutral || entity.team == team { return true }
-        if entity is Structure { return true }
-        if ctx.zones.isConcealed(entity, from: team) { return false }
-        return grids[team.rawValue].isVisible(entity.position)
+    /// The closest enemy `viewer` can see, or nil.
+    func nearestVisibleEnemy(for viewer: Soldier) -> Soldier? {
+        guard !viewer.isBlind else { return nil }
+        let candidates = ctx.world.soldiers
+            .filter { $0.isAlive && $0.team != viewer.team
+                && $0.position.distance(to: viewer.position) <= GameConfig.visionRange }
+            .sorted { $0.position.distance(to: viewer.position) < $1.position.distance(to: viewer.position) }
+        for enemy in candidates.prefix(6) where ctx.world.map.hasLineOfSight(viewer.position, enemy.position) {
+            return enemy
+        }
+        return nil
     }
 }

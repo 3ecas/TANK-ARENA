@@ -1,6 +1,6 @@
 import SpriteKit
 
-/// One match on screen: runs the session, renderer, camera, HUD and player input.
+/// One battle on screen: runs the session, renderer, camera, HUD and player input.
 @MainActor
 final class GameScene: SKScene {
     unowned let router: SceneRouter
@@ -9,26 +9,26 @@ final class GameScene: SKScene {
     let hud: HUD
     let cameraController: CameraController
     let playerController: PlayerController
-    let targeting = TargetingOverlay()
     let audio: AudioDirector
     var clock = GameClock()
     var gamePaused = false
     var gameEnded = false
     var mouseScene: CGPoint = .zero
 
-    init(size: CGSize, router: SceneRouter, settings: GameSettings) {
-        let session = GameSession(settings: settings)
+    init(size: CGSize, router: SceneRouter) {
+        let session = GameSession()
         self.router = router
         self.session = session
         worldRenderer = WorldRenderer(session: session)
         hud = HUD(session: session)
         cameraController = CameraController(mapSize: session.world.map.size, start: session.player.position)
-        playerController = PlayerController(hero: session.player, ctx: session.ctx)
+        playerController = PlayerController(soldier: session.player, weapons: session.weapons,
+                                            grenades: session.grenades, melee: session.melee)
         audio = AudioDirector(sound: router.sound, session: session)
         super.init(size: size)
         scaleMode = .resizeFill
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        backgroundColor = SKColor(red: 0.08, green: 0.1, blue: 0.07, alpha: 1)
+        backgroundColor = SKColor(red: 0.08, green: 0.08, blue: 0.09, alpha: 1)
         setup()
     }
 
@@ -38,34 +38,26 @@ final class GameScene: SKScene {
 
     private func setup() {
         addChild(worldRenderer.root)
-        worldRenderer.overlayLayer.addChild(targeting.root)
         addChild(cameraController.node)
         camera = cameraController.node
         cameraController.node.addChild(hud.root)
-        wireCallbacks()
-        layoutForSize()
-        cameraController.snap(to: session.player.position)
-        hud.banner.announce("Destroy the enemy HQ!", color: UIStyle.accent)
-    }
-
-    private func wireCallbacks() {
         let router = self.router
         playerController.onMessage = { [unowned self] message in self.showError(message) }
-        playerController.onMoveOrder = { [unowned self] point in self.targeting.showMoveMarker(at: point) }
-        hud.onMinimapClick = { [unowned self] point in self.cameraController.moveTo(point) }
-        hud.shop.onResult = { result in if !result.isSuccess { router.sound.play(.error, volume: 0.6) } }
         hud.pauseMenu.onResume = { [unowned self] in self.setPaused(false) }
         hud.pauseMenu.onMainMenu = { router.showMainMenu() }
         hud.pauseMenu.onQuit = { router.quit() }
-        hud.gameOver.onPlayAgain = { [unowned self] in router.startGame(settings: self.session.settings) }
+        hud.gameOver.onPlayAgain = { router.startGame() }
         hud.gameOver.onMainMenu = { router.showMainMenu() }
-        worldRenderer.effects.onBigExplosion = { [unowned self] magnitude, position in
-            if self.cameraController.visibleRect.insetBy(dx: -200, dy: -200).contains(position) {
-                self.cameraController.shake(magnitude: magnitude, duration: 0.35)
+        worldRenderer.effects.onBlast = { [unowned self] magnitude, position in
+            if self.cameraController.visibleRect.insetBy(dx: -150, dy: -150).contains(position) {
+                self.cameraController.shake(magnitude: magnitude, duration: 0.3)
             }
         }
         audio.listener = { [unowned self] in self.cameraController.focus }
         session.bus.subscribe { [unowned self] event in self.handle(event) }
+        layoutForSize()
+        cameraController.snap(to: session.player.position)
+        hud.banner.announce("25 vs 25 — eliminate the red team!", color: UIStyle.accent)
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -84,46 +76,35 @@ final class GameScene: SKScene {
         processInput()
         let running = !gamePaused && !gameEnded
         if running { session.update(dt: dt) }
-        let player = session.player
-        cameraController.update(dt: dt, follow: player.isAlive ? player.position : nil)
+        cameraController.update(dt: dt, follow: session.viewer?.position)
         worldRenderer.update(dt: running ? dt : 0)
-        updateTargeting(dt: dt)
-        hud.update(dt: dt, cameraRect: cameraController.visibleRect, aimingSlot: playerController.aimingSlot,
-                   fogTexture: worldRenderer.fogTexture)
+        let mouseScreen = hud.root.convert(mouseScene, from: self)
+        hud.update(dt: dt, cameraRect: cameraController.visibleRect, mouseScreen: mouseScreen, renderer: worldRenderer)
         router.input.endFrame()
     }
 
-    private func updateTargeting(dt: CGFloat) {
-        let player = session.player
-        let aiming = playerController.aimingSlot
-            .flatMap { player.loadout.ability(inSlot: $0) }
-            .map { AbilityCatalog.def($0) }
-        targeting.update(dt: dt, player: player, target: session.world.entity(player.targetId),
-                         showRange: playerController.aimingSlot == nil && player.chasesTarget, aiming: aiming,
-                         mouse: mouseScene)
-    }
-
     private func handle(_ event: GameEvent) {
-        let player = session.player
+        let world = session.world
         switch event {
-        case .announcement(let text, let team):
-            let color = team.map { $0 == player.team ? Palette.team(.blue) : Palette.team(.red) } ?? UIStyle.accent
-            hud.banner.announce(text, color: color)
-        case .gameOver(let winner):
+        case .soldierKilled(let victimId, let killerId, let weaponName):
+            if let victim = world.soldier(victimId) {
+                hud.killFeed.add(killer: world.soldier(killerId), victim: victim, weapon: weaponName,
+                                 playerTeam: session.player.team)
+            }
+        case .soldierHit(_, let attackerId, _, _):
+            if attackerId == session.player.id { hud.crosshair.showHit() }
+        case .soldierRespawned(let id):
+            if id == session.player.id {
+                cameraController.snap(to: session.player.position)
+                hud.banner.announce("Respawned — this is your last life", color: Palette.warning)
+            }
+        case .announcement(let text):
+            hud.banner.announce(text, color: UIStyle.accent)
+        case .matchOver(let winner):
             gameEnded = true
-            playerController.cancelAiming()
-            hud.shop.close()
             hud.pauseMenu.isVisible = false
-            hud.gameOver.show(victory: winner == player.team, player: player, time: session.world.time)
-        case .heroRespawned(let heroId), .recallCompleted(let heroId):
-            if heroId == player.id {
-                cameraController.lock()
-                cameraController.snap(to: player.position)
-            }
-        case .strikeIncoming(let team, let position):
-            if team != player.team && position.distance(to: player.position) < 900 {
-                hud.banner.showMessage("⚠ INCOMING STRIKE")
-            }
+            hud.gameOver.show(victory: winner == session.player.team, player: session.player, time: world.time,
+                              survivors: world.aliveCount(winner))
         default:
             break
         }
@@ -137,6 +118,5 @@ final class GameScene: SKScene {
     func setPaused(_ paused: Bool) {
         gamePaused = paused
         hud.pauseMenu.isVisible = paused
-        playerController.cancelAiming()
     }
 }

@@ -1,7 +1,7 @@
 # Frontline
 
-A top-down, 3-lane **modern-warfare MOBA** for macOS. You are a soldier hero fighting next to AI troops.
-Buy abilities in the armory, call in airstrikes, tanks and reinforcements, and destroy the enemy HQ.
+A top-down 2D **close-quarters team shooter** for macOS (think Counter-Strike seen from above).
+**Blue vs red, 25 soldiers each**: you plus 49 AI bots, mass firefights through alleys, streets and choke points.
 
 Native macOS app: **Swift + SpriteKit + AppKit**, built with Swift Package Manager.
 No game engine, no browser, no third-party dependencies. All graphics and sounds are generated in code.
@@ -45,52 +45,34 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu, pick a **difficulty** (Easy / Normal / Hard) and press **Play**.
-Everyone (you and the 9 AI soldiers) starts the same way: a **service pistol and no abilities**.
-You customise your soldier entirely in the shop.
+Press **Play** in the main menu.
 
-### Controls (League of Legends style)
+### Rules
+
+- Two teams of **25**: you plus 24 blue bots against 25 red bots. Each team has its own spawn (blue on the left, red on the right).
+- Every soldier has **100 HP**, a **primary weapon** (Assault Rifle, SMG or Shotgun, assigned randomly), a **pistol**, **one grenade** (Frag, Flashbang or Stun, random) and a **knife**. No abilities, and the shop is disabled for now.
+- Every soldier gets **one respawn**: after the first death you come back at your spawn after 5 s with a fresh loadout. The second death is final.
+- A team loses when nobody on it is alive and nobody is left to respawn. The other team wins.
+- Walls and crates block movement, bullets, grenade blasts and line of sight. You only see enemies your soldier has a clear line of sight to.
+- Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
+- Bots are tuned "medium-hard": quick reactions and decent aim. They strafe, reload, throw grenades, knife up close and hunt you after losing sight of you.
+
+### Controls
 
 | Input | Action |
 |---|---|
-| **Right-click ground** | Move there (walks around buildings). Hold the button to keep steering |
-| **Right-click enemy** | Attack it: your soldier walks into range and keeps firing |
-| **Q / W / E / R** | Abilities (bought in the shop). Instant ones fire at once; area ones show a reticle while held and cast on release (or on left-click) |
-| **Esc** or **right-click** while aiming | Cancel the ability |
-| **F** | Combat roll toward the cursor (built in, 8 s cooldown) |
-| **S** | Stop |
-| **1 2 3 4** | Spend an ability point to rank up the ability in Q / W / E / R |
-| **B** | Recall to base (5 s channel, interrupted by damage or moving) |
-| **P** | Open the shop (only at base) |
+| **W A S D** (or arrows) | Move |
+| **Mouse** | Aim (your soldier faces the cursor) |
+| **Left mouse** | Shoot (hold for the rifle and SMG; click per shot for the pistol and shotgun) |
+| **R** | Reload (also automatic when the magazine is empty) |
+| **1 / 2 / Q** | Primary / pistol / swap |
+| **G** | Throw your grenade at the cursor |
+| **F** | Knife (hitting someone from behind is an instant kill) |
 | **Tab** (hold) | Scoreboard |
-| **Space** | Center the camera on your soldier |
+| **Space** | Re-centre the camera |
 | **Esc** | Pause menu |
 | **Cmd+F** / green button | Toggle full screen |
-| Click the minimap | Move the camera there (Space snaps back) |
-| **F1** | Toggle FPS / node counter |
-
-When you stand still, your soldier automatically shoots enemies in range. Ctrl+click also counts as a right-click.
-
-### How the game works
-
-- **Map:** a city. The blue base is bottom-left and the red base top-right. Three main avenues (top, mid, bot) are the lanes, a canal runs from corner to corner, and city blocks with buildings and parks fill the space between them. Buildings block movement, so soldiers path through the streets. You only see what your units and structures see (fog of war).
-- **Teams:** 5 v 5 heroes: you plus 4 AI allies against 5 AI enemies.
-- **Waves:** every 30 s each HQ sends riflemen and rocket soldiers down every lane. Later waves include tanks and APCs (an APC drops riflemen when destroyed).
-- **Structures:** each lane has 2 bunkers and a barracks per team, and each base has an HQ. Inner bunkers, barracks and the HQ are invulnerable (grey HP bar) until the structures in front of them fall. Bunkers shoot troops first, but switch to any hero who attacks an allied hero in their range. Destroying an enemy barracks makes your waves in that lane stronger. **Destroy the enemy HQ to win.**
-- **Progression:** you earn gold from last hits, kills, assists, objectives and passive income, and XP up to level 18. Each level gives an ability point. The respawn timer grows with your level.
-- **Armory (P at base):**
-  - **Abilities:** 15 abilities in 4 categories (Combat, Support, Call-ins, Summons). Buy one to unlock it; it goes into the first free slot (Q, W, E, R). Buy it again to rank it up (max rank 3). Swap slots in the loadout strip; equipping only works at base.
-  - **Weapons:** you start with the Service Pistol; buy the Assault Rifle, Combat Shotgun, Sniper Rifle or Light Machine Gun, each with different range, fire rate, damage and magazine size. Reloading is automatic.
-  - **Gear:** 6 slots. There are 6 basic items, and each one upgrades into an advanced item (for example Kevlar Vest → Ceramic Plates).
-- **Command Points (CP):** earned from kills (2), assists (1), objectives and slowly over time. Ultimate abilities (Carpet Bombing, Call in Tank, Attack Helicopter) cost CP on top of their cooldown.
-- **Summons** have caps and lifetimes: 1 tank (pushes the nearest lane), 2 squads (follow you, then join a lane), 1 helicopter (escorts you) and 2 sentry turrets.
-- **Call-ins** always show a telegraphed warning zone before impact, so you (and the AI) can dodge them.
-- **Objectives:**
-  - **Mercenary camps** (4) give gold and XP.
-  - **Radar Station** (capture point, top river): gives your team extra vision.
-  - **Airfield** (capture point, bottom river): your call-in cooldowns are 25% shorter.
-  - **Heavy Armor Depot** (from 8:00): a guardian boss. The team that kills it gets a **Super Tank** that pushes mid.
-- **AI heroes** use a state machine (laning/farming, trading, retreating, recalling to shop, ganking, objectives, pushing/defending). Each one follows its own build, uses abilities with cooldown gaps, aims call-ins at clustered enemies, dodges telegraphed strikes and respects bunker range. Difficulty changes reaction time, aim error, dodge chance, ability use, aggression and enemy gold income.
+| **F1** | Toggle FPS counter |
 
 ## Project layout
 
@@ -99,18 +81,15 @@ See [`PLAN.md`](PLAN.md) for the architecture. The short version:
 ```
 Sources/Frontline/
   App/        entry point, window, menus, input view, scene router, game scene, icon
-  Core/       math, clock, input, event bus, camera, spatial grid, session (system order), player control
-  World/      teams, lanes, map layout, world state, steering, vision grid
-  Entities/   entity classes, projectiles, strike zones, area zones, capture points, factory
-  Systems/    movement, collision, targeting, combat, damage, health, economy, XP, CP, waves, objectives, vision...
-  Abilities/  ability protocol, registry, cast system, loadout, one file per ability
-  Summons/    summon controller + summon AI hand-off
-  Shop/       armory logic (abilities, weapons, gear)
-  AI/         unit brains and the hero AI state machine
-  UI/         HUD, ability bar, minimap, shop, scoreboard, menus, targeting overlay
-  Rendering/  code-drawn textures, map, entity views, effects, fog
+  Core/       math, clock, input, event bus, camera, session (system order), battle setup, player controls
+  World/      teams, arena map (walls, raycasts), nav grid (A*), path follower, battle world
+  Entities/   soldier, weapon state, grenade
+  Systems/    movement, weapons, ballistics, damage, knife, grenades, status, respawns, vision, match end
+  AI/         bot brain (advance along routes, fight, hunt, grenades, knife)
+  UI/         HUD (health, weapons, team counts, kill feed, crosshair, flash), minimap, scoreboard, menus
+  Rendering/  code-drawn textures, arena map, soldier views, effects
   Audio/      procedurally synthesised sound effects
-  Data/       every tuning number (stats, costs, cooldowns, waves, AI difficulty, builds)
+  Data/       every tuning number (weapons, grenades, AI, map layout, rules)
 ```
 
 All balance numbers live in `Data/`, so tuning never needs changes in game logic.

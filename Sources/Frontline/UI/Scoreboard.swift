@@ -1,54 +1,53 @@
 import SpriteKit
 
-/// Tab scoreboard: both teams' heroes with level, K/D/A, troop kills and status.
+/// Tab scoreboard: every soldier of both teams with kills, deaths and status.
 @MainActor
 final class Scoreboard {
     let root = SKNode()
     private unowned let session: GameSession
-    private var rows: [(Hero, SKLabelNode)] = []
-    private let header = UIStyle.label("", size: 14, color: UIStyle.accent, bold: true, align: .center)
+    private var rows: [(Soldier, SKLabelNode)] = []
 
     init(session: GameSession) {
         self.session = session
         root.isHidden = true
-        root.addChild(UIStyle.panel(size: CGSize(width: 700, height: 440)))
-        header.position = CGPoint(x: 0, y: 195)
-        root.addChild(header)
-        let columns = UIStyle.label(Scoreboard.format("NAME", "LVL", "K/D/A", "CS", "WEAPON"), size: 12,
-                                    color: UIStyle.dimText, bold: true)
-        columns.position = CGPoint(x: -320, y: 165)
-        root.addChild(columns)
-        var y: CGFloat = 135
-        for team in Team.playable {
-            let title = UIStyle.label(team == .blue ? "BLUE TEAM" : "RED TEAM", size: 13,
-                                      color: Palette.team(team), bold: true)
-            title.position = CGPoint(x: -320, y: y)
+        root.addChild(UIStyle.panel(size: CGSize(width: 820, height: 600)))
+        for (column, team) in Team.playable.enumerated() {
+            let x: CGFloat = column == 0 ? -395 : 15
+            let title = UIStyle.label(team == .blue ? "BLUE TEAM" : "RED TEAM", size: 15, color: Palette.team(team),
+                                      bold: true)
+            title.position = CGPoint(x: x, y: 275)
             root.addChild(title)
-            y -= 24
-            for hero in session.world.heroes(of: team) {
-                let label = UIStyle.label("", size: 13, color: hero.isPlayer ? Palette.player : UIStyle.textColor)
-                label.position = CGPoint(x: -320, y: y)
+            let header = UIStyle.label(Scoreboard.format("NAME", "K", "D", "STATUS"), size: 11, color: UIStyle.dimText,
+                                       bold: true)
+            header.position = CGPoint(x: x, y: 252)
+            root.addChild(header)
+            for (index, soldier) in session.world.soldiers(of: team).enumerated() {
+                let label = UIStyle.label("", size: 12, color: soldier.isPlayer ? Palette.player : UIStyle.textColor)
+                label.position = CGPoint(x: x, y: 230 - CGFloat(index) * 20)
                 root.addChild(label)
-                rows.append((hero, label))
-                y -= 22
+                rows.append((soldier, label))
             }
-            y -= 14
         }
     }
 
     func update() {
         guard !root.isHidden else { return }
-        header.text = "SCOREBOARD  ·  \(UIStyle.formatTime(session.world.time))  ·  \(session.settings.difficulty.displayName.uppercased())"
-        for (hero, label) in rows {
-            let kda = "\(hero.kills)/\(hero.deaths)/\(hero.assists)"
-            var status = hero.weapon.name
-            if !hero.isAlive { status = "dead (\(Int(hero.respawnTimer.rounded(.up)))s)" }
-            label.text = Scoreboard.format(hero.name, "\(hero.level)", kda, "\(hero.troopKills)", status)
+        for (soldier, label) in rows {
+            let status: String
+            if soldier.isAlive {
+                status = "alive"
+            } else if soldier.isAwaitingRespawn {
+                status = "respawn \(Int(soldier.respawnTimer.rounded(.up)))s"
+            } else {
+                status = "out"
+            }
+            label.text = Scoreboard.format(soldier.name, "\(soldier.kills)", "\(soldier.deaths)", status)
+            label.alpha = soldier.isEliminated ? 0.45 : 1
         }
     }
 
-    private static func format(_ name: String, _ level: String, _ kda: String, _ cs: String, _ status: String) -> String {
-        pad(name, 12) + pad(level, 6) + pad(kda, 12) + pad(cs, 7) + status
+    private static func format(_ name: String, _ kills: String, _ deaths: String, _ status: String) -> String {
+        pad(name, 13) + pad(kills, 5) + pad(deaths, 5) + status
     }
 
     private static func pad(_ text: String, _ width: Int) -> String {

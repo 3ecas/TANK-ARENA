@@ -7,21 +7,19 @@ enum SoundSynth {
         let samples: [Float]
         switch id {
         case .rifle: samples = noiseBurst(rate: rate, duration: 0.09, decay: 45, lowpass: 0.35, thump: 0.5)
-        case .lmg: samples = noiseBurst(rate: rate, duration: 0.08, decay: 50, lowpass: 0.3, thump: 0.6)
+        case .smg: samples = noiseBurst(rate: rate, duration: 0.07, decay: 55, lowpass: 0.4, thump: 0.35)
+        case .pistol: samples = noiseBurst(rate: rate, duration: 0.1, decay: 40, lowpass: 0.45, thump: 0.4)
         case .shotgun: samples = noiseBurst(rate: rate, duration: 0.22, decay: 18, lowpass: 0.25, thump: 0.9)
-        case .sniper: samples = noiseBurst(rate: rate, duration: 0.3, decay: 14, lowpass: 0.5, thump: 0.7)
-        case .rocket: samples = noiseBurst(rate: rate, duration: 0.35, decay: 8, lowpass: 0.12, thump: 0.2)
-        case .cannon: samples = noiseBurst(rate: rate, duration: 0.45, decay: 9, lowpass: 0.08, thump: 1.0)
-        case .explosionSmall: samples = noiseBurst(rate: rate, duration: 0.6, decay: 6, lowpass: 0.06, thump: 1.0)
-        case .explosionBig: samples = noiseBurst(rate: rate, duration: 1.2, decay: 3.5, lowpass: 0.04, thump: 1.0)
-        case .emp: samples = sweep(rate: rate, duration: 0.6, from: 900, to: 120, volume: 0.5)
+        case .explosion: samples = noiseBurst(rate: rate, duration: 1.0, decay: 4, lowpass: 0.05, thump: 1.0)
+        case .flash: samples = tone(rate: rate, frequencies: [3200], noteLength: 0.6, volume: 0.25)
+        case .stun: samples = sweep(rate: rate, duration: 0.5, from: 900, to: 150, volume: 0.45)
+        case .knife: samples = noiseBurst(rate: rate, duration: 0.12, decay: 25, lowpass: 0.8, thump: 0)
+        case .reload: samples = tone(rate: rate, frequencies: [700, 0, 900], noteLength: 0.05, volume: 0.25,
+                                     square: true)
+        case .hit: samples = noiseBurst(rate: rate, duration: 0.08, decay: 40, lowpass: 0.1, thump: 0.8)
+        case .death: samples = sweep(rate: rate, duration: 0.35, from: 300, to: 90, volume: 0.35)
         case .click: samples = tone(rate: rate, frequencies: [1200], noteLength: 0.03, volume: 0.3)
-        case .levelUp: samples = tone(rate: rate, frequencies: [523, 659, 784, 1047], noteLength: 0.09, volume: 0.35)
-        case .purchase: samples = tone(rate: rate, frequencies: [880, 1320], noteLength: 0.06, volume: 0.3)
         case .error: samples = tone(rate: rate, frequencies: [180, 140], noteLength: 0.08, volume: 0.35, square: true)
-        case .alert: samples = tone(rate: rate, frequencies: [880, 660, 880, 660], noteLength: 0.1, volume: 0.25, square: true)
-        case .capture: samples = sweep(rate: rate, duration: 0.5, from: 300, to: 900, volume: 0.35)
-        case .heal: samples = sweep(rate: rate, duration: 0.35, from: 500, to: 1100, volume: 0.2)
         }
         return buffer(from: samples, format: format)
     }

@@ -1,25 +1,20 @@
 import SpriteKit
 
-/// Title screen: play, difficulty, starting loadout, controls, quit.
+/// Title screen: play, controls, quit.
 @MainActor
 final class MainMenuScene: SKScene {
     private unowned let router: SceneRouter
-    private var settings: GameSettings
     private let menuLayer = SKNode()
     private let background: SKSpriteNode
-    private let difficultyButton = UIButton(title: "", size: CGSize(width: 320, height: 46), fontSize: 16)
-    private let infoLabel = UIStyle.label("Everyone starts with a pistol. Buy weapons, gear and abilities in the shop.",
-                                          size: 13, color: UIStyle.dimText, align: .center)
     private let controls = ControlsPanel()
     private var clock = GameClock()
     private var time: CGFloat = 0
 
-    init(size: CGSize, router: SceneRouter, settings: GameSettings) {
+    init(size: CGSize, router: SceneRouter) {
         self.router = router
-        self.settings = settings
-        let map = MapLayout()
-        background = SKSpriteNode(texture: MapTextureBuilder.texture(for: map, city: CityGenerator.generate(map: map)),
-                                  size: CGSize(width: map.size, height: map.size))
+        let map = ArenaMap()
+        background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
+                                  size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
         super.init(size: size)
         scaleMode = .resizeFill
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -32,48 +27,36 @@ final class MainMenuScene: SKScene {
     }
 
     private func build() {
-        background.alpha = 0.45
+        background.alpha = 0.4
         background.zPosition = -10
         addChild(background)
         addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
-        title.position = CGPoint(x: 0, y: 220)
-        let subtitle = UIStyle.label("3-lane modern warfare MOBA", size: 18, color: UIStyle.textColor, align: .center)
-        subtitle.position = CGPoint(x: 0, y: 168)
-        menuLayer.addChild(title)
-        menuLayer.addChild(subtitle)
+        title.position = CGPoint(x: 0, y: 200)
+        let subtitle = UIStyle.label("25 vs 25 close-quarters battle", size: 18, align: .center)
+        subtitle.position = CGPoint(x: 0, y: 148)
+        let info = UIStyle.label("Primary weapon · pistol · one grenade · knife. 100 HP. One respawn.", size: 13,
+                                 color: UIStyle.dimText, align: .center)
+        info.position = CGPoint(x: 0, y: 118)
 
         let play = UIButton(title: "PLAY", size: CGSize(width: 320, height: 56), fontSize: 22, color: UIStyle.buttonOwned)
-        play.position = CGPoint(x: 0, y: 90)
-        play.onClick = { [unowned self] in self.router.startGame(settings: self.settings) }
-        difficultyButton.position = CGPoint(x: 0, y: 25)
-        difficultyButton.onClick = { [unowned self] in
-            self.settings.difficulty = self.settings.difficulty.next
-            self.refresh()
-        }
-        infoLabel.position = CGPoint(x: 0, y: -22)
+        play.position = CGPoint(x: 0, y: 50)
+        play.onClick = { [unowned self] in self.router.startGame() }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -75)
+        help.position = CGPoint(x: 0, y: -15)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -130)
+        quit.position = CGPoint(x: 0, y: -70)
         quit.onClick = { [unowned self] in self.router.quit() }
-        for node in [play, difficultyButton, infoLabel, help, quit] as [SKNode] {
-            menuLayer.addChild(node)
-        }
+        for node in [title, subtitle, info, play, help, quit] as [SKNode] { menuLayer.addChild(node) }
         controls.root.zPosition = 20
         addChild(controls.root)
-        refresh()
-    }
-
-    private func refresh() {
-        difficultyButton.setTitle("Difficulty: \(settings.difficulty.displayName)")
     }
 
     override func update(_ currentTime: TimeInterval) {
         let dt = clock.tick(currentTime)
         time += dt
-        background.position = CGPoint(x: sin(time * 0.05) * 400, y: cos(time * 0.04) * 400)
+        background.position = CGPoint(x: sin(time * 0.05) * 300, y: cos(time * 0.04) * 200)
         let input = router.input
         if input.leftPressed {
             let point = convertPoint(fromView: input.mouseViewPosition)
@@ -84,7 +67,7 @@ final class MainMenuScene: SKScene {
                 controls.root.isHidden = true
             }
         }
-        if input.wasPressed(KeyCode.returnKey) { router.startGame(settings: settings) }
+        if input.wasPressed(KeyCode.returnKey) { router.startGame() }
         if input.wasPressed(KeyCode.escape) { controls.root.isHidden = true }
         input.endFrame()
     }
@@ -95,30 +78,27 @@ final class MainMenuScene: SKScene {
 final class ControlsPanel {
     let root = SKNode()
     private let lines = [
-        "Right click ground .. move (hold to keep moving)",
-        "Right click enemy ... attack (walks into range)",
-        "Q / W / E / R ....... abilities (bought in the shop)",
-        "Hold + release ...... aim area abilities",
-        "Esc / right click ... cancel aiming",
-        "F ................... combat roll toward cursor",
-        "S ................... stop",
-        "1 2 3 4 ............. spend ability points on Q/W/E/R",
-        "B ................... recall to base",
-        "P ................... shop (at base)",
+        "W A S D ............. move",
+        "Mouse ............... aim (soldier faces the cursor)",
+        "Left mouse .......... shoot (hold for automatic weapons)",
+        "R ................... reload",
+        "1 / 2 / Q ........... primary / pistol / swap",
+        "G ................... throw grenade at cursor",
+        "F ................... knife (backstab = kill)",
         "Tab ................. scoreboard",
-        "Space ............... center camera",
+        "Space ............... re-centre camera",
         "Esc ................. pause  ·  Cmd+F full screen",
     ]
 
     init() {
         root.isHidden = true
-        root.addChild(UIStyle.panel(size: CGSize(width: 640, height: 400)))
+        root.addChild(UIStyle.panel(size: CGSize(width: 640, height: 330)))
         let title = UIStyle.label("CONTROLS", size: 22, color: UIStyle.accent, bold: true, align: .center)
-        title.position = CGPoint(x: 0, y: 170)
+        title.position = CGPoint(x: 0, y: 135)
         root.addChild(title)
         for (index, line) in lines.enumerated() {
             let label = UIStyle.label(line, size: 14)
-            label.position = CGPoint(x: -290, y: 130 - CGFloat(index) * 24)
+            label.position = CGPoint(x: -290, y: 98 - CGFloat(index) * 24)
             root.addChild(label)
         }
     }

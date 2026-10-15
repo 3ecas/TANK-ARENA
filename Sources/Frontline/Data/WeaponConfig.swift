@@ -1,47 +1,61 @@
 import CoreGraphics
 
-enum WeaponID: String, CaseIterable {
-    case pistol, assaultRifle, shotgun, sniperRifle, lmg
+enum WeaponID: CaseIterable {
+    case assaultRifle, smg, shotgun, pistol
 }
 
 struct WeaponDef {
     var id: WeaponID
     var name: String
-    var cost: Int
     /// Damage per pellet.
     var damage: CGFloat
-    var range: CGFloat
+    /// Seconds between shots.
     var interval: CGFloat
     var magSize: Int
+    /// Spare rounds outside the magazine (nil = unlimited).
+    var reserveAmmo: Int?
     var reloadTime: CGFloat
-    var pellets: Int
+    /// Half-angle of the random spread cone (radians).
     var spread: CGFloat
+    var pellets: Int
+    var range: CGFloat
+    /// Automatic weapons fire while the trigger is held; others fire once per click.
+    var isAutomatic: Bool
     var speedMultiplier: CGFloat
-    var summary: String
-
-    var totalDamage: CGFloat { damage * CGFloat(pellets) }
 }
 
 enum WeaponCatalog {
-    static let all: [WeaponDef] = [
-        WeaponDef(id: .pistol, name: "Service Pistol", cost: 0, damage: 17, range: 380, interval: 0.4,
-                  magSize: 12, reloadTime: 1.3, pellets: 1, spread: 0.03, speedMultiplier: 1.05,
-                  summary: "Standard sidearm everyone starts with. Weak but reliable."),
-        WeaponDef(id: .assaultRifle, name: "Assault Rifle", cost: 500, damage: 19, range: 420, interval: 0.15,
-                  magSize: 30, reloadTime: 1.8, pellets: 1, spread: 0.04, speedMultiplier: 1.0,
-                  summary: "Reliable all-rounder. Medium range, steady fire."),
-        WeaponDef(id: .shotgun, name: "Combat Shotgun", cost: 600, damage: 16, range: 270, interval: 0.85,
-                  magSize: 7, reloadTime: 2.4, pellets: 7, spread: 0.25, speedMultiplier: 1.05,
-                  summary: "Huge burst damage up close. Short range, light."),
-        WeaponDef(id: .sniperRifle, name: "Sniper Rifle", cost: 900, damage: 120, range: 680, interval: 1.35,
-                  magSize: 5, reloadTime: 2.6, pellets: 1, spread: 0, speedMultiplier: 0.95,
-                  summary: "Long range precision. Slow, heavy hits."),
-        WeaponDef(id: .lmg, name: "Light Machine Gun", cost: 1100, damage: 15, range: 460, interval: 0.095,
-                  magSize: 90, reloadTime: 3.6, pellets: 1, spread: 0.08, speedMultiplier: 0.88,
-                  summary: "Sustained suppressing fire. Huge magazine, slows you."),
-    ]
+    static let assaultRifle = WeaponDef(id: .assaultRifle, name: "Assault Rifle", damage: 26, interval: 0.11,
+                                        magSize: 30, reserveAmmo: 90, reloadTime: 2.3, spread: 0.035, pellets: 1,
+                                        range: 1000, isAutomatic: true, speedMultiplier: 0.95)
+    static let smg = WeaponDef(id: .smg, name: "SMG", damage: 19, interval: 0.075, magSize: 30, reserveAmmo: 120,
+                               reloadTime: 2.0, spread: 0.06, pellets: 1, range: 700, isAutomatic: true,
+                               speedMultiplier: 1.0)
+    static let shotgun = WeaponDef(id: .shotgun, name: "Shotgun", damage: 14, interval: 0.85, magSize: 8,
+                                   reserveAmmo: 32, reloadTime: 2.6, spread: 0.16, pellets: 8, range: 430,
+                                   isAutomatic: false, speedMultiplier: 0.97)
+    static let pistol = WeaponDef(id: .pistol, name: "Pistol", damage: 22, interval: 0.22, magSize: 12,
+                                  reserveAmmo: nil, reloadTime: 1.4, spread: 0.025, pellets: 1, range: 800,
+                                  isAutomatic: false, speedMultiplier: 1.05)
 
     static func def(_ id: WeaponID) -> WeaponDef {
-        all.first { $0.id == id } ?? all[0]
+        switch id {
+        case .assaultRifle: return assaultRifle
+        case .smg: return smg
+        case .shotgun: return shotgun
+        case .pistol: return pistol
+        }
+    }
+
+    /// Primary weapons are handed out with these weights.
+    static let primaryWeights: [(WeaponID, CGFloat)] = [(.assaultRifle, 0.45), (.smg, 0.35), (.shotgun, 0.2)]
+
+    static func randomPrimary() -> WeaponID {
+        var roll = CGFloat.random(in: 0..<1)
+        for (id, weight) in primaryWeights {
+            if roll < weight { return id }
+            roll -= weight
+        }
+        return .assaultRifle
     }
 }

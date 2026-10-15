@@ -1,33 +1,32 @@
 import SpriteKit
 
-/// Screen-space interface attached to the camera. Lays out and updates every HUD element
-/// and routes clicks to buttons / minimap.
+/// Screen-space interface attached to the camera.
 @MainActor
 final class HUD {
     let root = SKNode()
-    let status = StatusPanel()
-    let topBar = TopBar()
-    let abilityBar = AbilityBar()
-    let banner = AnnouncementBanner()
+    let vitals = VitalsPanel()
+    let weapons = WeaponPanel()
+    let counter = TeamCounter()
+    let killFeed = KillFeed()
     let notices = CenterNotices()
+    let banner = AnnouncementBanner()
+    let crosshair = Crosshair()
+    let flash = FlashOverlay()
     let minimap: Minimap
-    let shop: ShopPanel
     let scoreboard: Scoreboard
     let pauseMenu = PauseMenu()
     let gameOver = GameOverOverlay()
     private unowned let session: GameSession
-    /// Called when the minimap is clicked, with the world position.
-    var onMinimapClick: ((CGPoint) -> Void)?
 
     init(session: GameSession) {
         self.session = session
         minimap = Minimap(session: session)
-        shop = ShopPanel(session: session)
         scoreboard = Scoreboard(session: session)
         root.zPosition = 100
         let layers: [(SKNode, CGFloat)] = [
-            (status.root, 0), (topBar.root, 0), (abilityBar.root, 0), (minimap.root, 0), (notices.root, 1),
-            (banner.root, 2), (shop.root, 10), (scoreboard.root, 12), (pauseMenu.root, 20), (gameOver.root, 30),
+            (flash.node, 0), (vitals.root, 1), (weapons.root, 1), (counter.root, 1), (killFeed.root, 1),
+            (minimap.root, 1), (notices.root, 2), (banner.root, 2), (crosshair.root, 5), (scoreboard.root, 10),
+            (pauseMenu.root, 20), (gameOver.root, 30),
         ]
         for (node, z) in layers {
             node.zPosition = z
@@ -37,51 +36,40 @@ final class HUD {
 
     func layout(size: CGSize) {
         let halfW = size.width / 2, halfH = size.height / 2
-        let statusSize = StatusPanel.size
-        status.root.position = CGPoint(x: -halfW + statusSize.width / 2 + 14, y: -halfH + statusSize.height / 2 + 14)
-        abilityBar.root.position = CGPoint(x: 0, y: -halfH + AbilitySlotView.side / 2 + 18)
-        minimap.root.position = CGPoint(x: halfW - Minimap.side / 2 - 18, y: -halfH + Minimap.side / 2 + 18)
-        topBar.root.position = CGPoint(x: 0, y: halfH - 34)
-        topBar.layout(screen: size)
-        banner.root.position = CGPoint(x: 0, y: halfH - 100)
-        banner.messageOffset = -(size.height - 100) + AbilitySlotView.side + 140
-        notices.root.position = CGPoint(x: 0, y: -halfH + AbilitySlotView.side + 60)
+        vitals.root.position = CGPoint(x: -halfW + VitalsPanel.size.width / 2 + 14,
+                                       y: -halfH + VitalsPanel.size.height / 2 + 14)
+        weapons.root.position = CGPoint(x: halfW - WeaponPanel.size.width / 2 - 14,
+                                        y: -halfH + WeaponPanel.size.height / 2 + 14)
+        counter.root.position = CGPoint(x: 0, y: halfH - 38)
+        killFeed.root.position = CGPoint(x: halfW - 16, y: halfH - 24)
+        minimap.root.position = CGPoint(x: -halfW + minimap.mapSize.width / 2 + 18,
+                                        y: halfH - minimap.mapSize.height / 2 - 18)
+        banner.root.position = CGPoint(x: 0, y: halfH - 110)
+        banner.messageOffset = -(size.height - 110) + 160
     }
 
-    func update(dt: CGFloat, cameraRect: CGRect, aimingSlot: Int?, fogTexture: SKTexture?) {
+    func update(dt: CGFloat, cameraRect: CGRect, mouseScreen: CGPoint, renderer: WorldRenderer) {
         let player = session.player
-        status.update(hero: player)
-        topBar.update(session: session)
-        let abilities = session.ctx.abilities!
-        abilityBar.update(hero: player, aimingSlot: aimingSlot) { def, rank in
-            abilities.effectiveCooldown(def, rank: rank, hero: player)
-        }
-        notices.update(hero: player, aimingSlot: aimingSlot)
+        vitals.update(soldier: player)
+        weapons.update(soldier: player)
+        counter.update(world: session.world)
+        killFeed.update(dt: dt)
+        notices.update(player: player, spectating: player.isAlive ? nil : session.viewer)
         banner.update(dt: dt)
-        minimap.update(cameraRect: cameraRect, fogTexture: fogTexture)
-        shop.update(dt: dt)
+        flash.update(soldier: player)
+        let moving = player.velocity.lengthSquared > 100
+        crosshair.root.isHidden = !player.isAlive
+        crosshair.update(dt: dt, screenPosition: mouseScreen, spreadScale: moving ? 0.5 : 0.2)
+        minimap.update(cameraRect: cameraRect, renderer: renderer)
         scoreboard.update()
     }
 
-    /// Handles a left click at a point in scene coordinates. Returns true if the UI consumed it.
+    /// Handles a left click at a point in scene coordinates. Returns true if a button consumed it.
     func handleClick(scenePoint: CGPoint, scene: SKScene) -> Bool {
         if let button = UIHitTester.button(at: scenePoint, in: root, scene: scene) {
             button.onClick?()
             return true
         }
-        let local = root.convert(scenePoint, from: scene)
-        if gameOver.isVisible || pauseMenu.isVisible { return true }
-        if shop.isOpen && shop.contains(local) { return true }
-        if minimap.contains(local) {
-            onMinimapClick?(minimap.worldPoint(for: local))
-            return true
-        }
-        return false
-    }
-
-    /// True when a point (scene coordinates) is over an interactive HUD element.
-    func isOverUI(scenePoint: CGPoint, scene: SKScene) -> Bool {
-        let local = root.convert(scenePoint, from: scene)
-        return minimap.contains(local) || (shop.isOpen && shop.contains(local))
+        return gameOver.isVisible || pauseMenu.isVisible
     }
 }

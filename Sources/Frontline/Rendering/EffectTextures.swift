@@ -46,27 +46,6 @@ enum EffectTextures {
         }
     }
 
-    static func projectile(_ kind: ProjectileKind) -> SKTexture {
-        switch kind {
-        case .bullet: return tracer
-        case .rocket:
-            return TextureFactory.texture("rocket", size: CGSize(width: 18, height: 6)) { ctx, size in
-                ctx.fillRoundedRect(CGRect(x: 4, y: 1, width: 14, height: 4), radius: 2, Palette.rgb(0.3, 0.35, 0.25))
-                ctx.fillCircle(CGPoint(x: 3, y: 3), 3, Palette.rgb(1, 0.6, 0.2, 0.9))
-            }
-        case .grenade:
-            return TextureFactory.texture("grenade", size: CGSize(width: 10, height: 10)) { ctx, size in
-                ctx.fillCircle(CGPoint(x: 5, y: 5), 4.5, Palette.rgb(0.25, 0.35, 0.2))
-                ctx.fillCircle(CGPoint(x: 6, y: 6), 1.5, Palette.rgb(1, 1, 1, 0.4))
-            }
-        case .shell, .cannon:
-            return TextureFactory.texture("shell", size: CGSize(width: 14, height: 14)) { ctx, size in
-                ctx.fillRadialGlow(CGPoint(x: 7, y: 7), 7, Palette.rgb(1, 0.75, 0.3, 0.9))
-                ctx.fillCircle(CGPoint(x: 7, y: 7), 3, Palette.rgb(0.2, 0.2, 0.2))
-            }
-        }
-    }
-
     /// Ring outline with a constant line width for a given radius.
     static func ring(radius: CGFloat, lineWidth: CGFloat = 3) -> SKTexture {
         let r = Swift.max(8, (radius / 10).rounded() * 10)

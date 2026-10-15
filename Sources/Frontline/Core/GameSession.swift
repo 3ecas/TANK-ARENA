@@ -1,114 +1,75 @@
 import CoreGraphics
 
-/// One match: builds the world and runs every system in a fixed order each frame.
+/// One battle: builds the world and runs every system in a fixed order each frame.
 @MainActor
 final class GameSession {
-    let settings: GameSettings
-    let world: GameWorld
+    let world: BattleWorld
     let bus: EventBus
-    let ctx: GameContext
-    let player: Hero
-    let score: ScoreSystem
-    private(set) var heroAIs: [HeroAIController] = []
-
-    private let brains: BrainSystem
-    private let heroMovement: HeroMovementSystem
+    let ctx: BattleContext
+    let player: Soldier
+    let vision: VisionSystem
+    let weapons: WeaponSystem
+    let grenades: GrenadeSystem
+    let melee: MeleeSystem
     private let movement: MovementSystem
-    private let collision: CollisionSystem
-    private let statusEffects: StatusEffectSystem
-    private let health: HealthSystem
-    private let autoAttack: AutoAttackSystem
-    private let projectiles: ProjectileSystem
-    private let death: DeathSystem
-    private let spawner: SpawnSystem
-    private let camps: NeutralCampSystem
-    private let structures: StructureSystem
-    private let winCondition: WinConditionSystem
+    private let status: StatusSystem
+    private let respawns: RespawnSystem
+    private let match: MatchSystem
+    private var bots: [SoldierAI] = []
 
-    init(settings: GameSettings) {
-        self.settings = settings
-        let world = GameWorld()
+    init() {
+        let world = BattleWorld()
         let bus = EventBus()
-        let ctx = GameContext(world: world, bus: bus, difficulty: settings.difficulty)
+        let ctx = BattleContext(world: world, bus: bus)
+        let damage = DamageSystem(ctx: ctx)
         self.world = world
         self.bus = bus
         self.ctx = ctx
-        ctx.targeting = TargetingSystem(ctx: ctx)
-        ctx.vision = VisionSystem(ctx: ctx)
-        ctx.damage = DamageSystem(ctx: ctx)
-        ctx.combat = CombatSystem(ctx: ctx)
-        ctx.strikes = StrikeSystem(ctx: ctx)
-        ctx.zones = ZoneSystem(ctx: ctx)
-        ctx.summons = SummonController(ctx: ctx)
-        ctx.abilities = AbilitySystem(ctx: ctx)
-        ctx.shop = ShopService(ctx: ctx)
-        ctx.recall = RecallSystem(ctx: ctx)
-        ctx.experience = ExperienceSystem(ctx: ctx)
-        ctx.economy = EconomySystem(ctx: ctx)
-        ctx.commandPoints = CommandPointSystem(ctx: ctx)
-        ctx.objectives = ObjectiveSystem(ctx: ctx)
-
-        brains = BrainSystem(ctx: ctx)
-        heroMovement = HeroMovementSystem(ctx: ctx)
+        vision = VisionSystem(ctx: ctx)
+        weapons = WeaponSystem(ctx: ctx, damage: damage)
+        grenades = GrenadeSystem(ctx: ctx, damage: damage)
+        melee = MeleeSystem(ctx: ctx, damage: damage)
         movement = MovementSystem(ctx: ctx)
-        collision = CollisionSystem(ctx: ctx)
-        statusEffects = StatusEffectSystem(ctx: ctx)
-        health = HealthSystem(ctx: ctx)
-        autoAttack = AutoAttackSystem(ctx: ctx)
-        projectiles = ProjectileSystem(ctx: ctx)
-        death = DeathSystem(ctx: ctx)
-        spawner = SpawnSystem(ctx: ctx)
-        camps = NeutralCampSystem(ctx: ctx)
-        structures = StructureSystem(ctx: ctx)
-        winCondition = WinConditionSystem(ctx: ctx)
-        score = ScoreSystem(ctx: ctx)
+        status = StatusSystem(ctx: ctx)
+        respawns = RespawnSystem(ctx: ctx)
+        match = MatchSystem(ctx: ctx)
 
-        MatchSetup.buildStructures(ctx: ctx)
-        player = MatchSetup.makePlayer(ctx: ctx)
-        heroAIs = MatchSetup.makeAIHeroes(ctx: ctx)
-        world.rebuildNavigation()
-        bus.subscribe { [unowned world] event in
-            if case .structureDestroyed = event { world.rebuildNavigation() }
+        BattleSetup.populate(world)
+        guard let player = world.player else { fatalError("Battle has no player") }
+        self.player = player
+        let services = BotServices(vision: vision, weapons: weapons, grenades: grenades, melee: melee)
+        for team in Team.playable {
+            let teamBots = world.soldiers(of: team).filter { !$0.isPlayer }
+            for (slot, soldier) in teamBots.enumerated() {
+                let route = BattleSetup.routeIndex(for: slot, of: teamBots.count)
+                bots.append(SoldierAI(soldier: soldier, ctx: ctx, services: services, routeIndex: route))
+            }
         }
-        world.grid.rebuild(with: world.entities)
-        ctx.vision.recompute()
+        bus.subscribe { [unowned self] event in
+            if case .soldierRespawned(let id) = event {
+                self.bots.first(where: { $0.soldier.id == id })?.onRespawn()
+            }
+        }
+    }
+
+    /// The soldier whose eyes the player sees through (themselves, or a teammate when eliminated).
+    var viewer: Soldier? {
+        if player.isAlive { return player }
+        return world.soldiers(of: player.team).first { $0.isAlive }
     }
 
     func update(dt: CGFloat) {
         guard world.winner == nil, dt > 0 else { return }
         world.time += dt
-        world.grid.rebuild(with: world.entities)
-
-        for ai in heroAIs { ai.update(dt: dt) }
-        brains.update(dt: dt)
-        ctx.abilities.update(dt: dt)
-        heroMovement.update(dt: dt)
-        statusEffects.update(dt: dt)
+        for bot in bots { bot.update(dt: dt) }
+        status.update(dt: dt)
         movement.update(dt: dt)
-        collision.update()
-        world.grid.rebuild(with: world.entities)
-
-        autoAttack.update(dt: dt)
-        ctx.combat.update(dt: dt)
-        projectiles.update(dt: dt)
-        ctx.strikes.update(dt: dt)
-        ctx.zones.update(dt: dt)
-        health.update(dt: dt)
-        ctx.recall.update(dt: dt)
-        ctx.summons.update(dt: dt)
-
-        spawner.update(dt: dt)
-        camps.update(dt: dt)
-        ctx.objectives.update(dt: dt)
-        structures.update()
-        ctx.economy.update(dt: dt)
-        ctx.commandPoints.update(dt: dt)
-        ctx.vision.update(dt: dt)
-        death.update(dt: dt)
+        weapons.update(dt: dt)
+        melee.update(dt: dt)
+        grenades.update(dt: dt)
+        respawns.update(dt: dt)
+        vision.update(dt: dt, viewer: viewer)
+        match.update()
         world.purge()
-    }
-
-    func aiState(for hero: Hero) -> HeroAIStateKind? {
-        heroAIs.first { $0.hero === hero }?.stateKind
     }
 }

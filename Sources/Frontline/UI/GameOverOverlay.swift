@@ -12,7 +12,7 @@ final class GameOverOverlay {
     init() {
         root.isHidden = true
         root.addChild(UIStyle.rect(size: CGSize(width: 6000, height: 6000), color: SKColor(white: 0, alpha: 0.6)))
-        root.addChild(UIStyle.panel(size: CGSize(width: 520, height: 300)))
+        root.addChild(UIStyle.panel(size: CGSize(width: 540, height: 300)))
         title.position = CGPoint(x: 0, y: 90)
         summary.position = CGPoint(x: 0, y: 30)
         root.addChild(title)
@@ -29,11 +29,11 @@ final class GameOverOverlay {
 
     var isVisible: Bool { !root.isHidden }
 
-    func show(victory: Bool, player: Hero, time: CGFloat) {
+    func show(victory: Bool, player: Soldier, time: CGFloat, survivors: Int) {
         root.isHidden = false
         title.text = victory ? "VICTORY" : "DEFEAT"
         title.fontColor = victory ? Palette.heal : Palette.warning
-        summary.text = "Time \(UIStyle.formatTime(time))  ·  K/D/A \(player.kills)/\(player.deaths)/\(player.assists)"
-            + "  ·  Level \(player.level)"
+        summary.text = "Time \(UIStyle.formatTime(time))  ·  Your kills \(player.kills)  ·  Deaths \(player.deaths)"
+            + "  ·  Survivors \(survivors)"
     }
 }
