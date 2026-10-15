@@ -35,7 +35,7 @@ final class AIShopper {
         while stepIndex < build.purchases.count {
             let step = build.purchases[stepIndex]
             if isDone(step) { stepIndex += 1; continue }
-            guard let cost = cost(of: step), hero.gold >= cost else { break }
+            guard let price = cost(of: step), hero.gold >= price else { break }
             _ = perform(step)
             stepIndex += 1
         }
