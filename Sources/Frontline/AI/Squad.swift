@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum SquadStance {
-    /// Moving along the attack route in formation.
+    /// Moving in formation to the squad's control zone (then holding it).
     case advance
     /// Winning the fight: close in on the enemy.
     case push
@@ -19,17 +19,19 @@ final class Squad {
     let id: Int
     let team: Team
     private(set) var members: [SoldierAI] = []
-    var route: [CGPoint]
-    var routeIndex = 0
+    /// Control zone the squad is taking or defending.
+    var objective: ControlZone?
+    /// Squad role inside its team: 1 = defends the home zone, others attack.
+    var role: Int
     var stance: SquadStance = .advance
     var contactPoint: CGPoint?
     var contactTime: CGFloat = -100
     var supportPoint: CGPoint?
 
-    init(id: Int, team: Team, route: [CGPoint]) {
+    init(id: Int, team: Team, role: Int) {
         self.id = id
         self.team = team
-        self.route = route
+        self.role = role
     }
 
     func add(_ member: SoldierAI) {
@@ -84,6 +86,14 @@ final class Squad {
     /// Cover spots already taken by squad mates.
     func coverSpots(excluding member: SoldierAI) -> [CGPoint] {
         alive.filter { $0 !== member }.compactMap { $0.cover?.position }
+    }
+
+    /// A spot inside the objective zone, spread out per member so the squad covers the area.
+    func zoneSpot(for member: SoldierAI) -> CGPoint? {
+        guard let zone = objective, let index = alive.firstIndex(where: { $0 === member }) else { return nil }
+        let count = Swift.max(1, alive.count)
+        let angle = CGFloat(index) / CGFloat(count) * 2 * .pi + CGFloat(id)
+        return zone.center + CGPoint(angle: angle) * (zone.radius * 0.55)
     }
 
     /// Formation slot behind the leader: two columns, staggered rows.

@@ -29,11 +29,21 @@ final class GameOverOverlay {
 
     var isVisible: Bool { !root.isHidden }
 
-    func show(victory: Bool, player: Soldier, time: CGFloat, survivors: Int) {
+    /// victory nil = draw.
+    func show(victory: Bool?, player: Soldier, time: CGFloat, score: String) {
         root.isHidden = false
-        title.text = victory ? "VICTORY" : "DEFEAT"
-        title.fontColor = victory ? Palette.heal : Palette.warning
-        summary.text = "Time \(UIStyle.formatTime(time))  ·  Your kills \(player.kills)  ·  Deaths \(player.deaths)"
-            + "  ·  Survivors \(survivors)"
+        switch victory {
+        case .some(true):
+            title.text = "VICTORY"
+            title.fontColor = Palette.heal
+        case .some(false):
+            title.text = "DEFEAT"
+            title.fontColor = Palette.warning
+        case .none:
+            title.text = "DRAW"
+            title.fontColor = UIStyle.accent
+        }
+        summary.text = "Score \(score)  ·  Time \(UIStyle.formatTime(time))  ·  Kills \(player.kills)"
+            + "  ·  Deaths \(player.deaths)"
     }
 }

@@ -10,6 +10,9 @@ enum GameEvent {
     case grenadeThrown(soldierId: Int, type: GrenadeType)
     case grenadeExploded(type: GrenadeType, position: CGPoint, radius: CGFloat)
     case knifeSwing(soldierId: Int, position: CGPoint, angle: CGFloat, hit: Bool)
+    case zoneCaptured(name: String, team: Team)
+    case suddenDeath
     case announcement(text: String)
-    case matchOver(winner: Team)
+    /// nil winner = draw.
+    case matchOver(winner: Team?)
 }

@@ -1,12 +1,13 @@
 import CoreGraphics
 
 /// Team-level coordination: builds squads, decides push / hold / retreat, sends idle squads to
-/// support nearby fights, advances squads along their routes and merges decimated squads.
+/// support nearby fights, sends squads to take and defend control zones and merges decimated squads.
 @MainActor
 final class SquadCoordinator {
     unowned let ctx: BattleContext
     private(set) var squads: [Squad] = []
     private var timer: CGFloat = 0
+    private var objectiveTimer: CGFloat = 0
 
     init(ctx: BattleContext, bots: [SoldierAI]) {
         self.ctx = ctx
@@ -15,8 +16,7 @@ final class SquadCoordinator {
             let teamBots = bots.filter { $0.soldier.team == team }
             let count = Int((CGFloat(teamBots.count) / CGFloat(AIConfig.squadSize)).rounded(.up))
             for squadIndex in 0..<count {
-                let route = ctx.world.map.route(BattleSetup.routeIndex(for: squadIndex, of: count), for: team)
-                let squad = Squad(id: nextId, team: team, route: route)
+                let squad = Squad(id: nextId, team: team, role: squadIndex)
                 nextId += 1
                 let start = squadIndex * AIConfig.squadSize
                 let end = Swift.min(start + AIConfig.squadSize, teamBots.count)
@@ -31,9 +31,17 @@ final class SquadCoordinator {
         guard timer <= 0 else { return }
         timer = AIConfig.squadUpdateInterval
         mergeWeakSquads()
+        objectiveTimer -= AIConfig.squadUpdateInterval
+        if objectiveTimer <= 0 {
+            objectiveTimer = AIConfig.objectiveInterval
+            // Re-number roles from the surviving squads so merges never leave a team without a defender.
+            for team in Team.playable {
+                for (index, squad) in squads.filter({ $0.team == team }).enumerated() { squad.role = index }
+            }
+            for squad in squads { assignObjective(squad) }
+        }
         for squad in squads where !squad.members.isEmpty {
             decideStance(squad)
-            if squad.stance == .advance { progressRoute(squad) }
         }
         assignSupport()
     }
@@ -69,18 +77,40 @@ final class SquadCoordinator {
         }.count
     }
 
-    private func progressRoute(_ squad: Squad) {
-        guard let leader = squad.leader, !squad.route.isEmpty, squad.isGathered else { return }
-        let waypoint = squad.route[squad.routeIndex]
-        guard leader.soldier.position.distance(to: waypoint) < 90 else { return }
-        if squad.routeIndex < squad.route.count - 1 {
-            squad.routeIndex += 1
-        } else {
-            // Reached the far side: sweep back along another route.
-            let next = Int.random(in: 0..<ctx.world.map.routeCount)
-            squad.route = ctx.world.map.route(next, for: squad.team).reversed()
-            squad.routeIndex = 0
+    /// Zones: home (near own spawn), middle, enemy (near enemy spawn).
+    private func zones(for team: Team) -> (home: ControlZone, middle: ControlZone, enemy: ControlZone) {
+        let all = ctx.world.zones
+        return team == .blue ? (all[0], all[1], all[2]) : (all[2], all[1], all[0])
+    }
+
+    /// Defenders guard the home zone (retaking it if lost); attackers go for the middle first,
+    /// then for whatever zone the team does not own yet, nearest first.
+    private func assignObjective(_ squad: Squad) {
+        let set = zones(for: squad.team)
+        if squad.role == 1 {
+            squad.objective = set.home
+            return
         }
+        let homeLost = set.home.owner != squad.team && set.home.owner != nil
+        if homeLost && squad.role == 2 {
+            squad.objective = set.home
+            return
+        }
+        if let current = squad.objective, current.owner != squad.team { return }
+        let origin = squad.centroid ?? set.home.center
+        let candidates = [set.middle, set.enemy, set.home].filter { $0.owner != squad.team }
+        if let target = candidates.min(by: { score($0, origin, squad.team) < score($1, origin, squad.team) }) {
+            squad.objective = target
+        } else {
+            // Everything is ours: push toward the enemy zone and hold it.
+            squad.objective = squad.role % 2 == 0 ? set.enemy : set.middle
+        }
+    }
+
+    /// Lower is better: distance, with the middle zone preferred.
+    private func score(_ zone: ControlZone, _ origin: CGPoint, _ team: Team) -> CGFloat {
+        let bonus: CGFloat = zone === zones(for: team).middle ? -400 : 0
+        return zone.center.distance(to: origin) + bonus
     }
 
     /// Idle squads move toward the nearest fight of their team.

@@ -55,3 +55,11 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - WASD + mouse aim, left-click to shoot, R reload, 1/2/Q weapons, G grenade.
 - Walls block movement, bullets and sight; enemies are only drawn while in the viewer's line of sight.
 - Single "medium-hard" bot difficulty. The shop and the MOBA systems were removed (still in git history).
+
+## Revision 4: control zones and time limit
+- Asymmetry: `MapConfig.irregularBarriers` adds unmirrored cover (wrecked cars, sandbag walls) to each half.
+- `Data/ZoneConfig` holds three zones: A (blue side), B (middle) and C (red side). `Entities/ControlZone` + `Systems/ZoneSystem` handle capture progress (-1 red … +1 blue), contesting, ownership and 1 point per second per held zone.
+- `Systems/MatchSystem` runs a 5-minute timer. After it, the higher score wins; a tie starts sudden death (all respawns removed, no scoring). An elimination wins at any time; a simultaneous wipe is a draw (`MatchResult.draw`, `matchOver(winner: nil)`).
+- AI: squads get a zone objective from `SquadCoordinator` (one home defender, attackers go middle → enemy, retake home if lost) and spread out inside the zone.
+- Rendering/UI: `ZoneRenderer` (owner ring, capture arc, letter), zone markers on the minimap, scoreboard with points, countdown / SUDDEN DEATH and zone ownership; game-over screen shows VICTORY / DEFEAT / DRAW with the score.
+

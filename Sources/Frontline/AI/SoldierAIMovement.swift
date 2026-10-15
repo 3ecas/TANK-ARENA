@@ -25,11 +25,18 @@ extension SoldierAI {
     private func squadGoal(_ squad: Squad) -> CGPoint? {
         switch squad.stance {
         case .advance:
+            guard let zone = squad.objective else { return nil }
+            let nav = ctx.world.nav
+            let leaderPosition = squad.leader?.soldier.position ?? soldier.position
+            // Near the zone: spread out inside it to capture and hold.
+            if leaderPosition.distance(to: zone.center) < zone.radius * 1.6 {
+                return squad.zoneSpot(for: self).map { nav.nearestWalkable($0) }
+            }
             if squad.leader === self {
                 // The leader waits for stragglers before moving on.
-                return squad.isGathered ? squad.route[squad.routeIndex] : nil
+                return squad.isGathered ? nav.nearestWalkable(zone.center) : nil
             }
-            return squad.formationPosition(for: self).map { ctx.world.nav.nearestWalkable($0) }
+            return squad.formationPosition(for: self).map { nav.nearestWalkable($0) }
         case .support:
             return squad.supportPoint.map { approach($0, distance: AIConfig.holdDistance, squad: squad) }
         case .push:

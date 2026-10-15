@@ -52,7 +52,16 @@ Press **Play** in the main menu.
 - Two teams of **25**: you plus 24 blue bots against 25 red bots. Each team has its own spawn (blue on the left, red on the right).
 - Every soldier has **100 HP**, a **primary weapon** (Assault Rifle, SMG or Shotgun, assigned randomly), a **pistol**, **one grenade** (Frag, Flashbang or Stun, random) and a **knife**. No abilities, and the shop is disabled for now.
 - Every soldier gets **one respawn**: after the first death you come back at your spawn after 5 s with a fresh loadout. The second death is final.
-- A team loses when nobody on it is alive and nobody is left to respawn. The other team wins.
+- **Control zones:** three capture circles — **A** near the blue spawn, **B** contested in the middle, **C** near the red spawn.
+  Stand in a zone with no enemies inside to capture it (~3 s for a neutral zone, longer to flip an enemy one; more
+  soldiers capture faster; enemies inside contest it). A zone stays yours until the enemy takes it.
+  **Each zone you hold gives your team 1 point per second.**
+- **5-minute match.** When time runs out, the team with more points wins. On a tie it goes to **sudden death**:
+  nobody respawns any more and the fight goes on until one team is wiped out.
+- At any time, a team loses when nobody on it is alive and nobody is left to respawn. If the last soldiers of both
+  teams die at the same moment, it is a **draw**.
+- The map is mostly mirrored, but each half has its own wrecked cars, sandbag walls and barricades, so the two
+  sides play differently.
 - Walls and crates block movement, bullets, grenade blasts and line of sight.
 - **Field of view:** you only see a ~110° cone in front of your soldier, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have a similar cone (~150°), so you can flank them.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
@@ -60,6 +69,8 @@ Press **Play** in the main menu.
   - they move in formation behind a squad leader, who waits for stragglers;
   - they share enemy sightings with their squad;
   - each squad weighs its numbers and health against the enemy, then **pushes**, **holds** or **falls back a bit**;
+  - one squad per team defends its home zone; the others go for the middle and then the enemy zone, and go back
+    to retake their home zone if it is lost;
   - idle squads move in to **support** a nearby fight, and squads down to one or two soldiers **merge** into another squad;
   - in a firefight bots take **cover behind crates and walls**, peek out to shoot and duck back to reload. Wounded bots look for cover further back;
   - they also throw grenades, knife up close and strafe when there is no cover.

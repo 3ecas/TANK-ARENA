@@ -16,6 +16,7 @@ enum ArenaPainter {
             ctx.fill(CGRect(origin: .zero, size: size))
             drawStreetMarkings(ctx, size: size)
             for team in Team.playable { drawSpawn(ctx, zone: map.spawnZone(team), team: team) }
+            for zone in ZoneConfig.zones { drawZonePad(ctx, center: zone.center) }
             for obstacle in map.obstacles where obstacle.kind == .building {
                 ctx.fillRoundedRect(obstacle.rect.insetBy(dx: -12, dy: -12), radius: 6, Palette.rgb(0.42, 0.42, 0.41))
             }
@@ -23,6 +24,7 @@ enum ArenaPainter {
                 switch obstacle.kind {
                 case .building: drawBuilding(ctx, rect: obstacle.rect, style: index)
                 case .crate: drawCrate(ctx, rect: obstacle.rect)
+                case .barrier: drawBarrier(ctx, rect: obstacle.rect, style: index)
                 }
             }
             ctx.strokeRoundedRect(CGRect(origin: .zero, size: size).insetBy(dx: 4, dy: 4), radius: 4,
@@ -90,5 +92,37 @@ enum ArenaPainter {
                        Palette.rgb(0.35, 0.25, 0.12), width: 3)
         ctx.strokeLine(CGPoint(x: rect.minX + 3, y: rect.maxY - 3), CGPoint(x: rect.maxX - 3, y: rect.minY + 3),
                        Palette.rgb(0.35, 0.25, 0.12), width: 3)
+    }
+
+    /// Painted capture circle under each control zone (the live ownership ring is drawn by ZoneRenderer).
+    private static func drawZonePad(_ ctx: CGContext, center: CGPoint) {
+        ctx.fillCircle(center, ZoneConfig.radius, Palette.rgb(0.3, 0.31, 0.3))
+        ctx.setLineDash(phase: 0, lengths: [18, 14])
+        ctx.strokeCircle(center, ZoneConfig.radius - 6, Palette.rgb(0.85, 0.85, 0.8, 0.45), width: 4)
+        ctx.setLineDash(phase: 0, lengths: [])
+    }
+
+    /// Irregular cover: wrecked cars (even) and sandbag walls (odd).
+    private static func drawBarrier(_ ctx: CGContext, rect: CGRect, style: Int) {
+        ctx.fillRoundedRect(rect.offsetBy(dx: 5, dy: -5), radius: 4, Palette.rgb(0, 0, 0, 0.4))
+        if style % 2 == 0 {
+            let body = Palette.rgb(0.32 + CGFloat(style % 3) * 0.08, 0.2, 0.18)
+            ctx.fillRoundedRect(rect, radius: 6, body)
+            ctx.strokeRoundedRect(rect, radius: 6, Palette.rgb(0.12, 0.1, 0.1), width: 3)
+            ctx.fillRoundedRect(rect.insetBy(dx: rect.width * 0.22, dy: rect.height * 0.22), radius: 3,
+                                Palette.rgb(0.15, 0.18, 0.22))
+        } else {
+            ctx.fillRoundedRect(rect, radius: 5, Palette.sandbag)
+            ctx.strokeRoundedRect(rect, radius: 5, Palette.rgb(0.45, 0.38, 0.24), width: 3)
+            let horizontal = rect.width >= rect.height
+            let length = horizontal ? rect.width : rect.height
+            var offset: CGFloat = 16
+            while offset < length - 6 {
+                let a = horizontal ? CGPoint(x: rect.minX + offset, y: rect.minY + 3) : CGPoint(x: rect.minX + 3, y: rect.minY + offset)
+                let b = horizontal ? CGPoint(x: rect.minX + offset, y: rect.maxY - 3) : CGPoint(x: rect.maxX - 3, y: rect.minY + offset)
+                ctx.strokeLine(a, b, Palette.rgb(0.5, 0.43, 0.28), width: 2)
+                offset += 16
+            }
+        }
     }
 }

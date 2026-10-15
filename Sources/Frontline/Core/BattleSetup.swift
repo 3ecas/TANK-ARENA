@@ -15,15 +15,4 @@ enum BattleSetup {
             }
         }
     }
-
-    /// Spreads bots over the attack routes according to the configured weights.
-    static func routeIndex(for slot: Int, of count: Int) -> Int {
-        let fraction = (CGFloat(slot) + 0.5) / CGFloat(Swift.max(count, 1))
-        var cumulative: CGFloat = 0
-        for (index, weight) in MapConfig.routeWeights.enumerated() {
-            cumulative += weight
-            if fraction < cumulative { return index }
-        }
-        return 0
-    }
 }

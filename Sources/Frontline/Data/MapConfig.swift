@@ -35,22 +35,22 @@ enum MapConfig {
         CGRect(x: 1200, y: 690, width: 50, height: 50),
     ]
 
-    /// Attack routes for the blue team, from spawn toward the red spawn (red uses the mirror).
-    static let blueRoutes: [[CGPoint]] = [
-        [CGPoint(x: 280, y: 900), CGPoint(x: 800, y: 900), CGPoint(x: 1400, y: 980),
-         CGPoint(x: 2000, y: 900), CGPoint(x: 2620, y: 900)],
-        [CGPoint(x: 280, y: 1430), CGPoint(x: 800, y: 1440), CGPoint(x: 1400, y: 1455),
-         CGPoint(x: 2000, y: 1440), CGPoint(x: 2520, y: 1430), CGPoint(x: 2640, y: 1000)],
-        [CGPoint(x: 280, y: 370), CGPoint(x: 800, y: 360), CGPoint(x: 1400, y: 345),
-         CGPoint(x: 2000, y: 360), CGPoint(x: 2520, y: 370), CGPoint(x: 2640, y: 800)],
-        [CGPoint(x: 200, y: 1200), CGPoint(x: 280, y: 1760), CGPoint(x: 1400, y: 1760),
-         CGPoint(x: 2520, y: 1760), CGPoint(x: 2640, y: 1150)],
-        [CGPoint(x: 200, y: 600), CGPoint(x: 280, y: 40), CGPoint(x: 1400, y: 40),
-         CGPoint(x: 2520, y: 40), CGPoint(x: 2640, y: 650)],
+    /// Extra cover that is NOT mirrored, so the two halves are not identical:
+    /// wrecked cars, a bus, sandbag walls and barricades (x, y, width, height).
+    static let irregularBarriers: [CGRect] = [
+        // Blue half
+        CGRect(x: 900, y: 1060, width: 70, height: 36),
+        CGRect(x: 420, y: 790, width: 20, height: 90),
+        CGRect(x: 120, y: 300, width: 120, height: 30),
+        CGRect(x: 1170, y: 560, width: 60, height: 30),
+        // Red half
+        CGRect(x: 1700, y: 960, width: 26, height: 120),
+        CGRect(x: 1700, y: 1060, width: 90, height: 26),
+        CGRect(x: 2250, y: 1000, width: 130, height: 40),
+        CGRect(x: 2600, y: 1350, width: 50, height: 120),
+        CGRect(x: 1560, y: 1150, width: 60, height: 60),
+        CGRect(x: 2380, y: 520, width: 40, height: 80),
     ]
-
-    /// Share of bots taking each route (main street, north alley, south alley, north edge, south edge).
-    static let routeWeights: [CGFloat] = [0.36, 0.24, 0.24, 0.08, 0.08]
 
     static func mirror(_ p: CGPoint) -> CGPoint {
         CGPoint(x: size.width - p.x, y: size.height - p.y)

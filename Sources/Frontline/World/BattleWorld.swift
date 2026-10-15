@@ -8,14 +8,26 @@ final class BattleWorld {
     private(set) var soldiers: [Soldier] = []
     private var byId: [Int: Soldier] = [:]
     var grenades: [Grenade] = []
+    let zones: [ControlZone]
     var time: CGFloat = 0
-    var winner: Team?
+    /// Seconds left in regular time.
+    var timeRemaining: CGFloat = ZoneConfig.matchDuration
+    var suddenDeath = false
+    /// Points from holding zones.
+    var scores: [Team: CGFloat] = [.blue: 0, .red: 0]
+    /// Set when the battle is over.
+    var result: MatchResult?
     private var nextId = 1
 
     init() {
         var grid = NavGrid(size: MapConfig.size, cellSize: GameConfig.navCellSize)
         grid.rebuild(rects: ArenaMap().obstacles.map { $0.rect }, padding: GameConfig.navPadding)
         nav = grid
+        zones = ZoneConfig.zones.map { ControlZone(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
+    }
+
+    func score(_ team: Team) -> Int {
+        Int(scores[team] ?? 0)
     }
 
     var player: Soldier? { soldiers.first { $0.isPlayer } }

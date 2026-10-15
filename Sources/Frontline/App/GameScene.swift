@@ -104,11 +104,15 @@ final class GameScene: SKScene {
             }
         case .announcement(let text):
             hud.banner.announce(text, color: UIStyle.accent)
+        case .zoneCaptured(let name, let team):
+            let ours = team == session.player.team
+            hud.banner.announce(ours ? "Zone \(name) captured" : "Zone \(name) lost",
+                                color: ours ? Palette.team(team) : Palette.warning)
         case .matchOver(let winner):
             gameEnded = true
             hud.pauseMenu.isVisible = false
-            hud.gameOver.show(victory: winner == session.player.team, player: session.player, time: world.time,
-                              survivors: world.aliveCount(winner))
+            hud.gameOver.show(victory: winner.map { $0 == session.player.team }, player: session.player,
+                              time: world.time, score: "\(world.score(.blue)) – \(world.score(.red))")
         default:
             break
         }

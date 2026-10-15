@@ -26,6 +26,8 @@ enum AIConfig {
 
     // MARK: Squads & cover
 
+    /// Seconds between control-zone objective reviews.
+    static let objectiveInterval: CGFloat = 4
     static let squadSize = 5
     /// Squads with this many (or fewer) living members merge into the nearest squad.
     static let mergeThreshold = 2

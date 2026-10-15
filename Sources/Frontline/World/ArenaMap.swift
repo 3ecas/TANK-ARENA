@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum ObstacleKind {
-    case building, crate
+    case building, crate, barrier
 }
 
 struct Obstacle {
@@ -9,7 +9,7 @@ struct Obstacle {
     let kind: ObstacleKind
 }
 
-/// Static geometry of the arena: obstacles (solid to movement, bullets and sight), spawns and routes.
+/// Static geometry of the arena: obstacles (solid to movement, bullets and sight), spawns and irregular barriers.
 struct ArenaMap {
     let size: CGSize
     let bounds: CGRect
@@ -27,19 +27,14 @@ struct ArenaMap {
             list.append(Obstacle(rect: rect, kind: .crate))
             list.append(Obstacle(rect: MapConfig.mirror(rect), kind: .crate))
         }
+        for rect in MapConfig.irregularBarriers {
+            list.append(Obstacle(rect: rect, kind: .barrier))
+        }
         obstacles = list
     }
 
     func spawnZone(_ team: Team) -> CGRect {
         team == .red ? MapConfig.mirror(MapConfig.blueSpawn) : MapConfig.blueSpawn
-    }
-
-    var routeCount: Int { MapConfig.blueRoutes.count }
-
-    /// Waypoints of attack route `index` for `team`.
-    func route(_ index: Int, for team: Team) -> [CGPoint] {
-        let route = MapConfig.blueRoutes[index % MapConfig.blueRoutes.count]
-        return team == .red ? route.map { MapConfig.mirror($0) } : route
     }
 
     func isInsideObstacle(_ p: CGPoint, padding: CGFloat = 0) -> Bool {

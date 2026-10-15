@@ -11,6 +11,7 @@ final class WorldRenderer {
     private let unitLayer: SKNode
     private let grenadeLayer: SKNode
     private let effectLayer: SKNode
+    private let zoneRenderer: ZoneRenderer
     private var views: [Int: SoldierView] = [:]
     private var grenadeSprites: [Int: SKSpriteNode] = [:]
 
@@ -22,6 +23,7 @@ final class WorldRenderer {
         grenadeLayer = grenade
         effectLayer = effect
         effects = EffectsRenderer(session: session, effectLayer: effect, decalLayer: decal)
+        zoneRenderer = ZoneRenderer(zones: session.world.zones)
         buildTree()
     }
 
@@ -31,6 +33,8 @@ final class WorldRenderer {
         ground.anchorPoint = .zero
         ground.zPosition = 0
         root.addChild(ground)
+        zoneRenderer.root.zPosition = 0.5
+        root.addChild(zoneRenderer.root)
         let layers: [(SKNode, CGFloat)] = [(decalLayer, 1), (unitLayer, 10), (grenadeLayer, 15), (effectLayer, 20)]
         for (layer, z) in layers {
             layer.zPosition = z
@@ -39,6 +43,7 @@ final class WorldRenderer {
     }
 
     func update(dt: CGFloat) {
+        zoneRenderer.update(dt: dt)
         syncSoldiers()
         syncGrenades()
         effects.update(dt: dt)

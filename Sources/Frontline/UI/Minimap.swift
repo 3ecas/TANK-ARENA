@@ -11,6 +11,7 @@ final class Minimap {
     private let dotLayer = SKNode()
     private var dots: [SKSpriteNode] = []
     private let cameraFrame: SKShapeNode
+    private var zoneMarkers: [SKShapeNode] = []
     private var frameSize: CGSize = .zero
 
     init(session: GameSession) {
@@ -25,7 +26,17 @@ final class Minimap {
         cameraFrame = SKShapeNode(rectOf: CGSize(width: 10, height: 10))
         cameraFrame.strokeColor = SKColor(white: 1, alpha: 0.8)
         cameraFrame.lineWidth = 1
+        dotLayer.zPosition = 1
+        cameraFrame.zPosition = 2
         for node in [border, terrain, dotLayer, cameraFrame] as [SKNode] { root.addChild(node) }
+        for zone in session.world.zones {
+            let marker = SKShapeNode(circleOfRadius: zone.radius * scale)
+            marker.lineWidth = 2
+            marker.position = CGPoint(x: zone.center.x * scale - size.width / 2, y: zone.center.y * scale - size.height / 2)
+            marker.zPosition = 0.5
+            root.addChild(marker)
+            zoneMarkers.append(marker)
+        }
     }
 
     var mapSize: CGSize { size }
@@ -50,6 +61,11 @@ final class Minimap {
             node.position = toMinimap(soldier.position)
         }
         for i in used..<dots.count { dots[i].isHidden = true }
+        for (marker, zone) in zip(zoneMarkers, session.world.zones) {
+            let color = zone.owner.map { Palette.team($0) } ?? SKColor(white: 0.9, alpha: 1)
+            marker.strokeColor = color
+            marker.fillColor = color.withAlphaComponent(0.25)
+        }
         let frame = CGSize(width: cameraRect.width * scale, height: cameraRect.height * scale)
         if frame != frameSize {
             frameSize = frame
