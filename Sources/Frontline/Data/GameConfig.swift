@@ -13,7 +13,15 @@ enum GameConfig {
     static let walkSpeed: CGFloat = 118
     /// How far a soldier can see (line of sight is still required).
     static let visionRange: CGFloat = 1050
-    static let visionUpdateInterval: CGFloat = 0.1
+    /// Field of view (full angle, radians): the player sees ~110 degrees in front, bots a bit wider.
+    static let playerFieldOfView: CGFloat = 1.92
+    static let botFieldOfView: CGFloat = 2.6
+    /// Everyone notices enemies this close, even behind them.
+    static let peripheralRadius: CGFloat = 70
+    /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.
+    static let fogAlpha: CGFloat = 0.82
+    static let fogRayCount = 200
+    static let fogResolution: CGFloat = 0.25
     /// Shots are less accurate while moving.
     static let movingSpreadMultiplier: CGFloat = 1.8
     static let weaponSwitchTime: CGFloat = 0.35

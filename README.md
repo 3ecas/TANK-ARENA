@@ -53,7 +53,8 @@ Press **Play** in the main menu.
 - Every soldier has **100 HP**, a **primary weapon** (Assault Rifle, SMG or Shotgun, assigned randomly), a **pistol**, **one grenade** (Frag, Flashbang or Stun, random) and a **knife**. No abilities, and the shop is disabled for now.
 - Every soldier gets **one respawn**: after the first death you come back at your spawn after 5 s with a fresh loadout. The second death is final.
 - A team loses when nobody on it is alive and nobody is left to respawn. The other team wins.
-- Walls and crates block movement, bullets, grenade blasts and line of sight. You only see enemies your soldier has a clear line of sight to.
+- Walls and crates block movement, bullets, grenade blasts and line of sight.
+- **Field of view:** you only see a ~110° cone in front of your soldier, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have a similar cone (~150°), so you can flank them.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
 - Bots are tuned "medium-hard": quick reactions and decent aim. They strafe, reload, throw grenades, knife up close and hunt you after losing sight of you.
 

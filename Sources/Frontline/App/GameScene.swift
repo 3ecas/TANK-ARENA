@@ -10,6 +10,7 @@ final class GameScene: SKScene {
     let cameraController: CameraController
     let playerController: PlayerController
     let audio: AudioDirector
+    let fog = FogOfWarRenderer()
     var clock = GameClock()
     var gamePaused = false
     var gameEnded = false
@@ -40,6 +41,7 @@ final class GameScene: SKScene {
         addChild(worldRenderer.root)
         addChild(cameraController.node)
         camera = cameraController.node
+        cameraController.node.addChild(fog.node)
         cameraController.node.addChild(hud.root)
         let router = self.router
         playerController.onMessage = { [unowned self] message in self.showError(message) }
@@ -78,6 +80,8 @@ final class GameScene: SKScene {
         if running { session.update(dt: dt) }
         cameraController.update(dt: dt, follow: session.viewer?.position)
         worldRenderer.update(dt: running ? dt : 0)
+        fog.update(viewer: session.viewer, cameraCenter: cameraController.node.position, viewSize: size,
+                   map: session.world.map)
         let mouseScreen = hud.root.convert(mouseScene, from: self)
         hud.update(dt: dt, cameraRect: cameraController.visibleRect, mouseScreen: mouseScreen, renderer: worldRenderer)
         router.input.endFrame()

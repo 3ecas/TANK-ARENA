@@ -6,16 +6,13 @@ final class VisionSystem {
     unowned let ctx: BattleContext
     /// Enemy ids currently visible from the viewer (the player, or the soldier being spectated).
     private(set) var visibleToViewer = Set<Int>()
-    private var timer: CGFloat = 0
 
     init(ctx: BattleContext) {
         self.ctx = ctx
     }
 
+    /// Recomputed every frame so the view cone follows the mouse smoothly.
     func update(dt: CGFloat, viewer: Soldier?) {
-        timer -= dt
-        guard timer <= 0 else { return }
-        timer = GameConfig.visionUpdateInterval
         var visible = Set<Int>()
         if let viewer = viewer, viewer.isAlive {
             for enemy in ctx.world.soldiers where enemy.isAlive && enemy.team != viewer.team && canSee(viewer, enemy) {
@@ -25,10 +22,21 @@ final class VisionSystem {
         visibleToViewer = visible
     }
 
+    /// Line of sight inside the viewer's field of view (or very close by).
     func canSee(_ viewer: Soldier, _ target: Soldier) -> Bool {
         guard !viewer.isBlind else { return false }
-        return viewer.position.distance(to: target.position) <= GameConfig.visionRange
-            && ctx.world.map.hasLineOfSight(viewer.position, target.position)
+        let delta = target.position - viewer.position
+        let distance = delta.length
+        guard distance <= GameConfig.visionRange else { return false }
+        if distance > GameConfig.peripheralRadius + target.radius {
+            let halfFov = VisionSystem.fieldOfView(for: viewer) / 2
+            guard abs(Angle.normalize(delta.angle - viewer.facing)) <= halfFov else { return false }
+        }
+        return ctx.world.map.hasLineOfSight(viewer.position, target.position)
+    }
+
+    static func fieldOfView(for soldier: Soldier) -> CGFloat {
+        soldier.isPlayer ? GameConfig.playerFieldOfView : GameConfig.botFieldOfView
     }
 
     /// The closest enemy `viewer` can see, or nil.
@@ -38,7 +46,7 @@ final class VisionSystem {
             .filter { $0.isAlive && $0.team != viewer.team
                 && $0.position.distance(to: viewer.position) <= GameConfig.visionRange }
             .sorted { $0.position.distance(to: viewer.position) < $1.position.distance(to: viewer.position) }
-        for enemy in candidates.prefix(6) where ctx.world.map.hasLineOfSight(viewer.position, enemy.position) {
+        for enemy in candidates.prefix(8) where canSee(viewer, enemy) {
             return enemy
         }
         return nil
