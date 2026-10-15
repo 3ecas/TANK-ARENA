@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Smoke cloud: friendly units inside are hidden from the enemy team.
+@MainActor
 struct SmokeGrenadeAbility: Ability {
     let id = AbilityID.smokeGrenade
 

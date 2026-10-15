@@ -1,6 +1,7 @@
 import SpriteKit
 
 /// Colours used by the renderer and UI.
+@MainActor
 enum Palette {
     static func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
         CGColor(red: r, green: g, blue: b, alpha: a)

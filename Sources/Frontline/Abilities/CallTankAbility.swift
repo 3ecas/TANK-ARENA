@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Ultimate: an AI tank is dropped in and pushes the nearest lane.
+@MainActor
 struct CallTankAbility: Ability {
     let id = AbilityID.callTank
 

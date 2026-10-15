@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Electromagnetic pulse: disables vehicles and turrets, slows soldiers.
+@MainActor
 struct EMPStrikeAbility: Ability {
     let id = AbilityID.empStrike
 

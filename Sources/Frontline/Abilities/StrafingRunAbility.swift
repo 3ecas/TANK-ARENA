@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// A jet strafes a line through the target after a telegraphed warning.
+@MainActor
 struct StrafingRunAbility: Ability {
     let id = AbilityID.strafingRun
 

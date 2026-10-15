@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Deploys an automated turret (limited number active).
+@MainActor
 struct SentryTurretAbility: Ability {
     let id = AbilityID.sentryTurret
 

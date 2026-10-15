@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Short dash toward the cursor. Also shakes off slows.
+@MainActor
 struct CombatRollAbility: Ability {
     let id = AbilityID.combatRoll
 

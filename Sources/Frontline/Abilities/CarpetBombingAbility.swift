@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Ultimate: bombers saturate a huge circle.
+@MainActor
 struct CarpetBombingAbility: Ability {
     let id = AbilityID.carpetBombing
 

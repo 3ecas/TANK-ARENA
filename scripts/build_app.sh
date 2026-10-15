@@ -29,7 +29,16 @@ echo "==> $(swift --version 2>&1 | head -n 1)"
 
 # --- Build ------------------------------------------------------------------
 echo "==> Building $APP_NAME (release)..."
-swift build -c release --product "$APP_NAME"
+LOG_FILE="$DIST_DIR/build.log"
+mkdir -p "$DIST_DIR"
+if ! swift build -c release --product "$APP_NAME" 2>&1 | tee "$LOG_FILE"; then
+    echo ""
+    echo "================ BUILD ERRORS ================"
+    grep -E "error:" "$LOG_FILE" | grep -v "Build failed" | sort -u | head -40 || true
+    echo "=============================================="
+    echo "Full log: $LOG_FILE"
+    exit 1
+fi
 BIN_DIR="$(swift build -c release --show-bin-path)"
 
 # --- Bundle -----------------------------------------------------------------

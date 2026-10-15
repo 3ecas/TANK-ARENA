@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Reveals a large area of the fog of war for a few seconds.
+@MainActor
 struct UAVReconAbility: Ability {
     let id = AbilityID.uavRecon
 

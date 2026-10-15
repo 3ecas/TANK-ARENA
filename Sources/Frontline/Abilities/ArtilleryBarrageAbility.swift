@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Delayed barrage of shells landing randomly inside a circle.
+@MainActor
 struct ArtilleryBarrageAbility: Ability {
     let id = AbilityID.artilleryBarrage
 

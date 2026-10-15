@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Trades a little HP for a burst of fire rate and speed.
+@MainActor
 struct StimAbility: Ability {
     let id = AbilityID.stim
 

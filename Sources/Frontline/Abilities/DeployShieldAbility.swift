@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Drops a dome in front of the soldier that blocks enemy fire coming from outside.
+@MainActor
 struct DeployShieldAbility: Ability {
     let id = AbilityID.deployShield
 

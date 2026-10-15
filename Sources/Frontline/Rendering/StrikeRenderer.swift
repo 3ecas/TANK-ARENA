@@ -3,6 +3,7 @@ import SpriteKit
 /// Telegraphed warning zones for airstrikes / artillery / EMP. Always visible so they can be dodged.
 @MainActor
 final class StrikeRenderer {
+    @MainActor
     private final class Marker {
         let root = SKNode()
         let fill: SKSpriteNode

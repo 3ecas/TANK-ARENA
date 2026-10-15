@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// A crate parachutes in after a short delay; allies touching it heal and refill ammo.
+@MainActor
 struct SupplyDropAbility: Ability {
     let id = AbilityID.supplyDrop
 

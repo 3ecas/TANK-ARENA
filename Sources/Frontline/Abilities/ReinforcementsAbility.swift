@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// A squad of soldiers that escorts the caster.
+@MainActor
 struct ReinforcementsAbility: Ability {
     let id = AbilityID.reinforcements
 

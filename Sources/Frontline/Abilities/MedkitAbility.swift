@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Heal over time for the caster; nearby allies receive a share.
+@MainActor
 struct MedkitAbility: Ability {
     let id = AbilityID.medkit
 

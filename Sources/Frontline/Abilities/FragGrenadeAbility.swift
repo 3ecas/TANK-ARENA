@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Throws a grenade that explodes where it lands.
+@MainActor
 struct FragGrenadeAbility: Ability {
     let id = AbilityID.fragGrenade
 

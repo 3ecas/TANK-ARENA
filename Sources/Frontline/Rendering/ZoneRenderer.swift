@@ -3,6 +3,7 @@ import SpriteKit
 /// Smoke clouds, shield domes, supply crates and UAV reveal circles.
 @MainActor
 final class ZoneRenderer {
+    @MainActor
     private final class ZoneView {
         let root = SKNode()
         var crate: SKSpriteNode?

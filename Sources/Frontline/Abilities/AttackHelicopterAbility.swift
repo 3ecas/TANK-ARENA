@@ -1,6 +1,7 @@
 import CoreGraphics
 
 /// Ultimate: a temporary gunship escorts the caster.
+@MainActor
 struct AttackHelicopterAbility: Ability {
     let id = AbilityID.attackHelicopter
 
