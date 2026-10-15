@@ -19,8 +19,9 @@ final class GameSession {
     private var bots: [SoldierAI] = []
     private var squads: SquadCoordinator?
 
-    init(map: MapKind) {
-        let world = BattleWorld(layout: MapLayout.make(map))
+    /// The player is always on blue; `playerAttacks` decides whether blue attacks or defends.
+    init(map: MapKind, playerAttacks: Bool) {
+        let world = BattleWorld(layout: MapLayout.make(map), attackers: playerAttacks ? .blue : .red)
         let bus = EventBus()
         let ctx = BattleContext(world: world, bus: bus)
         let damage = DamageSystem(ctx: ctx)

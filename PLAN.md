@@ -86,3 +86,13 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - New city map: irregular, unmirrored layout (`MapConfig.buildings/crates/barriers/roads`), diagonal spawns, scattered zones. Caves keep their own spawns in `CaveConfig`.
 - Fog uses only the viewer's own vision (shared team vision was removed again). The visible area has a feathered edge (`GameConfig.fogFeather`), higher fog resolution and more rays.
 - Camera look-ahead: the focus is player + (mouse − player) × 0.5, capped at `GameConfig.cameraLookAhead`.
+
+## Revision 8: Breakthrough
+- Mode: four sectors (A–D) with two zones each (`Data/BreakthroughConfig`); the map is 4800×2400. Only the current sector's zones capture (`ZoneSystem`).
+  - When attackers hold both, `MatchSystem` advances the sector, moves both spawns (`BattleWorld.spawnZone`) and refunds tickets. Taking sector D wins.
+  - Defenders win when the attackers have no tickets and no living soldiers.
+- Unlimited respawns after 8 s (`RespawnSystem`); attacker respawns cost tickets.
+- The player picks Attack or Defend in the menu (always blue). New irregular city layout, generated once from a seed and checked for reachability, then frozen into `MapConfig`. Caves generate around all 8 zones and 8 spawns, with a nav flood-fill check.
+- AI: squads split over the two active zones (defenders prioritise threatened zones). Attacking squads 2–3 flank; rogues target the enemy's current spawn side.
+- HUD: role, sector, tickets, active zones and alive counts. Locked zones are faded in the world and on the minimap. Painted sector lines and letters.
+

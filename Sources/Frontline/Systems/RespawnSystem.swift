@@ -1,6 +1,7 @@
 import CoreGraphics
 
-/// Brings dead soldiers back once (after a delay) at their team's spawn.
+/// Brings dead soldiers back after a delay at their team's current spawn (which moves as sectors fall).
+/// Every attacker respawn costs a ticket; with no tickets left, attackers stay down.
 @MainActor
 final class RespawnSystem {
     unowned let ctx: BattleContext
@@ -10,17 +11,25 @@ final class RespawnSystem {
     }
 
     func update(dt: CGFloat) {
-        for soldier in ctx.world.soldiers where soldier.isAwaitingRespawn {
+        let world = ctx.world
+        for soldier in world.soldiers where soldier.isAwaitingRespawn {
             soldier.respawnTimer -= dt
-            if soldier.respawnTimer <= 0 { respawn(soldier) }
+            guard soldier.respawnTimer <= 0 else { continue }
+            if soldier.team == world.attackers {
+                guard world.tickets > 0 else { continue }
+                world.tickets -= 1
+            }
+            respawn(soldier)
         }
     }
 
     private func respawn(_ soldier: Soldier) {
+        let world = ctx.world
         soldier.respawnsLeft -= 1
-        soldier.position = ctx.world.map.randomSpawnPoint(soldier.team)
+        soldier.position = world.randomSpawnPoint(soldier.team)
         soldier.resetLoadout(primary: soldier.weapons[0].def.id, grenade: GrenadeType.allCases.randomElement() ?? .frag)
-        soldier.facing = soldier.team == .blue ? 0 : .pi
+        // Face the front: attackers look toward the enemy side (right), defenders toward the attackers (left).
+        soldier.facing = soldier.team == world.attackers ? 0 : .pi
         soldier.aimPoint = soldier.position + CGPoint(angle: soldier.facing, length: 100)
         ctx.bus.publish(.soldierRespawned(soldierId: soldier.id))
     }

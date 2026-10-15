@@ -1,6 +1,7 @@
 import SpriteKit
 
-/// Live control-zone visuals: an ownership ring tinted by owner, a capture-progress arc and the zone letter.
+/// Live control-zone visuals: an ownership ring tinted by owner, a capture-progress arc and the zone name.
+/// Only the two zones of the sector under attack are bright; the others are faded (locked).
 @MainActor
 final class ZoneRenderer {
     let root = SKNode()
@@ -22,7 +23,7 @@ final class ZoneRenderer {
             arc.position = zone.center
             let letter = SKLabelNode(fontNamed: UIStyle.boldFont)
             letter.text = zone.name
-            letter.fontSize = 54
+            letter.fontSize = 44
             letter.verticalAlignmentMode = .center
             letter.position = zone.center
             for node in [ring, arc, letter] as [SKNode] { root.addChild(node) }
@@ -32,9 +33,13 @@ final class ZoneRenderer {
         }
     }
 
-    func update(dt: CGFloat) {
+    func update(dt: CGFloat, activeSector: Int) {
         pulse += dt
         for (index, zone) in zones.enumerated() {
+            let fade: CGFloat = zone.sector == activeSector ? 1 : 0.3
+            rings[index].alpha = fade
+            letters[index].alpha = fade
+            arcs[index].isHidden = zone.sector != activeSector
             let ownerColor = zone.owner.map { Palette.team($0) } ?? SKColor(white: 0.85, alpha: 1)
             let blink = zone.isContested ? 0.5 + 0.5 * abs(sin(pulse * 6)) : 1
             rings[index].strokeColor = ownerColor.withAlphaComponent(0.75 * blink)

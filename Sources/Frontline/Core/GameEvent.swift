@@ -11,7 +11,8 @@ enum GameEvent {
     case grenadeExploded(type: GrenadeType, position: CGPoint, radius: CGFloat)
     case knifeSwing(soldierId: Int, position: CGPoint, angle: CGFloat, hit: Bool)
     case zoneCaptured(name: String, team: Team)
-    case suddenDeath
+    /// Both zones of a sector were taken: the front moves to the next sector.
+    case sectorCaptured(name: String, attackers: Team)
     case announcement(text: String)
     /// nil winner = draw.
     case matchOver(winner: Team?)

@@ -16,8 +16,8 @@ final class GameScene: SKScene {
     var gameEnded = false
     var mouseScene: CGPoint = .zero
 
-    init(size: CGSize, router: SceneRouter, map: MapKind) {
-        let session = GameSession(map: map)
+    init(size: CGSize, router: SceneRouter, map: MapKind, attacking: Bool) {
+        let session = GameSession(map: map, playerAttacks: attacking)
         self.router = router
         self.session = session
         worldRenderer = WorldRenderer(session: session)
@@ -101,10 +101,15 @@ final class GameScene: SKScene {
         case .soldierRespawned(let id):
             if id == session.player.id {
                 cameraController.snap(to: session.player.position)
-                hud.banner.announce("Respawned — this is your last life", color: Palette.warning)
+                hud.banner.announce("Respawned", color: UIStyle.accent)
             }
         case .announcement(let text):
             hud.banner.announce(text, color: UIStyle.accent)
+        case .sectorCaptured(let name, let attackers):
+            let ours = attackers == session.player.team
+            hud.banner.announce(ours ? "Sector \(name) captured — push to sector \(world.currentSector.name)!"
+                                     : "Sector \(name) lost — fall back to sector \(world.currentSector.name)!",
+                                color: ours ? Palette.team(session.player.team) : Palette.warning)
         case .zoneCaptured(let name, let team):
             let ours = team == session.player.team
             hud.banner.announce(ours ? "Zone \(name) captured" : "Zone \(name) lost",
@@ -112,8 +117,10 @@ final class GameScene: SKScene {
         case .matchOver(let winner):
             gameEnded = true
             hud.pauseMenu.isVisible = false
+            let attacking = world.attackers == session.player.team
+            let progress = winner == world.attackers ? "All sectors taken" : "Stopped at sector \(world.currentSector.name)"
             hud.gameOver.show(victory: winner.map { $0 == session.player.team }, player: session.player,
-                              time: world.time, score: "\(world.score(.blue)) – \(world.score(.red))")
+                              time: world.time, score: "\(attacking ? "Attack" : "Defence") · \(progress)")
         default:
             break
         }

@@ -63,8 +63,10 @@ final class Minimap {
         for i in used..<dots.count { dots[i].isHidden = true }
         for (marker, zone) in zip(zoneMarkers, session.world.zones) {
             let color = zone.owner.map { Palette.team($0) } ?? SKColor(white: 0.9, alpha: 1)
-            marker.strokeColor = color
-            marker.fillColor = color.withAlphaComponent(0.25)
+            let active = zone.sector == session.world.sector
+            marker.strokeColor = color.withAlphaComponent(active ? 1 : 0.35)
+            marker.fillColor = color.withAlphaComponent(active ? 0.3 : 0.08)
+            marker.lineWidth = active ? 2.5 : 1
         }
         let frame = CGSize(width: cameraRect.width * scale, height: cameraRect.height * scale)
         if frame != frameSize {

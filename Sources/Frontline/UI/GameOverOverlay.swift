@@ -43,7 +43,7 @@ final class GameOverOverlay {
             title.text = "DRAW"
             title.fontColor = UIStyle.accent
         }
-        summary.text = "Score \(score)  ·  Time \(UIStyle.formatTime(time))  ·  Kills \(player.kills)"
+        summary.text = "\(score)  ·  Time \(UIStyle.formatTime(time))  ·  Kills \(player.kills)"
             + "  ·  Deaths \(player.deaths)"
     }
 }

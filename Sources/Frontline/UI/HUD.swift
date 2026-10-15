@@ -40,7 +40,7 @@ final class HUD {
                                        y: -halfH + VitalsPanel.size.height / 2 + 14)
         weapons.root.position = CGPoint(x: halfW - WeaponPanel.size.width / 2 - 14,
                                         y: -halfH + WeaponPanel.size.height / 2 + 14)
-        counter.root.position = CGPoint(x: 0, y: halfH - 38)
+        counter.root.position = CGPoint(x: 0, y: halfH - 48)
         killFeed.root.position = CGPoint(x: halfW - 16, y: halfH - 24)
         minimap.root.position = CGPoint(x: -halfW + minimap.mapSize.width / 2 + 18,
                                         y: halfH - minimap.mapSize.height / 2 - 18)
@@ -52,7 +52,7 @@ final class HUD {
         let player = session.player
         vitals.update(soldier: player)
         weapons.update(soldier: player)
-        counter.update(world: session.world)
+        counter.update(world: session.world, playerTeam: session.player.team)
         killFeed.update(dt: dt)
         notices.update(player: player, spectating: player.isAlive ? nil : session.viewer)
         banner.update(dt: dt)

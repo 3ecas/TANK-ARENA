@@ -5,9 +5,8 @@ import CoreGraphics
 enum CavePainter {
     static func draw(_ ctx: CGContext, size: CGSize, map: ArenaMap, grid: CaveGrid) {
         drawFloor(ctx, size: size, seed: map.seed)
-        for team in Team.playable { ArenaPainter.drawSpawn(ctx, zone: map.spawnZone(team), team: team) }
-        // Zone pads go under the rock so pillars inside a zone stay visible.
-        for zone in map.zoneSpecs { ArenaPainter.drawZonePad(ctx, center: zone.center) }
+        // Spawn and zone pads go under the rock so pillars inside a zone stay visible.
+        ArenaPainter.drawSectors(ctx, map: map)
         drawShadows(ctx, grid: grid)
         drawRock(ctx, grid: grid, seed: map.seed)
     }

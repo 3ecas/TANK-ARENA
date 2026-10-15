@@ -46,7 +46,7 @@ final class WorldRenderer {
     }
 
     func update(dt: CGFloat) {
-        zoneRenderer.update(dt: dt)
+        zoneRenderer.update(dt: dt, activeSector: session.world.sector)
         rangeIndicator.update(player: session.player, map: session.world.map)
         syncSoldiers()
         syncGrenades()

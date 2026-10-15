@@ -1,7 +1,8 @@
 import CoreGraphics
 
-/// Match flow: 5 minutes of regular time scored by zones, then sudden death on a tie.
-/// A team with nobody alive and nobody left to respawn loses; if both are wiped out at once it is a draw.
+/// Breakthrough flow: when the attackers hold both zones of the current sector, the front moves to the
+/// next one (and they get some tickets back). Taking sector D wins the battle. Defenders win once the
+/// attackers are out of tickets and nobody of theirs is left alive.
 @MainActor
 final class MatchSystem {
     unowned let ctx: BattleContext
@@ -13,36 +14,26 @@ final class MatchSystem {
     func update(dt: CGFloat) {
         let world = ctx.world
         guard world.result == nil else { return }
-        let blueLeft = world.remainingCount(.blue)
-        let redLeft = world.remainingCount(.red)
-        if blueLeft == 0 && redLeft == 0 {
-            finish(.draw)
+        let active = world.activeZones
+        if !active.isEmpty && active.allSatisfy({ $0.owner == world.attackers }) {
+            captureSector()
             return
         }
-        if blueLeft == 0 { finish(.victory(.red)); return }
-        if redLeft == 0 { finish(.victory(.blue)); return }
-
-        guard !world.suddenDeath else { return }
-        world.timeRemaining -= dt
-        guard world.timeRemaining <= 0 else { return }
-        world.timeRemaining = 0
-        let blue = world.score(.blue), red = world.score(.red)
-        if blue > red {
-            finish(.victory(.blue))
-        } else if red > blue {
-            finish(.victory(.red))
-        } else {
-            startSuddenDeath()
+        if world.tickets <= 0 && world.aliveCount(world.attackers) == 0 {
+            finish(.victory(world.defenders))
         }
     }
 
-    /// Tie on points: no more respawns, fight until one team is wiped out.
-    private func startSuddenDeath() {
+    private func captureSector() {
         let world = ctx.world
-        world.suddenDeath = true
-        for soldier in world.soldiers { soldier.respawnsLeft = 0 }
-        ctx.bus.publish(.suddenDeath)
-        ctx.bus.publish(.announcement(text: "SUDDEN DEATH — no more respawns!"))
+        let name = world.currentSector.name
+        if world.sector >= world.map.sectors.count - 1 {
+            finish(.victory(world.attackers))
+            return
+        }
+        world.sector += 1
+        world.tickets += BreakthroughConfig.ticketsPerSector
+        ctx.bus.publish(.sectorCaptured(name: name, attackers: world.attackers))
     }
 
     private func finish(_ result: MatchResult) {

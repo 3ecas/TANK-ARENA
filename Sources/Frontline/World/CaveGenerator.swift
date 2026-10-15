@@ -1,21 +1,20 @@
 import CoreGraphics
 
-/// Builds a cave system: noise-shaped rock, three winding tunnels from spawn to spawn
-/// (the middle one runs through the zones) and narrow side passages between them.
+/// Builds a cave system: noise-shaped rock, two winding outer tunnels across the map, a middle
+/// route snaking through every zone and spawn, and narrow side passages between them.
 /// Anything not reachable through passages at least two cells wide is filled with rock.
 struct CaveGenerator {
     let size: CGSize
-    let blueSpawn: CGRect
-    let redSpawn: CGRect
+    /// Spawn rectangles; the first one is where the flood fill starts.
+    let spawns: [CGRect]
     let zones: [CGPoint]
     private var rng: SeededRandom
     private var grid: CaveGrid
     private let noise: ValueNoise
 
-    init(seed: UInt64, size: CGSize, blueSpawn: CGRect, redSpawn: CGRect, zones: [CGPoint]) {
+    init(seed: UInt64, size: CGSize, spawns: [CGRect], zones: [CGPoint]) {
         self.size = size
-        self.blueSpawn = blueSpawn
-        self.redSpawn = redSpawn
+        self.spawns = spawns
         self.zones = zones
         rng = SeededRandom(seed: seed)
         grid = CaveGrid(size: size, cellSize: CaveConfig.cellSize)
@@ -27,12 +26,10 @@ struct CaveGenerator {
         carveLanes()
         carveConnectors()
         for zone in zones { grid.carve(zone, radius: CaveConfig.zoneClearing) }
-        grid.carve(blueSpawn, margin: 30)
-        grid.carve(redSpawn, margin: 30)
+        for spawn in spawns { grid.carve(spawn, margin: 30) }
         addPillars()
         sealBorder()
-        grid.carve(blueSpawn)
-        grid.carve(redSpawn)
+        for spawn in spawns { grid.carve(spawn) }
         keepReachable()
         return grid
     }
@@ -68,40 +65,28 @@ struct CaveGenerator {
         }
     }
 
-    private mutating func spawnExit(_ spawn: CGRect) -> CGPoint {
-        CGPoint(x: spawn.midX, y: random(spawn.minY + 60...spawn.maxY - 60))
-    }
-
     private mutating func carveLanes() {
-        let start = CGPoint(x: blueSpawn.maxX, y: blueSpawn.midY)
-        let end = CGPoint(x: redSpawn.minX, y: redSpawn.midY)
+        guard let first = spawns.first, let last = spawns.max(by: { $0.midX < $1.midX }) else { return }
+        let start = CGPoint(x: first.midX, y: first.midY)
+        let end = CGPoint(x: last.midX, y: last.midY)
         for laneY in CaveConfig.laneYs {
-            var points = [spawnExit(blueSpawn)]
+            var points = [start]
             var x = start.x + 260
             while x < end.x - 260 {
                 points.append(CGPoint(x: x + random(-60...60), y: laneY + random(-CaveConfig.laneJitter...CaveConfig.laneJitter)))
                 x += random(CaveConfig.laneStep)
             }
-            points.append(spawnExit(redSpawn))
+            points.append(end)
             carvePath(points, radius: CaveConfig.routeRadius)
         }
-        // Middle route through the three zones, bending between them.
-        var middle = [start]
-        for (index, zone) in zones.enumerated() {
-            middle.append(zone)
-            if index < zones.count - 1 {
-                let next = zones[index + 1]
-                middle.append(CGPoint(x: (zone.x + next.x) / 2, y: zone.y + random(-120...120)))
-            }
-        }
-        middle.append(end)
-        carvePath(middle, radius: CaveConfig.middleRadius)
+        // Middle route: every zone and spawn in order from left to right.
+        let stops = (zones + spawns.map { CGPoint(x: $0.midX, y: $0.midY) }).sorted { $0.x < $1.x }
+        carvePath(stops, radius: CaveConfig.middleRadius)
     }
 
     /// Wiggly narrow passages between neighbouring routes.
     private mutating func carveConnectors() {
-        let middleY = zones.map { $0.y }.reduce(0, +) / CGFloat(Swift.max(1, zones.count))
-        let rows = (CaveConfig.laneYs + [middleY]).sorted()
+        let rows = (CaveConfig.laneYs + [size.height / 2]).sorted()
         let wiggle = CaveConfig.connectorWiggle
         for (y0, y1) in zip(rows, rows.dropFirst()) {
             let counts = CaveConfig.connectorsPerGap
@@ -151,7 +136,8 @@ struct CaveGenerator {
                 && !snapshot.isRock(x, y) && !snapshot.isRock(x + 1, y)
                 && !snapshot.isRock(x, y + 1) && !snapshot.isRock(x + 1, y + 1)
         }
-        let (sx, sy) = grid.cell(of: CGPoint(x: blueSpawn.midX, y: blueSpawn.midY))
+        guard let first = spawns.first else { return }
+        let (sx, sy) = grid.cell(of: CGPoint(x: first.midX, y: first.midY))
         var seen = [Bool](repeating: false, count: columns * rows)
         var keep = [Bool](repeating: false, count: columns * rows)
         var queue = [(sx, sy)]

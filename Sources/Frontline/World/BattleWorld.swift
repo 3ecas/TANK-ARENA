@@ -10,26 +10,48 @@ final class BattleWorld {
     var grenades: [Grenade] = []
     let zones: [ControlZone]
     var time: CGFloat = 0
-    /// Seconds left in regular time.
-    var timeRemaining: CGFloat = ZoneConfig.matchDuration
-    var suddenDeath = false
-    /// Points from holding zones.
-    var scores: [Team: CGFloat] = [.blue: 0, .red: 0]
+    /// The team that has to break through (the other team defends).
+    let attackers: Team
+    var defenders: Team { attackers.opponent }
+    /// Index of the sector currently under attack (0 = A).
+    var sector = 0
+    /// Attacker respawns left.
+    var tickets = BreakthroughConfig.attackerTickets
     /// Set when the battle is over.
     var result: MatchResult?
     private var nextId = 1
 
-    init(layout: MapLayout) {
+    init(layout: MapLayout, attackers: Team) {
         let arena = ArenaMap(layout: layout)
         var grid = NavGrid(size: arena.size, cellSize: GameConfig.navCellSize)
         grid.rebuild(rects: arena.obstacles.map { $0.rect }, padding: GameConfig.navPadding)
         map = arena
         nav = grid
-        zones = arena.zoneSpecs.map { ControlZone(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
+        self.attackers = attackers
+        var list: [ControlZone] = []
+        for (index, sector) in arena.sectors.enumerated() {
+            for spec in sector.zones {
+                list.append(ControlZone(name: spec.name, center: spec.center, radius: ZoneConfig.radius,
+                                        sector: index, owner: attackers.opponent))
+            }
+        }
+        zones = list
     }
 
-    func score(_ team: Team) -> Int {
-        Int(scores[team] ?? 0)
+    var currentSector: BreakthroughConfig.SectorSpec {
+        map.sectors[Swift.min(sector, map.sectors.count - 1)]
+    }
+
+    /// The two zones being fought over right now.
+    var activeZones: [ControlZone] { zones.filter { $0.sector == sector } }
+
+    /// Where a team spawns at the moment (moves forward as sectors fall).
+    func spawnZone(_ team: Team) -> CGRect {
+        team == attackers ? currentSector.attackerSpawn : currentSector.defenderSpawn
+    }
+
+    func randomSpawnPoint(_ team: Team) -> CGPoint {
+        map.randomPoint(in: spawnZone(team))
     }
 
     var player: Soldier? { soldiers.first { $0.isPlayer } }

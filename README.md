@@ -45,50 +45,45 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu pick a map: **Play · City** or **Play · Caves** (Enter replays the last map).
+In the main menu pick **Attack / Defend** and **City / Caves** (Enter replays the last choice).
 The camera follows your soldier and leans toward the mouse pointer (half-way, at most 280 points), so you can look further in the direction you aim; it is not limited by the map edges. Resizing the window or going full screen only scales the picture: you always see the same 1000×1000 area.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
-### Maps
+### Rules: Breakthrough
 
-- **City:** a hand-made, irregular town (not mirrored): a dozen buildings of different sizes, roads, open plazas, crates and wrecks. Blue spawns bottom-left, red top-right, and the three zones are scattered rather than in a line.
-- **Caves:** a new cave system every battle, built from a noise function. Three winding tunnels run from spawn to
-  spawn (the middle one passes through zones A, B and C) and narrow side passages connect them, with open chambers
-  and rock pillars for cover. Every passage is at least two soldiers wide, and the generator rejects any cave where a
-  zone or spawn can't be reached.
-
-### Rules
-
-- Two teams of **25**: you plus 24 blue bots against 25 red bots. Each team has its own spawn (blue on the left, red on the right).
-- Every soldier has **100 HP**, a **primary weapon** (Assault Rifle, SMG or Shotgun, assigned randomly), a **pistol**, **one grenade** (Frag, Flashbang or Stun, random) and a **knife**. No abilities, and the shop is disabled for now.
-- Every soldier gets **one respawn**: after the first death you come back at your spawn after 5 s with a fresh loadout. The second death is final.
-- **Control zones:** three capture circles — **A** near the blue spawn, **B** contested in the middle, **C** near the red spawn.
-  Stand in a zone with no enemies inside to capture it (~3 s for a neutral zone, longer to flip an enemy one; more
-  soldiers capture faster; enemies inside contest it). A zone stays yours until the enemy takes it.
-  **Each zone you hold gives your team 1 point per second.**
-- **5-minute match.** When time runs out, the team with more points wins. On a tie it goes to **sudden death**:
-  nobody respawns any more and the fight goes on until one team is wiped out.
-- At any time, a team loses when nobody on it is alive and nobody is left to respawn. If the last soldiers of both
-  teams die at the same moment, it is a **draw**.
-- Walls and crates block movement, bullets, grenade blasts and line of sight.
+- In the main menu pick **Attack** or **Defend**, and a map (**City** or **Caves**). You are always blue; the
+  other team takes the other role. 25 vs 25 (you plus 49 bots).
+- The map (4800×2400) is split into **four sectors, A → B → C → D**, each with **two control zones**
+  (A1/A2 … D1/D2), far apart from each other. Only the two zones of the current sector can be captured; the
+  others are faded out.
+- **Attackers** must hold **both** zones of the sector at the same time. Then the sector falls, the front moves
+  to the next sector and both teams' spawns move forward. Taking both zones of **sector D** wins the battle.
+- Stand in a zone with no enemies inside to capture it (4 s from neutral, 8 s to flip an enemy zone; more
+  soldiers capture faster; enemies inside contest it). Defenders can take zones back.
+- **Respawns are unlimited, after 8 seconds.** Every attacker respawn costs one of the attackers' **200
+  tickets** (+50 for each sector captured). When the tickets run out, attackers can't respawn, and the
+  defenders win once the last attacker is down.
+- Every soldier has **100 HP**, a random **primary** (Assault Rifle, SMG or Shotgun), a **pistol**, **one grenade** (Frag, Flashbang or Stun) and a **knife**.
+- Walls, crates and rock block movement, bullets, grenade blasts and line of sight. Soldiers of different teams don't collide with each other.
 - **View range:** nobody sees further than ~640 points; beyond that it is fog, even in front of you.
 - **Range line:** a dashed line runs from your soldier along your aim to the max range of the weapon in your hand
   (rifle 1000, pistol 800, SMG 700, shotgun 430), with a gold arc at the end. Walls cut it short.
-- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. The fog only follows **your own** eyes (bots' vision never changes it), and the visible area has a soft, feathered edge. Bots have exactly the same vision, so you can flank them and they can flank you.
+- **Field of view:** you and every bot see the same ~120° cone in front of you, cut off by walls. The fog only follows **your own** eyes and has a soft edge.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
-- Bots are tuned "medium-hard": quick reactions and decent aim. They fight as **squads of ~5**:
-  - they move in formation behind a squad leader, who waits for stragglers;
-  - they share enemy sightings with their squad;
-  - each squad weighs its numbers and health against the enemy, then **pushes**, **holds** or **falls back a bit**;
-  - one squad per team defends its home zone; the others go for the middle and then the enemy zone, and go back
-    to retake their home zone if it is lost;
-  - two squads per team **flank**: they take a route along the top or bottom edge of the map instead of going straight through the middle;
-  - **3 rogue bots per team** work alone. They circle round the edge of the battlefield and come in behind the enemy front line;
-  - idle squads move in to **support** a nearby fight, and squads down to one or two soldiers **merge** into another squad;
-  - in a firefight bots take **cover behind crates and walls**, peek out to shoot and duck back to reload. Wounded bots look for cover further back;
-  - they notice when an enemy has its **back turned** (or is flashed or stunned). They prefer that target, leave cover and go for the kill:
-    if it is close they sneak up behind it and **knife** it (a backstab is lethal), otherwise they stop and shoot it;
-  - they also throw grenades, knife only at close range and strafe when there is no cover.
+- Bots are tuned "medium-hard". They fight as **squads of ~5**:
+  - each team's squads split over the two active zones. Attackers go for zones they don't hold yet; defenders rush to zones being captured or lost;
+  - two attacking squads **flank** along the top or bottom edge instead of going straight in, and **3 rogue bots per team** circle round to come in behind the enemy line;
+  - they share enemy sightings, and **push**, **hold** or **fall back a bit** depending on numbers and health;
+  - they take **cover behind crates and walls**, peek out to shoot and duck back to reload;
+  - they notice enemies with their **back turned** (or flashed / stunned) and go for the kill: a knife backstab up close, shots from further away.
+
+### Maps
+
+- **City:** a hand-made, irregular town with roads, a few dozen buildings of different sizes, crates and wrecks.
+  Sector boundaries and big sector letters are painted on the ground, and all spawn pads are marked.
+- **Caves:** a new cave system every battle, built from a noise function. Two winding tunnels cross the whole map,
+  a third route snakes through every zone and spawn, and narrow side passages connect them. Every passage is at least
+  two soldiers wide, and a cave where a zone or spawn can't be reached is thrown away and generated again.
 
 ### Controls
 

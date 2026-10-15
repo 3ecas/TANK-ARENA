@@ -9,6 +9,7 @@ final class SceneRouter {
     let sound = SoundEngine()
     /// Map of the last battle (Play Again / Enter reuse it).
     private(set) var lastMap: MapKind = .city
+    private(set) var lastAttacking = true
 
     init(view: GameView, input: InputManager) {
         self.view = view
@@ -21,11 +22,13 @@ final class SceneRouter {
         view.presentScene(scene, transition: SKTransition.fade(withDuration: 0.4))
     }
 
-    func startGame(map: MapKind? = nil) {
+    func startGame(map: MapKind? = nil, attacking: Bool? = nil) {
         input.reset()
         let kind = map ?? lastMap
+        let attack = attacking ?? lastAttacking
         lastMap = kind
-        let scene = GameScene(size: view.bounds.size, router: self, map: kind)
+        lastAttacking = attack
+        let scene = GameScene(size: view.bounds.size, router: self, map: kind, attacking: attack)
         view.presentScene(scene, transition: SKTransition.fade(withDuration: 0.5))
     }
 

@@ -1,53 +1,52 @@
 import SpriteKit
 
-/// Top-centre scoreboard: zone points, match countdown (or SUDDEN DEATH), alive counts and zone ownership.
+/// Top-centre Breakthrough panel: your role, the sector under attack, attacker tickets,
+/// the two active zones (tinted by owner) and soldiers alive per team.
 @MainActor
 final class TeamCounter {
     let root = SKNode()
-    private let blueScore = UIStyle.label("", size: 26, color: Palette.team(.blue), bold: true, align: .right)
-    private let redScore = UIStyle.label("", size: 26, color: Palette.team(.red), bold: true)
-    private let blueAlive = UIStyle.label("", size: 11, color: UIStyle.dimText, align: .right)
-    private let redAlive = UIStyle.label("", size: 11, color: UIStyle.dimText)
-    private let timerLabel = UIStyle.label("", size: 16, color: UIStyle.accent, bold: true, align: .center)
-    private var zoneLabels: [SKLabelNode] = []
+    private let roleLabel = UIStyle.label("", size: 11, color: UIStyle.dimText, align: .center)
+    private let sectorLabel = UIStyle.label("", size: 18, color: UIStyle.accent, bold: true, align: .center)
+    private let ticketLabel = UIStyle.label("", size: 12, align: .center)
+    private let blueAlive = UIStyle.label("", size: 13, color: Palette.team(.blue), bold: true, align: .right)
+    private let redAlive = UIStyle.label("", size: 13, color: Palette.team(.red), bold: true)
+    private let zoneLabels = [UIStyle.label("", size: 15, bold: true, align: .center),
+                              UIStyle.label("", size: 15, bold: true, align: .center)]
+    private var pulse: CGFloat = 0
 
     init() {
-        root.addChild(UIStyle.panel(size: CGSize(width: 340, height: 74)))
-        blueScore.position = CGPoint(x: -62, y: 10)
-        redScore.position = CGPoint(x: 62, y: 10)
-        blueAlive.position = CGPoint(x: -62, y: -12)
-        redAlive.position = CGPoint(x: 62, y: -12)
-        timerLabel.position = CGPoint(x: 0, y: 12)
-        for node in [blueScore, redScore, blueAlive, redAlive, timerLabel] { root.addChild(node) }
-        for (index, spec) in ZoneConfig.zones.enumerated() {
-            let label = UIStyle.label(spec.name, size: 14, bold: true, align: .center)
-            label.position = CGPoint(x: CGFloat(index - 1) * 26, y: -28)
-            root.addChild(label)
-            zoneLabels.append(label)
-        }
+        root.addChild(UIStyle.panel(size: CGSize(width: 360, height: 84)))
+        roleLabel.position = CGPoint(x: 0, y: 26)
+        sectorLabel.position = CGPoint(x: 0, y: 6)
+        ticketLabel.position = CGPoint(x: 0, y: -14)
+        blueAlive.position = CGPoint(x: -150, y: 4)
+        redAlive.position = CGPoint(x: 150, y: 4)
+        blueAlive.horizontalAlignmentMode = .left
+        redAlive.horizontalAlignmentMode = .right
+        zoneLabels[0].position = CGPoint(x: -30, y: -34)
+        zoneLabels[1].position = CGPoint(x: 30, y: -34)
+        for node in [roleLabel, sectorLabel, ticketLabel, blueAlive, redAlive] + zoneLabels { root.addChild(node) }
     }
 
-    func update(world: BattleWorld) {
-        blueScore.text = "\(world.score(.blue))"
-        redScore.text = "\(world.score(.red))"
-        blueAlive.text = "\(world.aliveCount(.blue)) alive +\(pending(world, .blue))"
-        redAlive.text = "+\(pending(world, .red)) \(world.aliveCount(.red)) alive"
-        if world.suddenDeath {
-            timerLabel.text = "SUDDEN DEATH"
-            timerLabel.fontColor = Palette.warning
-            timerLabel.fontSize = 13
-        } else {
-            timerLabel.text = UIStyle.formatTime(world.timeRemaining.rounded(.up))
-            timerLabel.fontColor = world.timeRemaining < 30 ? Palette.warning : UIStyle.accent
-            timerLabel.fontSize = 16
-        }
-        for (label, zone) in zip(zoneLabels, world.zones) {
+    func update(world: BattleWorld, playerTeam: Team) {
+        pulse += 1 / 60
+        let attacking = world.attackers == playerTeam
+        roleLabel.text = attacking ? "ATTACKING — TAKE BOTH ZONES" : "DEFENDING — HOLD THE ZONES"
+        sectorLabel.text = "SECTOR \(world.currentSector.name)  (\(world.sector + 1)/\(world.map.sectors.count))"
+        ticketLabel.text = "Attacker tickets: \(world.tickets)"
+        ticketLabel.fontColor = world.tickets < 30 ? Palette.warning : UIStyle.textColor
+        blueAlive.text = "BLUE \(world.aliveCount(.blue))"
+        redAlive.text = "\(world.aliveCount(.red)) RED"
+        let active = world.activeZones
+        for (index, label) in zoneLabels.enumerated() {
+            guard index < active.count else {
+                label.text = ""
+                continue
+            }
+            let zone = active[index]
+            label.text = zone.name
             label.fontColor = zone.owner.map { Palette.team($0) } ?? UIStyle.dimText
-            label.alpha = zone.isContested ? 0.5 : 1
+            label.alpha = zone.isContested || zone.capturingTeam != nil ? 0.45 + 0.55 * abs(sin(pulse * 6)) : 1
         }
-    }
-
-    private func pending(_ world: BattleWorld, _ team: Team) -> Int {
-        world.soldiers(of: team).filter { $0.isAwaitingRespawn }.count
     }
 }

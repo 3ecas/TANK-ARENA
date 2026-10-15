@@ -86,36 +86,21 @@ final class SquadCoordinator {
         }.count
     }
 
-    /// Zones: home (near own spawn), middle, enemy (near enemy spawn).
-    private func zones(for team: Team) -> (home: ControlZone, middle: ControlZone, enemy: ControlZone) {
-        let all = ctx.world.zones
-        return team == .blue ? (all[0], all[1], all[2]) : (all[2], all[1], all[0])
-    }
-
-    /// Defenders guard the home zone (retaking it if lost); attackers go for the middle first,
-    /// then for whatever zone the team does not own yet, nearest first.
+    /// Splits each team's squads over the two zones of the current sector. Attackers go for zones they
+    /// don't hold yet; defenders rush to zones being taken or already lost. Squads 2 and 3 of the
+    /// attackers take a flanking route along the map edge.
     private func assignObjective(_ squad: Squad) {
-        let set = zones(for: squad.team)
-        if squad.role == 1 {
-            setObjective(squad, set.home, flank: false)
-            return
+        let world = ctx.world
+        let active = world.activeZones
+        guard !active.isEmpty else { return }
+        let attacking = squad.team == world.attackers
+        let needed = active.filter { zone in
+            attacking ? zone.owner != squad.team
+                      : zone.owner != squad.team || zone.capturingTeam == world.attackers || zone.isContested
         }
-        let homeLost = set.home.owner != squad.team && set.home.owner != nil
-        if homeLost && squad.role == 2 {
-            setObjective(squad, set.home, flank: false)
-            return
-        }
-        if let current = squad.objective, current.owner != squad.team { return }
-        let origin = squad.centroid ?? set.home.center
-        let candidates = [set.middle, set.enemy, set.home].filter { $0.owner != squad.team }
-        // Roles 2 and 3 take the long way round the top / bottom of the map instead of going through the middle.
-        let flank = squad.role == 2 || squad.role == 3
-        if let target = candidates.min(by: { score($0, origin, squad.team) < score($1, origin, squad.team) }) {
-            setObjective(squad, target, flank: flank)
-        } else {
-            // Everything is ours: push toward the enemy zone and hold it.
-            setObjective(squad, squad.role % 2 == 0 ? set.enemy : set.middle, flank: flank)
-        }
+        let pool = needed.isEmpty ? active : needed
+        let target = pool[squad.role % pool.count]
+        setObjective(squad, target, flank: attacking && (squad.role == 2 || squad.role == 3))
     }
 
     private func setObjective(_ squad: Squad, _ zone: ControlZone, flank: Bool) {
@@ -130,12 +115,6 @@ final class SquadCoordinator {
         guard nav.findPath(from: origin, to: point) != nil else { return }
         squad.flankPoint = point
         squad.flankDeadline = ctx.world.time + AIConfig.flankTimeout
-    }
-
-    /// Lower is better: distance, with the middle zone preferred.
-    private func score(_ zone: ControlZone, _ origin: CGPoint, _ team: Team) -> CGFloat {
-        let bonus: CGFloat = zone === zones(for: team).middle ? -400 : 0
-        return zone.center.distance(to: origin) + bonus
     }
 
     /// Idle squads move toward the nearest fight of their team.

@@ -15,12 +15,10 @@ struct ArenaMap {
     let size: CGSize
     let bounds: CGRect
     let obstacles: [Obstacle]
-    let zoneSpecs: [ZoneConfig.ZoneSpec]
+    let sectors: [BreakthroughConfig.SectorSpec]
     /// Rock grid when this is a cave map.
     let cave: CaveGrid?
     let seed: UInt64
-    private let blueSpawn: CGRect
-    private let redSpawn: CGRect
     private let index: ObstacleIndex
 
     init(layout: MapLayout) {
@@ -28,17 +26,17 @@ struct ArenaMap {
         size = layout.size
         bounds = CGRect(origin: .zero, size: layout.size)
         obstacles = layout.obstacles
-        zoneSpecs = layout.zones
+        sectors = layout.sectors
         cave = layout.cave
         seed = layout.seed
-        blueSpawn = layout.blueSpawn
-        redSpawn = layout.redSpawn
         index = ObstacleIndex(obstacles: layout.obstacles, size: layout.size)
     }
 
-    func spawnZone(_ team: Team) -> CGRect {
-        team == .red ? redSpawn : blueSpawn
-    }
+    /// Every control zone, sector by sector.
+    var zoneSpecs: [ZoneConfig.ZoneSpec] { sectors.flatMap { $0.zones } }
+
+    /// Every spawn rectangle (attacker and defender, all sectors).
+    var allSpawns: [CGRect] { sectors.flatMap { [$0.attackerSpawn, $0.defenderSpawn] } }
 
     /// Obstacles that may overlap `rect`.
     func obstacles(near rect: CGRect) -> [Obstacle] {
@@ -90,9 +88,9 @@ struct ArenaMap {
         return tMin
     }
 
-    /// Random walkable point inside a team's spawn zone.
-    func randomSpawnPoint(_ team: Team) -> CGPoint {
-        let zone = spawnZone(team).insetBy(dx: 20, dy: 20)
+    /// Random walkable point inside a spawn rectangle.
+    func randomPoint(in spawn: CGRect) -> CGPoint {
+        let zone = spawn.insetBy(dx: 20, dy: 20)
         for _ in 0..<20 {
             let p = CGPoint(x: CGFloat.random(in: zone.minX...zone.maxX), y: CGFloat.random(in: zone.minY...zone.maxY))
             if !isInsideObstacle(p, padding: GameConfig.soldierRadius) { return p }

@@ -32,7 +32,7 @@ final class VitalsPanel {
         hpLabel.fontColor = soldier.hp > 30 ? UIStyle.textColor : Palette.warning
         fill.xScale = soldier.hpFraction
         fill.color = soldier.hp > 30 ? Palette.player : Palette.warning
-        livesLabel.text = "RESPAWNS: \(soldier.respawnsLeft)"
+        livesLabel.text = ""
         if soldier.isStunned {
             statusLabel.text = "STUNNED"
         } else if soldier.isBlind {

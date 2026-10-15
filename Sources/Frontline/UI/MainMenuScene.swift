@@ -33,27 +33,30 @@ final class MainMenuScene: SKScene {
         addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 200)
-        let subtitle = UIStyle.label("25 vs 25 close-quarters battle", size: 18, align: .center)
+        let subtitle = UIStyle.label("Breakthrough · 25 vs 25 · four sectors", size: 18, align: .center)
         subtitle.position = CGPoint(x: 0, y: 148)
-        let info = UIStyle.label("Primary weapon · pistol · one grenade · knife. 100 HP. One respawn.", size: 13,
+        let info = UIStyle.label("Attackers take both zones of each sector, A to D. Respawn every 8 s.", size: 13,
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
-        let play = UIButton(title: "PLAY · CITY", size: CGSize(width: 320, height: 50), fontSize: 20,
-                            color: UIStyle.buttonOwned)
-        play.position = CGPoint(x: 0, y: 60)
-        play.onClick = { [unowned self] in self.router.startGame(map: .city) }
-        let caves = UIButton(title: "PLAY · CAVES", size: CGSize(width: 320, height: 50), fontSize: 20,
-                             color: UIStyle.buttonOwned)
-        caves.position = CGPoint(x: 0, y: 2)
-        caves.onClick = { [unowned self] in self.router.startGame(map: .caves) }
+        let modes: [(String, MapKind, Bool)] = [("ATTACK · CITY", .city, true), ("DEFEND · CITY", .city, false),
+                                                ("ATTACK · CAVES", .caves, true), ("DEFEND · CAVES", .caves, false)]
+        var buttons: [SKNode] = []
+        for (index, mode) in modes.enumerated() {
+            let button = UIButton(title: mode.0, size: CGSize(width: 230, height: 48), fontSize: 17,
+                                  color: mode.2 ? UIStyle.buttonOwned : UIStyle.buttonColor)
+            button.position = CGPoint(x: index % 2 == 0 ? -122 : 122, y: index < 2 ? 60 : 4)
+            let (map, attacking) = (mode.1, mode.2)
+            button.onClick = { [unowned self] in self.router.startGame(map: map, attacking: attacking) }
+            buttons.append(button)
+        }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
         help.position = CGPoint(x: 0, y: -58)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
         quit.position = CGPoint(x: 0, y: -110)
         quit.onClick = { [unowned self] in self.router.quit() }
-        for node in [title, subtitle, info, play, caves, help, quit] as [SKNode] { menuLayer.addChild(node) }
+        for node in ([title, subtitle, info, help, quit] as [SKNode]) + buttons { menuLayer.addChild(node) }
         controls.root.zPosition = 20
         addChild(controls.root)
     }

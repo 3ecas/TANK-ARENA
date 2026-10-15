@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Capturing control zones and awarding 1 point per second for each zone a team holds.
+/// Capturing the two zones of the sector under attack (zones of other sectors are locked).
 @MainActor
 final class ZoneSystem {
     unowned let ctx: BattleContext
@@ -10,12 +10,8 @@ final class ZoneSystem {
     }
 
     func update(dt: CGFloat) {
-        let world = ctx.world
-        for zone in world.zones {
+        for zone in ctx.world.activeZones {
             updateCapture(zone, dt: dt)
-            if let owner = zone.owner, !world.suddenDeath {
-                world.scores[owner, default: 0] += ZoneConfig.pointsPerSecond * dt
-            }
         }
     }
 

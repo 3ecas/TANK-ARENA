@@ -8,7 +8,7 @@ struct NavGrid {
     let rows: Int
     private var blocked: [Bool]
     /// Upper bound on A* expansions so a bad request can never stall a frame.
-    private let maxExpansions = 15000
+    private let maxExpansions = 40000
 
     init(size: CGSize, cellSize: CGFloat) {
         self.cellSize = cellSize
@@ -47,6 +47,31 @@ struct NavGrid {
         if !blocked[start] { return p }
         guard let free = nearestFree(start) else { return p }
         return center(free)
+    }
+
+    /// Flood fill from `start`; the returned closure tells whether a point is reachable.
+    func reachableCells(from start: CGPoint) -> (CGPoint) -> Bool {
+        var seen = [Bool](repeating: false, count: columns * rows)
+        var startIndex = index(of: start)
+        if blocked[startIndex], let free = nearestFree(startIndex) { startIndex = free }
+        var queue = [startIndex]
+        seen[startIndex] = true
+        var head = 0
+        while head < queue.count {
+            let current = queue[head]
+            head += 1
+            let cx = current % columns, cy = current / columns
+            for (dx, dy) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let nx = cx + dx, ny = cy + dy
+                guard nx >= 0, ny >= 0, nx < columns, ny < rows else { continue }
+                let next = ny * columns + nx
+                guard !blocked[next], !seen[next] else { continue }
+                seen[next] = true
+                queue.append(next)
+            }
+        }
+        let grid = self
+        return { point in seen[grid.index(of: point)] }
     }
 
     /// Smoothed list of waypoints from `start` to `goal`, or nil when unreachable.

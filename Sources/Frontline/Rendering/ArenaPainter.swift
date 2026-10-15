@@ -26,8 +26,7 @@ enum ArenaPainter {
             ctx.setFillColor(Palette.rgb(0.31, 0.31, 0.3))
             ctx.fill(CGRect(origin: .zero, size: size))
             drawStreetMarkings(ctx, size: size)
-            for team in Team.playable { drawSpawn(ctx, zone: map.spawnZone(team), team: team) }
-            for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
+            drawSectors(ctx, map: map)
             for obstacle in map.obstacles where obstacle.kind == .building {
                 ctx.fillRoundedRect(obstacle.rect.insetBy(dx: -12, dy: -12), radius: 6, Palette.rgb(0.42, 0.42, 0.41))
             }
@@ -66,19 +65,51 @@ enum ArenaPainter {
         }
     }
 
-    static func drawSpawn(_ ctx: CGContext, zone: CGRect, team: Team) {
-        ctx.fillRoundedRect(zone, radius: 10, Palette.rgb(0.32, 0.33, 0.32))
+    /// Sector boundaries and letters, every spawn pad (spawns move as sectors fall) and the zone pads.
+    static func drawSectors(_ ctx: CGContext, map: ArenaMap) {
+        let line = Palette.rgb(0.95, 0.9, 0.7, 0.18)
+        for (index, sector) in map.sectors.enumerated() {
+            if index > 0 {
+                ctx.setLineDash(phase: 0, lengths: [50, 40])
+                ctx.strokeLine(CGPoint(x: sector.minX, y: 0), CGPoint(x: sector.minX, y: map.size.height), line, width: 8)
+                ctx.setLineDash(phase: 0, lengths: [])
+            }
+            let center = sector.zones.reduce(CGPoint.zero) { $0 + $1.center } / CGFloat(Swift.max(1, sector.zones.count))
+            drawLetter(ctx, sector.name, at: CGPoint(x: center.x, y: map.size.height / 2 + 260))
+        }
+        for spawn in map.allSpawns { drawSpawn(ctx, zone: spawn) }
+        for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
+    }
+
+    /// Huge faint sector letter painted on the ground (simple block strokes, no font needed).
+    private static func drawLetter(_ ctx: CGContext, _ letter: String, at p: CGPoint) {
+        let color = Palette.rgb(0.95, 0.9, 0.7, 0.1)
+        let s: CGFloat = 70
+        let strokes: [(CGFloat, CGFloat, CGFloat, CGFloat)]
+        switch letter {
+        case "A": strokes = [(-1, -1, 0, 1), (0, 1, 1, -1), (-0.5, 0, 0.5, 0)]
+        case "B": strokes = [(-1, -1, -1, 1), (-1, 1, 0.6, 1), (0.6, 1, 0.6, 0), (-1, 0, 0.8, 0), (0.8, 0, 0.8, -1), (0.8, -1, -1, -1)]
+        case "C": strokes = [(1, 1, -1, 1), (-1, 1, -1, -1), (-1, -1, 1, -1)]
+        default: strokes = [(-1, -1, -1, 1), (-1, 1, 0.5, 1), (0.5, 1, 1, 0.5), (1, 0.5, 1, -0.5), (1, -0.5, 0.5, -1), (0.5, -1, -1, -1)]
+        }
+        for (x1, y1, x2, y2) in strokes {
+            ctx.strokeLine(CGPoint(x: p.x + x1 * s, y: p.y + y1 * s), CGPoint(x: p.x + x2 * s, y: p.y + y2 * s), color, width: 22)
+        }
+    }
+
+    static func drawSpawn(_ ctx: CGContext, zone: CGRect) {
+        let stripe = Palette.rgb(0.9, 0.9, 0.85, 0.12)
+        ctx.fillRoundedRect(zone, radius: 10, Palette.rgb(0.33, 0.34, 0.33))
         ctx.saveGState()
         ctx.addPath(CGPath(roundedRect: zone, cornerWidth: 10, cornerHeight: 10, transform: nil))
         ctx.clip()
         var x = zone.minX - zone.height
         while x < zone.maxX {
-            ctx.strokeLine(CGPoint(x: x, y: zone.minY), CGPoint(x: x + zone.height, y: zone.maxY),
-                           Palette.teamCG(team).copy(alpha: 0.25) ?? Palette.teamCG(team), width: 10)
+            ctx.strokeLine(CGPoint(x: x, y: zone.minY), CGPoint(x: x + zone.height, y: zone.maxY), stripe, width: 10)
             x += 40
         }
         ctx.restoreGState()
-        ctx.strokeRoundedRect(zone, radius: 10, Palette.teamCG(team), width: 6)
+        ctx.strokeRoundedRect(zone, radius: 10, Palette.rgb(0.75, 0.75, 0.7, 0.6), width: 4)
     }
 
     private static func drawBuilding(_ ctx: CGContext, rect: CGRect, style: Int) {

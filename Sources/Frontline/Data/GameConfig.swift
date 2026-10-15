@@ -10,8 +10,9 @@ enum GameConfig {
     static let teamSize = 25
     static let maxHp: CGFloat = 100
     /// Each soldier can come back once after dying.
-    static let respawnsPerSoldier = 1
-    static let respawnDelay: CGFloat = 5
+    /// Respawns are unlimited in Breakthrough (attackers pay a ticket per respawn).
+    static let respawnsPerSoldier = Int.max / 2
+    static let respawnDelay: CGFloat = 8
     static let spawnProtection: CGFloat = 2
     static let soldierRadius: CGFloat = 12
     /// Walking speed (points per second) before weapon weight.

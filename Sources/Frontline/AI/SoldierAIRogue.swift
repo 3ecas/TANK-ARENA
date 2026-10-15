@@ -50,7 +50,7 @@ extension SoldierAI {
     private func behindEnemyLines() -> CGPoint {
         let world = ctx.world
         let enemyTeam = soldier.team.opponent
-        let enemySpawn = world.map.spawnZone(enemyTeam)
+        let enemySpawn = world.spawnZone(enemyTeam)
         let forward: CGFloat = enemySpawn.midX > soldier.position.x ? 1 : -1
         let enemies = world.soldiers.filter { $0.isAlive && $0.team == enemyTeam }
         guard !enemies.isEmpty else { return CGPoint(x: enemySpawn.midX, y: enemySpawn.midY) }
