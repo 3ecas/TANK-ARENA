@@ -18,7 +18,6 @@ enum ArenaPainter {
             if let cached = caveTexture, cached.seed == map.seed { return cached.texture }
             let texture = TextureFactory.render(size: map.size, scale: scale) { ctx, size in
                 CavePainter.draw(ctx, size: size, map: map, grid: grid)
-                for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
             }
             caveTexture = (map.seed, texture)
             return texture
