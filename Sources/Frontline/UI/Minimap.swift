@@ -48,7 +48,7 @@ final class Minimap {
         }
         usedDots = 0
         let world = session.world
-        let vision = session.ctx.vision
+        let vision: VisionSystem = session.ctx.vision
         let team = session.player.team
         for point in world.capturePoints {
             dot(at: point.position, size: 12, color: point.owner.map { Palette.team($0) } ?? .white, round: true)

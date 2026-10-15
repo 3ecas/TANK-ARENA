@@ -19,7 +19,7 @@ final class FogRenderer {
     }
 
     func update() {
-        let vision = session.ctx.vision
+        let vision: VisionSystem = session.ctx.vision
         guard vision.revision != lastRevision else { return }
         lastRevision = vision.revision
         guard let texture = makeTexture(vision.grid(for: session.player.team)) else { return }

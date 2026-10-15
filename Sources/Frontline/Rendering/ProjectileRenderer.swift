@@ -14,7 +14,7 @@ final class ProjectileRenderer {
 
     func update() {
         var live = Set<Int>()
-        let vision = session.ctx.vision
+        let vision: VisionSystem = session.ctx.vision
         let team = session.player.team
         for projectile in session.world.projectiles where !projectile.isDone {
             live.insert(projectile.id)

@@ -12,9 +12,9 @@ final class UIButton: SKNode {
     var isSelected = false { didSet { refresh() } }
     var baseColor: SKColor { didSet { refresh() } }
 
-    init(title: String, size: CGSize, fontSize: CGFloat = 14, color: SKColor = UIStyle.buttonColor) {
+    init(title: String, size: CGSize, fontSize: CGFloat = 14, color: SKColor? = nil) {
         self.size = size
-        self.baseColor = color
+        self.baseColor = color ?? UIStyle.buttonColor
         background = SKShapeNode(rectOf: size, cornerRadius: 5)
         background.lineWidth = 1.5
         titleLabel = UIStyle.label(title, size: fontSize, bold: true, align: .center)

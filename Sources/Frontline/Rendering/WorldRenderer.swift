@@ -78,7 +78,7 @@ final class WorldRenderer {
 
     private func syncEntities(dt: CGFloat) {
         let world = session.world
-        let vision = session.ctx.vision
+        let vision: VisionSystem = session.ctx.vision
         let team = session.player.team
         var live = Set<Int>()
         for entity in world.entities where !entity.isRemoved {

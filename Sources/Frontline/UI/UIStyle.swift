@@ -16,21 +16,21 @@ enum UIStyle {
     static let textColor = SKColor(white: 0.93, alpha: 1)
     static let dimText = SKColor(white: 0.6, alpha: 1)
 
-    static func label(_ text: String, size: CGFloat, color: SKColor = textColor, bold: Bool = false,
+    static func label(_ text: String, size: CGFloat, color: SKColor? = nil, bold: Bool = false,
                       align: SKLabelHorizontalAlignmentMode = .left) -> SKLabelNode {
         let label = SKLabelNode(fontNamed: bold ? boldFont : font)
         label.text = text
         label.fontSize = size
-        label.fontColor = color
+        label.fontColor = color ?? textColor
         label.horizontalAlignmentMode = align
         label.verticalAlignmentMode = .center
         return label
     }
 
-    static func panel(size: CGSize, color: SKColor = panelColor, border: SKColor = panelBorder) -> SKShapeNode {
+    static func panel(size: CGSize, color: SKColor? = nil, border: SKColor? = nil) -> SKShapeNode {
         let shape = SKShapeNode(rectOf: size, cornerRadius: 8)
-        shape.fillColor = color
-        shape.strokeColor = border
+        shape.fillColor = color ?? panelColor
+        shape.strokeColor = border ?? panelBorder
         shape.lineWidth = 2
         return shape
     }
