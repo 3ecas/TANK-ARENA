@@ -74,7 +74,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 - **View range:** nobody sees further than ~640 points; beyond that it is fog, even in front of you.
 - **Range line:** a dashed line runs from your soldier along your aim to the max range of the weapon in your hand
   (rifle 1000, pistol 800, SMG 700, shotgun 430), with a gold arc at the end. Walls cut it short.
-- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. **Vision is shared with your team**: whatever a teammate sees (their cone) is also cleared of fog for you. Bots have exactly the same vision, so you can flank them and they can flank you.
+- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. The fog only follows **your own** eyes (bots' vision never changes it), and the visible area has a soft, feathered edge. Bots have exactly the same vision, so you can flank them and they can flank you.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
 - Bots are tuned "medium-hard": quick reactions and decent aim. They fight as **squads of ~5**:
   - they move in formation behind a squad leader, who waits for stragglers;

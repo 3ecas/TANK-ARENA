@@ -34,10 +34,10 @@ enum GameConfig {
     static let peripheralRadius: CGFloat = 70
     /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.
     static let fogAlpha: CGFloat = 0.55
-    static let fogRayCount = 200
-    /// Rays per teammate cone (shared vision), cheaper than the viewer's own.
-    static let fogAllyRayCount = 72
-    static let fogResolution: CGFloat = 0.25
+    static let fogRayCount = 260
+    /// Soft edge of the visible area: (stroke width, alpha) passes, widest and faintest first.
+    static let fogFeather: [(CGFloat, CGFloat)] = [(44, 0.12), (28, 0.18), (14, 0.25)]
+    static let fogResolution: CGFloat = 0.4
     /// Shots are less accurate while moving.
     static let movingSpreadMultiplier: CGFloat = 1.8
     static let weaponSwitchTime: CGFloat = 0.35
