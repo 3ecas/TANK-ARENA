@@ -18,10 +18,20 @@ No game engine, no browser, no third-party dependencies. All graphics and sounds
 
   `scripts/build_app.sh` checks for them and stops with instructions if they are missing.
 
-## Build
+## Build and play (easiest)
+
+Double-click **`Play Frontline.command`** in Finder. It opens Terminal, builds the game and launches the
+game window. The first build takes a minute or two; after that the game is in `dist/Frontline.app`, which you can
+double-click directly (or drag into Applications).
+
+> Don't double-click `scripts/build_app.sh`: Finder opens `.sh` files in a text editor instead of running them.
+> If macOS blocks the `.command` file the first time, right-click it → **Open**.
+
+## Build from Terminal
 
 ```bash
 ./scripts/build_app.sh
+open dist/Frontline.app
 ```
 
 This builds in release mode and produces **`dist/Frontline.app`**, a normal app bundle
