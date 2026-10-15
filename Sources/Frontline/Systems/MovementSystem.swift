@@ -38,18 +38,27 @@ final class MovementSystem {
             : Angle.approach(soldier.facing, desired, maxStep: AIConfig.turnRate * dt)
     }
 
+    /// Teammates gently push apart so they don't stack. Enemies never block each other: a soldier
+    /// hidden in the fog must not act as an invisible wall. The player shoves bots aside instead of being blocked.
     private func separate(_ soldiers: [Soldier]) {
         for i in 0..<soldiers.count {
             for j in (i + 1)..<soldiers.count {
                 let a = soldiers[i], b = soldiers[j]
+                guard a.team == b.team else { continue }
                 let delta = a.position - b.position
                 let minDistance = a.radius + b.radius
                 let distSq = delta.lengthSquared
                 guard distSq < minDistance * minDistance, distSq > 0.0001 else { continue }
                 let dist = distSq.squareRoot()
-                let offset = delta / dist * ((minDistance - dist) * 0.5)
-                a.position += offset
-                b.position -= offset
+                let push = delta / dist * (minDistance - dist)
+                if a.isPlayer {
+                    b.position -= push
+                } else if b.isPlayer {
+                    a.position += push
+                } else {
+                    a.position += push * 0.5
+                    b.position -= push * 0.5
+                }
             }
         }
     }
