@@ -43,7 +43,7 @@ final class StatusPanel {
         cpLabel.position = CGPoint(x: left, y: -22)
         pointsLabel.position = CGPoint(x: -left, y: -22)
         for label in [levelLabel, goldLabel, ammoLabel, cpLabel, pointsLabel] { root.addChild(label) }
-        let hint = UIStyle.label("B recall · P shop · Tab score", size: 10, color: UIStyle.dimText)
+        let hint = UIStyle.label("F roll · B recall · P shop · Tab score", size: 10, color: UIStyle.dimText)
         hint.position = CGPoint(x: left, y: -46)
         root.addChild(hint)
     }

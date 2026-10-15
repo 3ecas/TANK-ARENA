@@ -29,7 +29,7 @@ final class CenterNotices {
         }
         respawnLabel.text = hero.isAlive ? "" : "RESPAWNING IN \(Int(hero.respawnTimer.rounded(.up)))"
         if let slot = aimingSlot, let id = hero.loadout.ability(inSlot: slot) {
-            hintLabel.text = "\(AbilityCatalog.def(id).name): release to cast · Esc to cancel"
+            hintLabel.text = "\(AbilityCatalog.def(id).name): release or left-click to cast · right-click cancels"
         } else {
             hintLabel.text = ""
         }

@@ -7,11 +7,11 @@ enum BuildStep {
     case gear(GearID)
 }
 
-/// AI hero build: preferred abilities (first four are the starting loadout) and a purchase order.
+/// AI hero build: the abilities it equips (in Q/W/E/R order) and its purchase order.
+/// AI heroes start like the player: pistol only, no abilities.
 struct AIBuild {
     var name: String
-    var startingAbilities: [AbilityID]
-    var ultimate: AbilityID
+    var abilities: [AbilityID]
     var purchases: [BuildStep]
 }
 

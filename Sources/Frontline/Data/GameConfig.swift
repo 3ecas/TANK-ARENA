@@ -15,5 +15,10 @@ enum GameConfig {
     static let supplyDropDelay: CGFloat = 1.5
     static let stimHpCost: CGFloat = 30
     static let dashDuration: CGFloat = 0.22
+    /// Built-in combat roll on F.
+    static let dodgeDistance: CGFloat = 240
+    static let dodgeCooldown: CGFloat = 8
+    /// Right-click snap radius for picking an enemy to attack.
+    static let attackClickRadius: CGFloat = 60
     static let teamSize = 5
 }

@@ -19,13 +19,6 @@ enum AIAbilityRules {
             return bestCluster(hero, ctx: ctx, range: def.range, radius: 140, minScore: 4)
         case .carpetBombing:
             return bestCluster(hero, ctx: ctx, range: def.range, radius: def.radius, minScore: 7)
-        case .combatRoll:
-            if state == .retreating && enemyHero != nil { return hero.position + home * 200 }
-            if state == .trading && ctx.difficulty == .hard, let enemy = enemyHero,
-               enemy.position.distance(to: hero.position) > hero.stats.range * 0.9 {
-                return enemy.position
-            }
-            return nil
         case .stim:
             return fighting && enemyHero != nil ? hero.position : nil
         case .deployShield:

@@ -1,17 +1,21 @@
 import CoreGraphics
 
-/// Turns player input into hero intent: movement, aim, auto-attack target lock,
-/// ability casting (instant or hold-to-aim), recall and ability point spending.
+/// League-style controls turned into hero intent:
+/// right-click ground = move (hold to keep steering), right-click enemy = attack (chase into range),
+/// Q/W/E/R = abilities (instant, or hold to aim and release to cast), F = roll, S = stop,
+/// B = recall, 1-4 = spend ability points. Idle soldiers auto-attack enemies in range.
 @MainActor
 final class PlayerController {
     let hero: Hero
     unowned let ctx: GameContext
-    /// Slot currently being aimed (button / key held).
+    /// Slot currently being aimed (key held).
     private(set) var aimingSlot: Int?
     /// Called with short feedback messages ("Ability on cooldown"...).
     var onMessage: ((String) -> Void)?
+    /// Called when the player issues a move order (for the click marker).
+    var onMoveOrder: ((CGPoint) -> Void)?
 
-    private let abilityKeys: [UInt16?] = [nil, KeyCode.q, KeyCode.e, KeyCode.r]
+    private let abilityKeys: [UInt16] = [KeyCode.q, KeyCode.w, KeyCode.e, KeyCode.r]
     private let pointKeys: [UInt16] = [KeyCode.one, KeyCode.two, KeyCode.three, KeyCode.four]
 
     init(hero: Hero, ctx: GameContext) {
@@ -25,63 +29,99 @@ final class PlayerController {
     func update(input: InputManager, mouseWorld: CGPoint, leftClickAvailable: Bool) {
         guard hero.isAlive else {
             aimingSlot = nil
-            hero.moveDir = .zero
             return
         }
         hero.aimPoint = mouseWorld
-        hero.moveDir = movementVector(input)
-        updateTargetLock(input: input, mouseWorld: mouseWorld)
+        handleRightMouse(input: input, mouseWorld: mouseWorld)
+        handleKeys(input: input, mouseWorld: mouseWorld)
+        handleAbilities(input: input, mouseWorld: mouseWorld, leftClickAvailable: leftClickAvailable)
+        autoAcquireTarget()
+    }
 
-        if input.wasPressed(KeyCode.b) && !ctx.recall.begin(hero) && !hero.isRecalling {
-            onMessage?("Can't recall here")
+    // MARK: Movement & attack orders
+
+    private func handleRightMouse(input: InputManager, mouseWorld: CGPoint) {
+        if input.rightPressed {
+            if aimingSlot != nil {
+                aimingSlot = nil      // right-click cancels an aimed ability
+                return
+            }
+            if let enemy = ctx.targeting.enemyClosest(to: mouseWorld, radius: GameConfig.attackClickRadius,
+                                                      viewer: hero) {
+                hero.targetId = enemy.id
+                hero.chasesTarget = true
+                hero.moveGoal = nil
+            } else {
+                moveOrder(to: mouseWorld)
+                onMoveOrder?(hero.moveGoal ?? mouseWorld)
+            }
+        } else if input.rightDown && !hero.chasesTarget && aimingSlot == nil {
+            moveOrder(to: mouseWorld)     // holding right mouse keeps steering
+        }
+    }
+
+    private func moveOrder(to point: CGPoint) {
+        hero.targetId = nil
+        hero.chasesTarget = false
+        hero.moveGoal = ctx.world.nav.nearestWalkable(point.clamped(to: ctx.world.map.bounds.insetBy(dx: 30, dy: 30)))
+    }
+
+    private func handleKeys(input: InputManager, mouseWorld: CGPoint) {
+        if input.wasPressed(KeyCode.s) {
+            hero.moveGoal = nil
+            hero.targetId = nil
+            hero.chasesTarget = false
+        }
+        if input.wasPressed(KeyCode.f) && !DodgeRoll.perform(hero, toward: mouseWorld) {
+            onMessage?("Roll on cooldown")
+        }
+        if input.wasPressed(KeyCode.b) {
+            if ctx.recall.begin(hero) {
+                hero.moveGoal = nil
+                hero.chasesTarget = false
+            } else if !hero.isRecalling {
+                onMessage?("Can't recall here")
+            }
         }
         for (slot, key) in pointKeys.enumerated() where input.wasPressed(key) {
             if !LoadoutManager.spendPoint(onSlot: slot, hero: hero) && hero.abilityPoints > 0 {
                 onMessage?("Can't rank up that ability")
             }
         }
-        handleAbilities(input: input, mouseWorld: mouseWorld, leftClickAvailable: leftClickAvailable)
     }
 
-    private func movementVector(_ input: InputManager) -> CGPoint {
-        var v = CGPoint.zero
-        if input.isDown(KeyCode.w) || input.isDown(KeyCode.up) { v.y += 1 }
-        if input.isDown(KeyCode.s) || input.isDown(KeyCode.down) { v.y -= 1 }
-        if input.isDown(KeyCode.a) || input.isDown(KeyCode.left) { v.x -= 1 }
-        if input.isDown(KeyCode.d) || input.isDown(KeyCode.right) { v.x += 1 }
-        return v.normalized
-    }
-
-    private func updateTargetLock(input: InputManager, mouseWorld: CGPoint) {
-        let snapped = ctx.targeting.enemyClosest(to: mouseWorld, radius: GameConfig.targetSnapRadius, viewer: hero)
-        if input.rightPressed {
-            hero.targetId = snapped?.id      // empty ground clears the lock
-        } else if input.rightDown, let snapped = snapped {
-            hero.targetId = snapped.id       // holding: follow the enemy nearest the cursor
+    /// Standing still with nothing to do: shoot the nearest enemy in range (like League's idle attack).
+    private func autoAcquireTarget() {
+        guard hero.targetId == nil, hero.moveGoal == nil, !hero.isRecalling, !hero.status.isDashing else { return }
+        if let enemy = ctx.targeting.nearestTarget(for: hero, within: hero.stats.range, includeNeutral: false,
+                                                  preferNonHeroes: false) {
+            hero.targetId = enemy.id
+            hero.chasesTarget = false
         }
     }
 
+    // MARK: Abilities
+
     private func handleAbilities(input: InputManager, mouseWorld: CGPoint, leftClickAvailable: Bool) {
-        for slot in 0..<Loadout.slotCount {
-            let pressed: Bool
-            let released: Bool
-            if let key = abilityKeys[slot] {
-                pressed = input.wasPressed(key)
-                released = input.wasReleased(key)
-            } else {
-                pressed = input.leftPressed && leftClickAvailable
-                released = input.leftReleased
-            }
-            if pressed { begin(slot: slot, mouseWorld: mouseWorld) }
-            if released && aimingSlot == slot {
+        for (slot, key) in abilityKeys.enumerated() {
+            if input.wasPressed(key) { begin(slot: slot, mouseWorld: mouseWorld) }
+            if input.wasReleased(key) && aimingSlot == slot {
                 aimingSlot = nil
                 cast(slot: slot, at: mouseWorld)
             }
         }
+        // Left click while aiming casts immediately.
+        if let slot = aimingSlot, input.leftPressed && leftClickAvailable {
+            aimingSlot = nil
+            cast(slot: slot, at: mouseWorld)
+        }
     }
 
     private func begin(slot: Int, mouseWorld: CGPoint) {
-        guard let id = hero.loadout.ability(inSlot: slot) else { return }
+        guard let id = hero.loadout.ability(inSlot: slot) else {
+            onMessage?("No ability in \(Loadout.slotLabels[slot]) - buy one in the shop (P at base)")
+            return
+        }
         let readiness = ctx.abilities.readiness(hero, slot: slot)
         guard readiness == .success else {
             if let message = readiness.message { onMessage?(message) }

@@ -58,7 +58,7 @@ final class AudioDirector {
         case .bullet:
             guard let hero = session.world.hero(sourceId) else { return .rifle }
             switch hero.weaponId {
-            case .assaultRifle: return .rifle
+            case .pistol, .assaultRifle: return .rifle
             case .shotgun: return .shotgun
             case .sniperRifle: return .sniper
             case .lmg: return .lmg

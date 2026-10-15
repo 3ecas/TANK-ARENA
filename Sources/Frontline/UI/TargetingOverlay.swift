@@ -11,6 +11,8 @@ final class TargetingOverlay {
     private let areaRing = SKSpriteNode()
     private let lineFill: SKSpriteNode
     private let cursor: SKSpriteNode
+    private let moveMarker: SKSpriteNode
+    private var moveMarkerAge: CGFloat = 1
     private var time: CGFloat = 0
 
     init() {
@@ -18,8 +20,9 @@ final class TargetingOverlay {
         areaFill = SKSpriteNode(texture: EffectTextures.disc, size: CGSize(width: 10, height: 10))
         lineFill = SKSpriteNode(texture: EffectTextures.pixel, size: CGSize(width: 10, height: 10))
         cursor = TextureFactory.sprite(EffectTextures.reticle)
+        moveMarker = TextureFactory.sprite(EffectTextures.ring(radius: 20, lineWidth: 3))
         for node in [rangeRing, abilityRange, areaRing] { node.alpha = 0.55 }
-        for node in [rangeRing, targetRing, abilityRange, areaFill, areaRing, lineFill, cursor] {
+        for node in [rangeRing, targetRing, abilityRange, areaFill, areaRing, lineFill, cursor, moveMarker] {
             node.colorBlendFactor = 1
             node.isHidden = true
             root.addChild(node)
@@ -34,10 +37,21 @@ final class TargetingOverlay {
         lineFill.alpha = 0.3
         cursor.color = .white
         cursor.alpha = 0.8
+        moveMarker.color = Palette.player
+    }
+
+    /// Shows the green click marker where a move order was given.
+    func showMoveMarker(at point: CGPoint) {
+        moveMarker.position = point
+        moveMarkerAge = 0
     }
 
     func update(dt: CGFloat, player: Hero, target: Entity?, showRange: Bool, aiming: AbilityDef?, mouse: CGPoint) {
         time += dt
+        moveMarkerAge += dt
+        moveMarker.isHidden = moveMarkerAge > 0.45
+        moveMarker.setScale(1.3 - moveMarkerAge)
+        moveMarker.alpha = Swift.max(0, 1 - moveMarkerAge / 0.45)
         let alive = player.isAlive
         cursor.isHidden = false
         cursor.position = mouse

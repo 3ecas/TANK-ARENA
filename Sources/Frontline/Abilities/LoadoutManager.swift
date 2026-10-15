@@ -22,12 +22,4 @@ enum LoadoutManager {
         hero.abilityPoints -= 1
         return true
     }
-
-    /// Gives a hero its starting abilities, equipped in order.
-    static func grantStarting(_ abilities: [AbilityID], to hero: Hero) {
-        for (index, id) in abilities.prefix(Loadout.slotCount).enumerated() {
-            hero.loadout.learn(id)
-            hero.loadout.equip(id, slot: index)
-        }
-    }
 }

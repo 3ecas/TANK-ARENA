@@ -51,6 +51,7 @@ final class GameScene: SKScene {
     private func wireCallbacks() {
         let router = self.router
         playerController.onMessage = { [unowned self] message in self.showError(message) }
+        playerController.onMoveOrder = { [unowned self] point in self.targeting.showMoveMarker(at: point) }
         hud.onMinimapClick = { [unowned self] point in self.cameraController.moveTo(point) }
         hud.shop.onResult = { result in if !result.isSuccess { router.sound.play(.error, volume: 0.6) } }
         hud.pauseMenu.onResume = { [unowned self] in self.setPaused(false) }
@@ -98,7 +99,8 @@ final class GameScene: SKScene {
             .flatMap { player.loadout.ability(inSlot: $0) }
             .map { AbilityCatalog.def($0) }
         targeting.update(dt: dt, player: player, target: session.world.entity(player.targetId),
-                         showRange: router.input.rightDown, aiming: aiming, mouse: mouseScene)
+                         showRange: playerController.aimingSlot == nil && player.chasesTarget, aiming: aiming,
+                         mouse: mouseScene)
     }
 
     private func handle(_ event: GameEvent) {

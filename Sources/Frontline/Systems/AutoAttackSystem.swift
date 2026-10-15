@@ -11,7 +11,11 @@ final class AutoAttackSystem {
 
     func update(dt: CGFloat) {
         for hero in ctx.world.heroes where hero.isAlive {
-            hero.aimAngle = (hero.aimPoint - hero.position).angle
+            if let target = ctx.world.entity(hero.targetId), target.isAlive {
+                hero.aimAngle = (target.position - hero.position).angle
+            } else if hero.velocity.lengthSquared > 1 {
+                hero.aimAngle = hero.velocity.angle
+            }
             hero.bodyAngle = hero.aimAngle
             hero.attackCooldown = Swift.max(0, hero.attackCooldown - dt)
 
@@ -29,10 +33,12 @@ final class AutoAttackSystem {
             }
             guard let target = ctx.world.entity(hero.targetId), ctx.targeting.canTarget(hero, target) else {
                 hero.targetId = nil
+                hero.chasesTarget = false
                 continue
             }
             let distance = hero.position.distance(to: target.position) - target.radius
-            if distance > hero.stats.range * GameConfig.targetDropFactor {
+            // Right-click targets are chased; auto-acquired ones are dropped when they leave range.
+            if !hero.chasesTarget && distance > hero.stats.range * GameConfig.targetDropFactor {
                 hero.targetId = nil
                 continue
             }

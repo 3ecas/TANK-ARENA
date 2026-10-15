@@ -6,6 +6,7 @@ final class CampBrain: UnitBrain {
     let home: CGPoint
     private let leash: CGFloat
     private var returning = false
+    private let follower = PathFollower()
 
     init(home: CGPoint, leash: CGFloat) {
         self.home = home
@@ -17,7 +18,7 @@ final class CampBrain: UnitBrain {
         if returning {
             entity.targetId = nil
             entity.hp = Swift.min(entity.maxHp, entity.hp + entity.maxHp * 0.25 * dt)
-            BrainHelpers.move(entity, toward: home, ctx: ctx, stopDistance: 12)
+            BrainHelpers.move(entity, toward: home, ctx: ctx, stopDistance: 12, follower: follower)
             if distanceHome < 20 {
                 returning = false
                 entity.recentHeroAttackers.removeAll()
@@ -40,9 +41,9 @@ final class CampBrain: UnitBrain {
             entity.targetId = target?.id
         }
         if let target = target, entity.targetId != nil {
-            BrainHelpers.engage(entity, target: target, ctx: ctx)
+            BrainHelpers.engage(entity, target: target, ctx: ctx, follower: follower)
         } else {
-            BrainHelpers.move(entity, toward: home, ctx: ctx, stopDistance: 30)
+            BrainHelpers.move(entity, toward: home, ctx: ctx, stopDistance: 30, follower: follower)
             if distanceHome < 40 { entity.hp = Swift.min(entity.maxHp, entity.hp + entity.maxHp * 0.05 * dt) }
         }
     }

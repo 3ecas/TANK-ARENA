@@ -45,22 +45,23 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu, pick a **difficulty** (Easy / Normal / Hard) and a **starting loadout** (Assault, Support or Commander),
-then press **Play**.
+In the main menu, pick a **difficulty** (Easy / Normal / Hard) and press **Play**.
+Everyone (you and the 9 AI soldiers) starts the same way: a **service pistol and no abilities**.
+You customise your soldier entirely in the shop.
 
-### Controls
+### Controls (League of Legends style)
 
 | Input | Action |
 |---|---|
-| **W A S D** (or arrows) | Move |
-| **Mouse** | Aim (the soldier faces the cursor) |
-| **Right mouse** | Click on or near an enemy to lock it and auto-fire. Hold to keep firing at the enemy nearest the cursor. Click empty ground to clear |
-| **Left mouse** | Ability slot 1 |
-| **Q / E / R** | Ability slots 2, 3, 4 |
-| Hold + release | Area / targeted abilities show a reticle while held and cast on release. **Esc** while holding cancels |
-| **1 2 3 4** | Spend an ability point to rank up the ability in that slot |
+| **Right-click ground** | Move there (walks around buildings). Hold the button to keep steering |
+| **Right-click enemy** | Attack it: your soldier walks into range and keeps firing |
+| **Q / W / E / R** | Abilities (bought in the shop). Instant ones fire at once; area ones show a reticle while held and cast on release (or on left-click) |
+| **Esc** or **right-click** while aiming | Cancel the ability |
+| **F** | Combat roll toward the cursor (built in, 8 s cooldown) |
+| **S** | Stop |
+| **1 2 3 4** | Spend an ability point to rank up the ability in Q / W / E / R |
 | **B** | Recall to base (5 s channel, interrupted by damage or moving) |
-| **P** | Open the armory (only at base) |
+| **P** | Open the shop (only at base) |
 | **Tab** (hold) | Scoreboard |
 | **Space** | Center the camera on your soldier |
 | **Esc** | Pause menu |
@@ -68,18 +69,18 @@ then press **Play**.
 | Click the minimap | Move the camera there (Space snaps back) |
 | **F1** | Toggle FPS / node counter |
 
-Right-click never opens a context menu. Ctrl+click also counts as a right click.
+When you stand still, your soldier automatically shoots enemies in range. Ctrl+click also counts as a right-click.
 
 ### How the game works
 
-- **Map:** blue base bottom-left, red base top-right. There are three lanes (top, mid, bot), a river from corner to corner and neutral zones between the lanes. You only see what your units and structures see (fog of war).
+- **Map:** a city. The blue base is bottom-left and the red base top-right. Three main avenues (top, mid, bot) are the lanes, a canal runs from corner to corner, and city blocks with buildings and parks fill the space between them. Buildings block movement, so soldiers path through the streets. You only see what your units and structures see (fog of war).
 - **Teams:** 5 v 5 heroes: you plus 4 AI allies against 5 AI enemies.
 - **Waves:** every 30 s each HQ sends riflemen and rocket soldiers down every lane. Later waves include tanks and APCs (an APC drops riflemen when destroyed).
 - **Structures:** each lane has 2 bunkers and a barracks per team, and each base has an HQ. Inner bunkers, barracks and the HQ are invulnerable (grey HP bar) until the structures in front of them fall. Bunkers shoot troops first, but switch to any hero who attacks an allied hero in their range. Destroying an enemy barracks makes your waves in that lane stronger. **Destroy the enemy HQ to win.**
 - **Progression:** you earn gold from last hits, kills, assists, objectives and passive income, and XP up to level 18. Each level gives an ability point. The respawn timer grows with your level.
 - **Armory (P at base):**
-  - **Abilities:** 16 abilities in 4 categories (Combat, Support, Call-ins, Summons). Buy one to unlock it, buy it again to rank it up (max rank 3). Equip abilities into the 4 slots (LMB / Q / E / R) in the loadout strip; equipping only works at base.
-  - **Weapons:** Assault Rifle, Combat Shotgun, Sniper Rifle and Light Machine Gun, each with different range, fire rate, damage and magazine size. Reloading is automatic.
+  - **Abilities:** 15 abilities in 4 categories (Combat, Support, Call-ins, Summons). Buy one to unlock it; it goes into the first free slot (Q, W, E, R). Buy it again to rank it up (max rank 3). Swap slots in the loadout strip; equipping only works at base.
+  - **Weapons:** you start with the Service Pistol; buy the Assault Rifle, Combat Shotgun, Sniper Rifle or Light Machine Gun, each with different range, fire rate, damage and magazine size. Reloading is automatic.
   - **Gear:** 6 slots. There are 6 basic items, and each one upgrades into an advanced item (for example Kevlar Vest → Ceramic Plates).
 - **Command Points (CP):** earned from kills (2), assists (1), objectives and slowly over time. Ultimate abilities (Carpet Bombing, Call in Tank, Attack Helicopter) cost CP on top of their cooldown.
 - **Summons** have caps and lifetimes: 1 tank (pushes the nearest lane), 2 squads (follow you, then join a lane), 1 helicopter (escorts you) and 2 sentry turrets.

@@ -48,7 +48,7 @@ final class WorldRenderer {
     }
 
     private func buildTree() {
-        let map = SKSpriteNode(texture: MapTextureBuilder.texture(for: session.world.map),
+        let map = SKSpriteNode(texture: MapTextureBuilder.texture(for: session.world.map, city: session.world.city),
                                size: CGSize(width: session.world.map.size, height: session.world.map.size))
         map.anchorPoint = .zero
         map.zPosition = 0

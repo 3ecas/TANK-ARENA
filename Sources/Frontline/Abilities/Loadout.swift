@@ -3,7 +3,7 @@ import CoreGraphics
 /// Owned abilities (with ranks), the 4 equipped slots and cooldowns.
 struct Loadout {
     static let slotCount = 4
-    static let slotLabels = ["LMB", "Q", "E", "R"]
+    static let slotLabels = ["Q", "W", "E", "R"]
 
     private(set) var slots: [AbilityID?] = [nil, nil, nil, nil]
     private(set) var ranks: [AbilityID: Int] = [:]

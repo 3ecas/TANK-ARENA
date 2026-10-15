@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum AbilityID: String, CaseIterable {
-    case fragGrenade, combatRoll, stim, deployShield, smokeGrenade
+    case fragGrenade, stim, deployShield, smokeGrenade
     case medkit, uavRecon, supplyDrop, sentryTurret
     case strafingRun, carpetBombing, artilleryBarrage, empStrike
     case callTank, reinforcements, attackHelicopter

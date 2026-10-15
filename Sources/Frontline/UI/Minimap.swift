@@ -18,7 +18,7 @@ final class Minimap {
         self.session = session
         let side = Minimap.side
         let border = UIStyle.panel(size: CGSize(width: side + 8, height: side + 8))
-        let terrain = SKSpriteNode(texture: MapTextureBuilder.texture(for: session.world.map),
+        let terrain = SKSpriteNode(texture: MapTextureBuilder.texture(for: session.world.map, city: session.world.city),
                                    size: CGSize(width: side, height: side))
         fog = SKSpriteNode(color: .clear, size: CGSize(width: side, height: side))
         cameraFrame = SKShapeNode(rectOf: CGSize(width: 10, height: 10))

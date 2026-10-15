@@ -9,7 +9,7 @@ built with Swift Package Manager (Xcode Command Line Tools only, no IDE or engin
 |---|---|
 | `App/` | `@main` entry, app delegate, window + menu, `GameView` (SKView input forwarding), scene router, game scene, icon generator |
 | `Core/` | Vector math, clock, input manager, key codes, event bus, camera, spatial grid, game context, game session (system order), player controller, cast input |
-| `World/` | Teams, lanes, lane paths, map layout, world container, steering, vision grid |
+| `World/` | Teams, lanes, lane paths, map layout, city layout + generator, nav grid (A*), path follower, world container, steering, vision grid |
 | `Entities/` | Entity base + Hero, Infantry, Vehicle, Aircraft, Turret, Structure; projectiles, strike zones, area zones, capture points, status effects, factory |
 | `Systems/` | Movement, collision, targeting, combat, hero auto-attack, projectiles, damage, health, status, death/respawn, strikes, zones, waves, economy, XP, command points, recall, structures, objectives, neutral camps, vision, win condition, stat calculation |
 | `Abilities/` | `Ability` protocol, registry, ability system (cast/cooldowns), loadout + loadout manager, one file per ability (16) |
@@ -41,3 +41,8 @@ neutral camps → objectives → structures → economy → vision → death/cle
 5. **M5** summons (tank, squads, helicopter, sentry) and command points
 6. **M6** hero AI for allies and enemies (state machine, builds, dodging, difficulty)
 7. **M7** objectives (camps, radar, airfield, armor depot), fog of war, minimap, polish (effects, sounds, menus)
+
+## Revision 2 (after first playtest)
+- One customisable soldier type for everyone: pistol and no abilities at the start; everything is bought in the shop (the AI follows its own purchase order too).
+- League-style controls: right-click to move or attack, Q/W/E/R abilities, F combat roll, S stop.
+- City map: procedurally laid out blocks with buildings (solid) and parks between the lanes; heroes, summons and mercenaries use A* on a nav grid.

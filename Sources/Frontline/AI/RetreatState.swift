@@ -11,6 +11,10 @@ final class RetreatState: HeroAIState {
         let hero = ai.hero
         if ai.isInBase { return .shopping }
         if ai.perception.enemiesNear(750) == 0 && ai.stateTime > 1 { return .recalling }
+        // Roll away when an enemy hero is close.
+        if let enemy = ai.perception.nearestEnemyHero, enemy.position.distance(to: hero.position) < 450 {
+            DodgeRoll.perform(hero, toward: hero.spawnPoint)
+        }
         // Keep shooting the closest threat while backing off (hard AI only).
         if ai.ctx.difficulty == .hard, let enemy = ai.perception.nearestEnemyHero,
            enemy.position.distance(to: hero.position) <= hero.stats.range {

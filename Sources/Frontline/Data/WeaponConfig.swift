@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum WeaponID: String, CaseIterable {
-    case assaultRifle, shotgun, sniperRifle, lmg
+    case pistol, assaultRifle, shotgun, sniperRifle, lmg
 }
 
 struct WeaponDef {
@@ -24,7 +24,10 @@ struct WeaponDef {
 
 enum WeaponCatalog {
     static let all: [WeaponDef] = [
-        WeaponDef(id: .assaultRifle, name: "Assault Rifle", cost: 0, damage: 19, range: 420, interval: 0.15,
+        WeaponDef(id: .pistol, name: "Service Pistol", cost: 0, damage: 17, range: 380, interval: 0.4,
+                  magSize: 12, reloadTime: 1.3, pellets: 1, spread: 0.03, speedMultiplier: 1.05,
+                  summary: "Standard sidearm everyone starts with. Weak but reliable."),
+        WeaponDef(id: .assaultRifle, name: "Assault Rifle", cost: 500, damage: 19, range: 420, interval: 0.15,
                   magSize: 30, reloadTime: 1.8, pellets: 1, spread: 0.04, speedMultiplier: 1.0,
                   summary: "Reliable all-rounder. Medium range, steady fire."),
         WeaponDef(id: .shotgun, name: "Combat Shotgun", cost: 600, damage: 16, range: 270, interval: 0.85,

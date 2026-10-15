@@ -12,6 +12,7 @@ final class GameSession {
     private(set) var heroAIs: [HeroAIController] = []
 
     private let brains: BrainSystem
+    private let heroMovement: HeroMovementSystem
     private let movement: MovementSystem
     private let collision: CollisionSystem
     private let statusEffects: StatusEffectSystem
@@ -48,6 +49,7 @@ final class GameSession {
         ctx.objectives = ObjectiveSystem(ctx: ctx)
 
         brains = BrainSystem(ctx: ctx)
+        heroMovement = HeroMovementSystem(ctx: ctx)
         movement = MovementSystem(ctx: ctx)
         collision = CollisionSystem(ctx: ctx)
         statusEffects = StatusEffectSystem(ctx: ctx)
@@ -62,8 +64,12 @@ final class GameSession {
         score = ScoreSystem(ctx: ctx)
 
         MatchSetup.buildStructures(ctx: ctx)
-        player = MatchSetup.makePlayer(ctx: ctx, loadout: settings.startingLoadout)
+        player = MatchSetup.makePlayer(ctx: ctx)
         heroAIs = MatchSetup.makeAIHeroes(ctx: ctx)
+        world.rebuildNavigation()
+        bus.subscribe { [unowned world] event in
+            if case .structureDestroyed = event { world.rebuildNavigation() }
+        }
         world.grid.rebuild(with: world.entities)
         ctx.vision.recompute()
     }
@@ -76,6 +82,7 @@ final class GameSession {
         for ai in heroAIs { ai.update(dt: dt) }
         brains.update(dt: dt)
         ctx.abilities.update(dt: dt)
+        heroMovement.update(dt: dt)
         statusEffects.update(dt: dt)
         movement.update(dt: dt)
         collision.update()

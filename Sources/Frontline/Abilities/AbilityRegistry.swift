@@ -5,7 +5,7 @@ struct AbilityRegistry {
 
     init() {
         let all: [Ability] = [
-            FragGrenadeAbility(), CombatRollAbility(), StimAbility(), DeployShieldAbility(), SmokeGrenadeAbility(),
+            FragGrenadeAbility(), StimAbility(), DeployShieldAbility(), SmokeGrenadeAbility(),
             MedkitAbility(), UAVReconAbility(), SupplyDropAbility(), SentryTurretAbility(),
             StrafingRunAbility(), CarpetBombingAbility(), ArtilleryBarrageAbility(), EMPStrikeAbility(),
             CallTankAbility(), ReinforcementsAbility(), AttackHelicopterAbility(),

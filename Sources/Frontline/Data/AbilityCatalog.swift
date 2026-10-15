@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// All 16 purchasable abilities. Values are per rank (1...3).
+/// All 15 purchasable abilities (the roll on F is built in). Values are per rank (1...3).
 enum AbilityCatalog {
     static let all: [AbilityDef] = combat + support + callIns + summons
 
@@ -23,9 +23,6 @@ enum AbilityCatalog {
         AbilityDef(id: .fragGrenade, name: "Frag Grenade", shortName: "FRAG", category: .combat,
                    castMode: .area, range: 520, radius: 120, cooldowns: [9, 8, 7], values: [120, 170, 230],
                    goldCost: 400, upgradeCost: 300, summary: "Throw a grenade that explodes on landing."),
-        AbilityDef(id: .combatRoll, name: "Combat Roll", shortName: "ROLL", category: .combat,
-                   castMode: .instant, cooldowns: [10, 8.5, 7], values: [230, 270, 310],
-                   goldCost: 300, upgradeCost: 250, summary: "Dash quickly toward the cursor."),
         AbilityDef(id: .stim, name: "Combat Stim", shortName: "STIM", category: .combat,
                    castMode: .instant, cooldowns: [18, 16, 14], values: [0.4, 0.55, 0.7], durations: [5, 5.5, 6],
                    goldCost: 350, upgradeCost: 300,

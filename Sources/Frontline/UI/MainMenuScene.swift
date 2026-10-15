@@ -8,8 +8,8 @@ final class MainMenuScene: SKScene {
     private let menuLayer = SKNode()
     private let background: SKSpriteNode
     private let difficultyButton = UIButton(title: "", size: CGSize(width: 320, height: 46), fontSize: 16)
-    private let loadoutButton = UIButton(title: "", size: CGSize(width: 320, height: 46), fontSize: 16)
-    private let loadoutSummary = UIStyle.label("", size: 13, color: UIStyle.dimText, align: .center)
+    private let infoLabel = UIStyle.label("Everyone starts with a pistol. Buy weapons, gear and abilities in the shop.",
+                                          size: 13, color: UIStyle.dimText, align: .center)
     private let controls = ControlsPanel()
     private var clock = GameClock()
     private var time: CGFloat = 0
@@ -18,7 +18,7 @@ final class MainMenuScene: SKScene {
         self.router = router
         self.settings = settings
         let map = MapLayout()
-        background = SKSpriteNode(texture: MapTextureBuilder.texture(for: map),
+        background = SKSpriteNode(texture: MapTextureBuilder.texture(for: map, city: CityGenerator.generate(map: map)),
                                   size: CGSize(width: map.size, height: map.size))
         super.init(size: size)
         scaleMode = .resizeFill
@@ -51,19 +51,14 @@ final class MainMenuScene: SKScene {
             self.settings.difficulty = self.settings.difficulty.next
             self.refresh()
         }
-        loadoutButton.position = CGPoint(x: 0, y: -35)
-        loadoutButton.onClick = { [unowned self] in
-            self.settings.loadoutIndex = (self.settings.loadoutIndex + 1) % StartingLoadouts.all.count
-            self.refresh()
-        }
-        loadoutSummary.position = CGPoint(x: 0, y: -68)
+        infoLabel.position = CGPoint(x: 0, y: -22)
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -115)
+        help.position = CGPoint(x: 0, y: -75)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -170)
+        quit.position = CGPoint(x: 0, y: -130)
         quit.onClick = { [unowned self] in self.router.quit() }
-        for node in [play, difficultyButton, loadoutButton, loadoutSummary, help, quit] as [SKNode] {
+        for node in [play, difficultyButton, infoLabel, help, quit] as [SKNode] {
             menuLayer.addChild(node)
         }
         controls.root.zPosition = 20
@@ -73,9 +68,6 @@ final class MainMenuScene: SKScene {
 
     private func refresh() {
         difficultyButton.setTitle("Difficulty: \(settings.difficulty.displayName)")
-        let loadout = settings.startingLoadout
-        loadoutButton.setTitle("Loadout: \(loadout.name)")
-        loadoutSummary.text = loadout.summary
     }
 
     override func update(_ currentTime: TimeInterval) {
@@ -103,19 +95,19 @@ final class MainMenuScene: SKScene {
 final class ControlsPanel {
     let root = SKNode()
     private let lines = [
-        "WASD / arrows ....... move",
-        "Mouse ............... aim (soldier faces cursor)",
-        "Right mouse ......... lock target & auto-fire (hold: follow cursor)",
-        "Left mouse .......... ability slot 1",
-        "Q / E / R ........... ability slots 2-4",
-        "Hold + release ...... aim area abilities (Esc cancels)",
-        "1 2 3 4 ............. spend ability points on a slot",
+        "Right click ground .. move (hold to keep moving)",
+        "Right click enemy ... attack (walks into range)",
+        "Q / W / E / R ....... abilities (bought in the shop)",
+        "Hold + release ...... aim area abilities",
+        "Esc / right click ... cancel aiming",
+        "F ................... combat roll toward cursor",
+        "S ................... stop",
+        "1 2 3 4 ............. spend ability points on Q/W/E/R",
         "B ................... recall to base",
         "P ................... shop (at base)",
         "Tab ................. scoreboard",
         "Space ............... center camera",
-        "Esc ................. pause",
-        "Cmd+F ............... full screen",
+        "Esc ................. pause  ·  Cmd+F full screen",
     ]
 
     init() {

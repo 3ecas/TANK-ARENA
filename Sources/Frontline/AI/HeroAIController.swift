@@ -42,7 +42,6 @@ final class HeroAIController {
             .retreating: RetreatState(), .recalling: RecallState(), .ganking: GankState(),
             .objective: ObjectiveState(),
         ]
-        LoadoutManager.grantStarting(entry.build.startingAbilities, to: hero)
         StatCalculator.apply(to: hero)
         lastGankTime = CGFloat.random(in: 0...30)
     }
@@ -85,19 +84,22 @@ final class HeroAIController {
         return nil
     }
 
+    /// Hands the chosen destination to the shared hero movement (pathfinding) system.
     private func steer() {
+        hero.chasesTarget = false
         if let escape = dodge.escapeDirection() {
-            hero.moveDir = escape
+            let escapePoint = hero.position + escape * 160
+            hero.moveGoal = world.nav.nearestWalkable(escapePoint)
+            if ctx.difficulty != .easy { DodgeRoll.perform(hero, toward: escapePoint) }
         } else if let goal = moveGoal, hero.position.distance(to: goal) > 14 {
-            hero.moveDir = Steering.direction(from: hero.position, to: goal, radius: hero.radius,
-                                              obstacles: world.structures)
+            hero.moveGoal = goal
         } else {
-            hero.moveDir = .zero
+            hero.moveGoal = nil
         }
         if let target = world.entity(hero.targetId) {
             hero.aimPoint = target.position
-        } else if hero.moveDir.lengthSquared > 0.01 {
-            hero.aimPoint = hero.position + hero.moveDir * 120
+        } else if let goal = hero.moveGoal {
+            hero.aimPoint = goal
         }
     }
 

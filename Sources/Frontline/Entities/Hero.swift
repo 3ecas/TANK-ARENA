@@ -15,18 +15,24 @@ final class Hero: Entity {
     var abilityPoints = 0
 
     // Equipment
-    var weaponId: WeaponID = .assaultRifle
-    var ownedWeapons: Set<WeaponID> = [.assaultRifle]
+    var weaponId: WeaponID = .pistol
+    var ownedWeapons: Set<WeaponID> = [.pistol]
     var gear: [GearID] = []
     var loadout = Loadout()
     var stats = HeroStats()
 
     // Weapon state
-    var ammo: Int = 30
+    var ammo: Int = 12
     var reloadTimer: CGFloat = 0
 
-    // Control state
+    // Control state (written by the player controller or the hero AI)
     var aimPoint: CGPoint = .zero
+    /// Where the hero is walking to (click-to-move). Cleared on arrival.
+    var moveGoal: CGPoint?
+    /// When true the hero walks into weapon range of its target (right-click attack).
+    var chasesTarget = false
+    var dodgeCooldown: CGFloat = 0
+    let navigator = PathFollower()
     var respawnTimer: CGFloat = 0
     var recallTimer: CGFloat?
 

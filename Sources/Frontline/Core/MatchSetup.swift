@@ -20,9 +20,9 @@ enum MatchSetup {
         }
     }
 
-    static func makePlayer(ctx: GameContext, loadout: StartingLoadout) -> Hero {
+    /// Every soldier starts the same: a pistol and no abilities.
+    static func makePlayer(ctx: GameContext) -> Hero {
         let player = ctx.factory.makeHero(name: RosterConfig.playerName, team: .blue, isPlayer: true)
-        LoadoutManager.grantStarting(loadout.abilities, to: player)
         StatCalculator.apply(to: player)
         player.ammo = player.stats.magSize
         return player

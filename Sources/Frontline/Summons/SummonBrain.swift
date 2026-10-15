@@ -8,6 +8,7 @@ final class SummonBrain: UnitBrain {
     private let slot: Int
     private let slotCount: Int
     private var retargetTimer: CGFloat = 0
+    private let follower = PathFollower()
 
     init(ownerId: Int, slot: Int, slotCount: Int) {
         self.ownerId = ownerId
@@ -25,13 +26,13 @@ final class SummonBrain: UnitBrain {
         chooseTarget(entity, owner: owner, ctx: ctx)
 
         if let target = ctx.world.entity(entity.targetId), entity.attack != nil {
-            BrainHelpers.engage(entity, target: target, ctx: ctx)
+            BrainHelpers.engage(entity, target: target, ctx: ctx, follower: follower)
             return
         }
         let spread = (CGFloat(slot) - CGFloat(slotCount - 1) / 2) * 0.6
         let angle = owner.bodyAngle + .pi + spread
         let spot = owner.position + CGPoint(angle: angle, length: SummonConfig.followDistance)
-        BrainHelpers.move(entity, toward: spot, ctx: ctx, stopDistance: 20)
+        BrainHelpers.move(entity, toward: spot, ctx: ctx, stopDistance: 20, follower: follower)
     }
 
     private func chooseTarget(_ entity: Entity, owner: Hero, ctx: GameContext) {

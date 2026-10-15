@@ -4,6 +4,9 @@ import CoreGraphics
 @MainActor
 final class GameWorld {
     let map = MapLayout()
+    let city: CityLayout
+    /// Walkability for click-to-move pathfinding (rebuilt when structures fall).
+    var nav: NavGrid
     let grid: SpatialGrid
     private(set) var entities: [Entity] = []
     private var byId: [Int: Entity] = [:]
@@ -21,6 +24,14 @@ final class GameWorld {
 
     init() {
         grid = SpatialGrid(worldSize: MapConfig.size, cellSize: GameConfig.spatialCellSize)
+        city = CityGenerator.generate(map: MapLayout())
+        nav = NavGrid(worldSize: MapConfig.size, cellSize: CityConfig.navCellSize)
+    }
+
+    /// Recomputes the nav grid from buildings and living structures.
+    func rebuildNavigation() {
+        let circles = structures.filter { $0.isAlive && !$0.isRemoved }.map { ($0.position, $0.radius) }
+        nav.rebuild(rects: city.buildings.map { $0.rect }, circles: circles, padding: CityConfig.navPadding)
     }
 
     var player: Hero? { heroes.first { $0.isPlayer } }

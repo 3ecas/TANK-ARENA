@@ -56,13 +56,7 @@ final class AIShopper {
     }
 
     private func equipBuild() {
-        var preferred = Array(build.startingAbilities.prefix(3))
-        if hero.loadout.owns(build.ultimate) {
-            preferred.append(build.ultimate)
-        } else if build.startingAbilities.count > 3 {
-            preferred.append(build.startingAbilities[3])
-        }
-        for (slot, id) in preferred.enumerated() where hero.loadout.owns(id) {
+        for (slot, id) in build.abilities.prefix(Loadout.slotCount).enumerated() where hero.loadout.owns(id) {
             if hero.loadout.ability(inSlot: slot) != id {
                 _ = ctx.shop.equip(id, slot: slot, for: hero)
             }
