@@ -28,6 +28,10 @@ enum CaveConfig {
     static let zonePillars = 3
     static let pillarDistance: ClosedRange<CGFloat> = 50...90
 
+    /// Cave spawns: middle of the left and right edges.
+    static let blueSpawn = CGRect(x: 40, y: 640, width: 220, height: 520)
+    static let redSpawn = CGRect(x: 2540, y: 640, width: 220, height: 520)
+
     static let zones: [ZoneConfig.ZoneSpec] = [
         ZoneConfig.ZoneSpec(name: "A", center: CGPoint(x: 650, y: 900)),
         ZoneConfig.ZoneSpec(name: "B", center: CGPoint(x: 1400, y: 900)),

@@ -12,11 +12,13 @@ final class VisionSystem {
     }
 
     /// Recomputed every frame so the view cone follows the mouse smoothly.
+    /// Vision is shared: an enemy is shown when the viewer or any living teammate can see it.
     func update(dt: CGFloat, viewer: Soldier?) {
         var visible = Set<Int>()
         if let viewer = viewer, viewer.isAlive {
-            for enemy in ctx.world.soldiers where enemy.isAlive && enemy.team != viewer.team && canSee(viewer, enemy) {
-                visible.insert(enemy.id)
+            let team = ctx.world.soldiers.filter { $0.isAlive && $0.team == viewer.team }
+            for enemy in ctx.world.soldiers where enemy.isAlive && enemy.team != viewer.team {
+                if team.contains(where: { canSee($0, enemy) }) { visible.insert(enemy.id) }
             }
         }
         visibleToViewer = visible

@@ -81,3 +81,7 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - View range limited to `GameConfig.visionRange` (640). `Rendering/RangeIndicator` draws the player's dashed aim line to the weapon's max range, plus an arc marker.
 - One `GameConfig.fieldOfView` for the player and all bots. The camera is always centred on the player (no edge clamping, no free camera).
 - Scenes have a fixed size (`GameConfig.viewSize`, 1000×1000) with `.aspectFit`, so the window size never changes how much of the map is visible.
+
+## Revision 7
+- New city map: irregular, unmirrored layout (`MapConfig.buildings/crates/barriers/roads`), diagonal spawns, scattered zones. Caves keep their own spawns in `CaveConfig`.
+- Shared team vision: the fog clears every nearby teammate's cone, and enemies seen by any teammate are shown.

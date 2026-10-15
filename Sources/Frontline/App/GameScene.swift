@@ -81,7 +81,8 @@ final class GameScene: SKScene {
         if running { session.update(dt: dt) }
         cameraController.update(dt: dt, follow: session.viewer?.position)
         worldRenderer.update(dt: running ? dt : 0)
-        fog.update(viewer: session.viewer, cameraCenter: cameraController.node.position, viewSize: size,
+        fog.update(viewer: session.viewer, allies: session.world.soldiers,
+                   cameraCenter: cameraController.node.position, viewSize: size,
                    map: session.world.map)
         let mouseScreen = hud.root.convert(mouseScene, from: self)
         hud.update(dt: dt, cameraRect: cameraController.visibleRect, mouseScreen: mouseScreen, renderer: worldRenderer)

@@ -51,7 +51,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 
 ### Maps
 
-- **City:** a hand-made block of buildings, streets, alleys, crates and wrecks.
+- **City:** a hand-made, irregular town (not mirrored): a dozen buildings of different sizes, roads, open plazas, crates and wrecks. Blue spawns bottom-left, red top-right, and the three zones are scattered rather than in a line.
 - **Caves:** a new cave system every battle, built from a noise function. Three winding tunnels run from spawn to
   spawn (the middle one passes through zones A, B and C) and narrow side passages connect them, with open chambers
   and rock pillars for cover. Every passage is at least two soldiers wide, and the generator rejects any cave where a
@@ -70,13 +70,11 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
   nobody respawns any more and the fight goes on until one team is wiped out.
 - At any time, a team loses when nobody on it is alive and nobody is left to respawn. If the last soldiers of both
   teams die at the same moment, it is a **draw**.
-- The map is mostly mirrored, but each half has its own wrecked cars, sandbag walls and barricades, so the two
-  sides play differently.
 - Walls and crates block movement, bullets, grenade blasts and line of sight.
 - **View range:** nobody sees further than ~640 points; beyond that it is fog, even in front of you.
 - **Range line:** a dashed line runs from your soldier along your aim to the max range of the weapon in your hand
   (rifle 1000, pistol 800, SMG 700, shotgun 430), with a gold arc at the end. Walls cut it short.
-- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have exactly the same vision, so you can flank them and they can flank you.
+- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. **Vision is shared with your team**: whatever a teammate sees (their cone) is also cleared of fog for you. Bots have exactly the same vision, so you can flank them and they can flank you.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
 - Bots are tuned "medium-hard": quick reactions and decent aim. They fight as **squads of ~5**:
   - they move in formation behind a squad leader, who waits for stragglers;

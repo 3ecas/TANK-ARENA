@@ -30,28 +30,19 @@ struct MapLayout {
         }
     }
 
-    /// The hand-made city: mirrored buildings and crates plus unmirrored barriers.
+    /// The hand-made city: irregular buildings, crates and wrecks.
     static func city() -> MapLayout {
-        var list: [Obstacle] = []
-        for rect in MapConfig.blueBuildings {
-            list.append(Obstacle(rect: rect, kind: .building))
-            list.append(Obstacle(rect: MapConfig.mirror(rect), kind: .building))
-        }
-        for rect in MapConfig.blueCrates {
-            list.append(Obstacle(rect: rect, kind: .crate))
-            list.append(Obstacle(rect: MapConfig.mirror(rect), kind: .crate))
-        }
-        for rect in MapConfig.irregularBarriers {
-            list.append(Obstacle(rect: rect, kind: .barrier))
-        }
+        let list = MapConfig.buildings.map { Obstacle(rect: $0, kind: .building) }
+            + MapConfig.crates.map { Obstacle(rect: $0, kind: .crate) }
+            + MapConfig.barriers.map { Obstacle(rect: $0, kind: .barrier) }
         return MapLayout(kind: .city, size: MapConfig.size, obstacles: list, blueSpawn: MapConfig.blueSpawn,
-                         redSpawn: MapConfig.mirror(MapConfig.blueSpawn), zones: ZoneConfig.zones, cave: nil, seed: 0)
+                         redSpawn: MapConfig.redSpawn, zones: ZoneConfig.zones, cave: nil, seed: 0)
     }
 
     /// A freshly generated cave system. Seeds whose zones or spawns are not all connected are skipped.
     static func caves(seed: UInt64) -> MapLayout? {
-        let blue = MapConfig.blueSpawn
-        let red = MapConfig.mirror(MapConfig.blueSpawn)
+        let blue = CaveConfig.blueSpawn
+        let red = CaveConfig.redSpawn
         for attempt in 0..<UInt64(CaveConfig.maxAttempts) {
             let currentSeed = seed &+ attempt &* 7919
             var generator = CaveGenerator(seed: currentSeed, size: MapConfig.size, blueSpawn: blue, redSpawn: red,

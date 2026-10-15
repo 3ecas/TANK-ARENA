@@ -31,6 +31,8 @@ enum GameConfig {
     /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.
     static let fogAlpha: CGFloat = 0.55
     static let fogRayCount = 200
+    /// Rays per teammate cone (shared vision), cheaper than the viewer's own.
+    static let fogAllyRayCount = 72
     static let fogResolution: CGFloat = 0.25
     /// Shots are less accurate while moving.
     static let movingSpreadMultiplier: CGFloat = 1.8

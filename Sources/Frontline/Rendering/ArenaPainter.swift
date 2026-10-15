@@ -24,7 +24,7 @@ enum ArenaPainter {
             return texture
         }
         return TextureFactory.texture("arena", size: map.size, scale: scale) { ctx, size in
-            ctx.setFillColor(Palette.rgb(0.25, 0.25, 0.26))
+            ctx.setFillColor(Palette.rgb(0.31, 0.31, 0.3))
             ctx.fill(CGRect(origin: .zero, size: size))
             drawStreetMarkings(ctx, size: size)
             for team in Team.playable { drawSpawn(ctx, zone: map.spawnZone(team), team: team) }
@@ -45,23 +45,25 @@ enum ArenaPainter {
         }
     }
 
+    /// Weathered ground, then asphalt roads with dashed centre lines.
     private static func drawStreetMarkings(_ ctx: CGContext, size: CGSize) {
         var rng = SeededRandom(seed: 11)
         for _ in 0..<260 {
             let p = CGPoint(x: rng.next() * size.width, y: rng.next() * size.height)
-            let shade = 0.21 + rng.next() * 0.06
-            ctx.fillCircle(p, 15 + rng.next() * 50, Palette.rgb(shade, shade, shade + 0.01, 0.4))
+            let shade = 0.27 + rng.next() * 0.06
+            ctx.fillCircle(p, 15 + rng.next() * 50, Palette.rgb(shade, shade, shade - 0.01, 0.4))
         }
-        ctx.setLineDash(phase: 0, lengths: [36, 30])
-        ctx.strokeLine(CGPoint(x: 300, y: size.height / 2), CGPoint(x: size.width - 300, y: size.height / 2),
-                       Palette.rgb(0.9, 0.75, 0.25, 0.7), width: 5)
-        ctx.setLineDash(phase: 0, lengths: [])
-        // Crosswalks at the alley mouths
-        for x in [CGFloat(800), 1400, 2000] {
-            for i in 0..<6 {
-                let rect = CGRect(x: x - 50 + CGFloat(i) * 18, y: size.height / 2 - 140, width: 9, height: 60)
-                ctx.fillRoundedRect(rect, radius: 1, Palette.rgb(0.85, 0.85, 0.82, 0.5))
+        for road in MapConfig.roads {
+            ctx.fillRoundedRect(road, radius: 4, Palette.rgb(0.2, 0.2, 0.21))
+            ctx.setLineDash(phase: 0, lengths: [36, 30])
+            if road.width >= road.height {
+                ctx.strokeLine(CGPoint(x: road.minX, y: road.midY), CGPoint(x: road.maxX, y: road.midY),
+                               Palette.rgb(0.9, 0.75, 0.25, 0.6), width: 4)
+            } else {
+                ctx.strokeLine(CGPoint(x: road.midX, y: road.minY), CGPoint(x: road.midX, y: road.maxY),
+                               Palette.rgb(0.9, 0.75, 0.25, 0.6), width: 4)
             }
+            ctx.setLineDash(phase: 0, lengths: [])
         }
     }
 

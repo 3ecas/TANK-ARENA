@@ -7,12 +7,12 @@ enum ZoneConfig {
         let center: CGPoint
     }
 
-    /// A near the blue spawn, B contested in the middle, C near the red spawn
-    /// (placed slightly differently on each side).
+    /// City zones: A near the blue spawn, B contested in the middle, C near the red spawn.
+    /// Scattered on purpose, not in a line.
     static let zones: [ZoneSpec] = [
-        ZoneSpec(name: "A", center: CGPoint(x: 700, y: 930)),
-        ZoneSpec(name: "B", center: CGPoint(x: 1400, y: 900)),
-        ZoneSpec(name: "C", center: CGPoint(x: 2150, y: 880)),
+        ZoneSpec(name: "A", center: CGPoint(x: 700, y: 640)),
+        ZoneSpec(name: "B", center: CGPoint(x: 1460, y: 1140)),
+        ZoneSpec(name: "C", center: CGPoint(x: 2230, y: 860)),
     ]
     static let radius: CGFloat = 140
     /// Seconds for a lone team to capture a neutral zone (twice that to flip an enemy zone).
