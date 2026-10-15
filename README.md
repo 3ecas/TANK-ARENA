@@ -46,7 +46,7 @@ Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
 In the main menu pick a map: **Play · City** or **Play · Caves** (Enter replays the last map).
-The camera stays locked on your soldier, even at the edges of the map.
+The camera stays locked on your soldier, even at the edges of the map. Resizing the window or going full screen only scales the picture: you always see the same 1000×1000 area.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
 ### Maps

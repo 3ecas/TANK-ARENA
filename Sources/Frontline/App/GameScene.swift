@@ -26,8 +26,9 @@ final class GameScene: SKScene {
         playerController = PlayerController(soldier: session.player, weapons: session.weapons,
                                             grenades: session.grenades, melee: session.melee)
         audio = AudioDirector(sound: router.sound, session: session)
-        super.init(size: size)
-        scaleMode = .resizeFill
+        // Fixed-size scene scaled to the window: resizing never changes how much of the battlefield you see.
+        super.init(size: GameConfig.viewSize)
+        scaleMode = .aspectFit
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         backgroundColor = SKColor(red: 0.08, green: 0.08, blue: 0.09, alpha: 1)
         setup()

@@ -80,3 +80,4 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - Square window: `WindowFactory` sets a 1:1 aspect ratio, and `SquareContainerView` keeps the game view square in full screen.
 - View range limited to `GameConfig.visionRange` (640). `Rendering/RangeIndicator` draws the player's dashed aim line to the weapon's max range, plus an arc marker.
 - One `GameConfig.fieldOfView` for the player and all bots. The camera is always centred on the player (no edge clamping, no free camera).
+- Scenes have a fixed size (`GameConfig.viewSize`, 1000×1000) with `.aspectFit`, so the window size never changes how much of the map is visible.

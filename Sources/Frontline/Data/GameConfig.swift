@@ -5,6 +5,8 @@ enum GameConfig {
     /// Square game window: preferred and minimum side in points.
     static let windowSide: CGFloat = 1000
     static let minWindowSide: CGFloat = 860
+    /// World area shown on screen (points). The scene is scaled to fit the window, so this never changes.
+    static let viewSize = CGSize(width: 1000, height: 1000)
     static let teamSize = 25
     static let maxHp: CGFloat = 100
     /// Each soldier can come back once after dying.

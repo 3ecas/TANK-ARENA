@@ -15,8 +15,8 @@ final class MainMenuScene: SKScene {
         let map = ArenaMap(layout: MapLayout.city())
         background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
                                   size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
-        super.init(size: size)
-        scaleMode = .resizeFill
+        super.init(size: GameConfig.viewSize)
+        scaleMode = .aspectFit
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
         backgroundColor = .black
         build()
