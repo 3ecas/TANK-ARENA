@@ -68,3 +68,15 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - Bots prefer exposed targets (`AIConfig.exposedTargetBonus`), react faster and aim better at them, and never hide from them:
   within `AIConfig.backstabRange` they sneak behind and knife; further away they stand and shoot.
 
+## Revision 6: cave map, flanking, square window
+- `World/MapLayout` describes a map (obstacles, spawns, zones). `MapKind.city` is built from `MapConfig`, and `MapKind.caves` from `World/CaveGenerator`:
+  - `ValueNoise` rock, two outer tunnels plus a middle tunnel through the zones, wiggly connectors, zone clearings with pillars;
+  - a flood fill over 2×2 open blocks keeps only passages at least two cells wide;
+  - the result is checked with the nav grid and regenerated with a new seed if anything is unreachable.
+- `CaveGrid` merges rock cells into rectangles. `ObstacleIndex` buckets obstacles, so raycasts, collisions and point tests stay fast with hundreds of rocks.
+- `Rendering/CavePainter` paints floor, rock shading and rims. The main menu has Play · City / Play · Caves.
+- Flanking: squad roles 2 and 3 get a `flankPoint` on the top or bottom edge before heading to the objective.
+- Rogues: `AIConfig.roguesPerTeam` bots per team stay outside squads (`SoldierAIRogue`). They route along an edge to a point behind the enemy front line, then repeat.
+- Square window: `WindowFactory` sets a 1:1 aspect ratio, and `SquareContainerView` keeps the game view square in full screen.
+- View range limited to `GameConfig.visionRange` (640). `Rendering/RangeIndicator` draws the player's dashed aim line to the weapon's max range, plus an arc marker.
+

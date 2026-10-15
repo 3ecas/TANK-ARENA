@@ -32,6 +32,15 @@ enum AIConfig {
 
     // MARK: Squads & cover
 
+    /// Lone flankers per team that circle around the map to hit the enemy from behind.
+    static let roguesPerTeam = 3
+    /// How far from the top / bottom edge flanking routes run.
+    static let flankEdgeMargin: CGFloat = 170
+    /// Squads only flank when the objective is at least this far away horizontally.
+    static let flankMinDistance: CGFloat = 600
+    static let flankReachedDistance: CGFloat = 150
+    /// Rogues aim for a point this far behind the enemy front line.
+    static let rogueBehindDistance: CGFloat = 320
     /// Seconds between control-zone objective reviews.
     static let objectiveInterval: CGFloat = 4
     static let squadSize = 5

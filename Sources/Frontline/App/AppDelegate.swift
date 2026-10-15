@@ -11,7 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.applicationIconImage = IconGenerator.makeImage(size: 512)
 
         let input = InputManager()
-        let view = GameView(frame: NSRect(x: 0, y: 0, width: 1440, height: 900), input: input)
+        let view = GameView(frame: NSRect(x: 0, y: 0, width: 1000, height: 1000), input: input)
         view.preferredFramesPerSecond = 60
         view.ignoresSiblingOrder = true
         view.shouldCullNonVisibleNodes = true

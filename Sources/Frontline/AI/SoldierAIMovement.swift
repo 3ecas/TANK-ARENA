@@ -4,7 +4,7 @@ import CoreGraphics
 extension SoldierAI {
     func groupMove(dt: CGFloat) {
         guard let squad = squad else {
-            soldier.moveDir = .zero
+            if isRogue { rogueMove(dt: dt) } else { soldier.moveDir = .zero }
             return
         }
         let goal = squadGoal(squad)
@@ -25,8 +25,12 @@ extension SoldierAI {
     private func squadGoal(_ squad: Squad) -> CGPoint? {
         switch squad.stance {
         case .advance:
-            guard let zone = squad.objective else { return nil }
             let nav = ctx.world.nav
+            if let flank = squad.flankPoint {
+                if squad.leader === self { return squad.isGathered ? flank : nil }
+                return squad.formationPosition(for: self).map { nav.nearestWalkable($0) }
+            }
+            guard let zone = squad.objective else { return nil }
             let leaderPosition = squad.leader?.soldier.position ?? soldier.position
             // Near the zone: spread out inside it to capture and hold.
             if leaderPosition.distance(to: zone.center) < zone.radius * 1.6 {

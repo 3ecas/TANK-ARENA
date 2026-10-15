@@ -21,6 +21,8 @@ final class Squad {
     private(set) var members: [SoldierAI] = []
     /// Control zone the squad is taking or defending.
     var objective: ControlZone?
+    /// Waypoint on the edge of the map the squad passes through first to flank the objective.
+    var flankPoint: CGPoint?
     /// Squad role inside its team: 1 = defends the home zone, others attack.
     var role: Int
     var stance: SquadStance = .advance

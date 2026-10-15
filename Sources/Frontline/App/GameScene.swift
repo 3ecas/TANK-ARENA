@@ -16,8 +16,8 @@ final class GameScene: SKScene {
     var gameEnded = false
     var mouseScene: CGPoint = .zero
 
-    init(size: CGSize, router: SceneRouter) {
-        let session = GameSession()
+    init(size: CGSize, router: SceneRouter, map: MapKind) {
+        let session = GameSession(map: map)
         self.router = router
         self.session = session
         worldRenderer = WorldRenderer(session: session)

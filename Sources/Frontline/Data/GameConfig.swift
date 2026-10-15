@@ -2,6 +2,9 @@ import CoreGraphics
 
 /// General rules of the 25 vs 25 battle.
 enum GameConfig {
+    /// Square game window: preferred and minimum side in points.
+    static let windowSide: CGFloat = 1000
+    static let minWindowSide: CGFloat = 860
     static let teamSize = 25
     static let maxHp: CGFloat = 100
     /// Each soldier can come back once after dying.
@@ -12,7 +15,10 @@ enum GameConfig {
     /// Walking speed (points per second) before weapon weight.
     static let walkSpeed: CGFloat = 118
     /// How far a soldier can see (line of sight is still required).
-    static let visionRange: CGFloat = 1050
+    /// How far anyone can see (the fog closes in beyond this; well inside the square window).
+    static let visionRange: CGFloat = 640
+    /// Angular width of the max-range marker on the player's aim line.
+    static let rangeMarkerSpan: CGFloat = 0.22
     /// Field of view (full angle, radians): the player sees ~110 degrees in front, bots a bit wider.
     static let playerFieldOfView: CGFloat = 1.92
     static let botFieldOfView: CGFloat = 2.6

@@ -37,6 +37,9 @@ final class SoldierAI {
     var coverRetryTimer: CGFloat = 0
     var phase: CombatPhase = .moving
     var phaseTimer: CGFloat = 0
+    /// Lone flanker outside any squad.
+    var isRogue = false
+    var rogueRoute: [CGPoint] = []
     /// Where the bot is heading out of combat (used by the squad formation).
     var travelGoal: CGPoint?
 
@@ -80,6 +83,7 @@ final class SoldierAI {
         threatPosition = nil
         cover = nil
         travelGoal = nil
+        rogueRoute.removeAll()
         follower.clear()
     }
 

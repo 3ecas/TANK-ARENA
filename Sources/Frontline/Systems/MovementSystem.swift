@@ -19,7 +19,9 @@ final class MovementSystem {
             soldier.velocity = soldier.moveDir.clampedLength(1) * speed
             soldier.position = (soldier.position + soldier.velocity * dt).clamped(to: bounds)
             turn(soldier, dt: dt)
-            for obstacle in world.map.obstacles {
+            let reach = soldier.radius + 2
+            let area = CGRect(x: soldier.position.x - reach, y: soldier.position.y - reach, width: reach * 2, height: reach * 2)
+            for obstacle in world.map.obstacles(near: area) {
                 push(soldier, outOf: obstacle.rect)
             }
         }

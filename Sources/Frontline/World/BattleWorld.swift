@@ -3,7 +3,7 @@ import CoreGraphics
 /// All live state of one battle. Holds data only; systems implement behaviour.
 @MainActor
 final class BattleWorld {
-    let map = ArenaMap()
+    let map: ArenaMap
     private(set) var nav: NavGrid
     private(set) var soldiers: [Soldier] = []
     private var byId: [Int: Soldier] = [:]
@@ -19,11 +19,13 @@ final class BattleWorld {
     var result: MatchResult?
     private var nextId = 1
 
-    init() {
-        var grid = NavGrid(size: MapConfig.size, cellSize: GameConfig.navCellSize)
-        grid.rebuild(rects: ArenaMap().obstacles.map { $0.rect }, padding: GameConfig.navPadding)
+    init(layout: MapLayout) {
+        let arena = ArenaMap(layout: layout)
+        var grid = NavGrid(size: arena.size, cellSize: GameConfig.navCellSize)
+        grid.rebuild(rects: arena.obstacles.map { $0.rect }, padding: GameConfig.navPadding)
+        map = arena
         nav = grid
-        zones = ZoneConfig.zones.map { ControlZone(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
+        zones = arena.zoneSpecs.map { ControlZone(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
     }
 
     func score(_ team: Team) -> Int {

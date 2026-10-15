@@ -19,8 +19,8 @@ final class GameSession {
     private var bots: [SoldierAI] = []
     private var squads: SquadCoordinator?
 
-    init() {
-        let world = BattleWorld()
+    init(map: MapKind) {
+        let world = BattleWorld(layout: MapLayout.make(map))
         let bus = EventBus()
         let ctx = BattleContext(world: world, bus: bus)
         let damage = DamageSystem(ctx: ctx)

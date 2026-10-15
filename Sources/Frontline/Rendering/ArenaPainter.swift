@@ -10,13 +10,25 @@ enum ArenaPainter {
         Palette.rgb(0.56, 0.48, 0.38), Palette.rgb(0.42, 0.45, 0.4),
     ]
 
+    /// Cave maps are new every battle, so only the latest cave texture is kept.
+    private static var caveTexture: (seed: UInt64, texture: SKTexture)?
+
     static func texture(for map: ArenaMap) -> SKTexture {
-        TextureFactory.texture("arena", size: map.size, scale: scale) { ctx, size in
+        if map.kind == .caves, let grid = map.cave {
+            if let cached = caveTexture, cached.seed == map.seed { return cached.texture }
+            let texture = TextureFactory.render(size: map.size, scale: scale) { ctx, size in
+                CavePainter.draw(ctx, size: size, map: map, grid: grid)
+                for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
+            }
+            caveTexture = (map.seed, texture)
+            return texture
+        }
+        return TextureFactory.texture("arena", size: map.size, scale: scale) { ctx, size in
             ctx.setFillColor(Palette.rgb(0.25, 0.25, 0.26))
             ctx.fill(CGRect(origin: .zero, size: size))
             drawStreetMarkings(ctx, size: size)
             for team in Team.playable { drawSpawn(ctx, zone: map.spawnZone(team), team: team) }
-            for zone in ZoneConfig.zones { drawZonePad(ctx, center: zone.center) }
+            for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
             for obstacle in map.obstacles where obstacle.kind == .building {
                 ctx.fillRoundedRect(obstacle.rect.insetBy(dx: -12, dy: -12), radius: 6, Palette.rgb(0.42, 0.42, 0.41))
             }
@@ -25,6 +37,7 @@ enum ArenaPainter {
                 case .building: drawBuilding(ctx, rect: obstacle.rect, style: index)
                 case .crate: drawCrate(ctx, rect: obstacle.rect)
                 case .barrier: drawBarrier(ctx, rect: obstacle.rect, style: index)
+                case .rock: ctx.fillRoundedRect(obstacle.rect, radius: 2, Palette.rgb(0.16, 0.14, 0.12))
                 }
             }
             ctx.strokeRoundedRect(CGRect(origin: .zero, size: size).insetBy(dx: 4, dy: 4), radius: 4,
@@ -52,7 +65,7 @@ enum ArenaPainter {
         }
     }
 
-    private static func drawSpawn(_ ctx: CGContext, zone: CGRect, team: Team) {
+    static func drawSpawn(_ ctx: CGContext, zone: CGRect, team: Team) {
         ctx.fillRoundedRect(zone, radius: 10, Palette.rgb(0.32, 0.33, 0.32))
         ctx.saveGState()
         ctx.addPath(CGPath(roundedRect: zone, cornerWidth: 10, cornerHeight: 10, transform: nil))
@@ -95,7 +108,7 @@ enum ArenaPainter {
     }
 
     /// Painted capture circle under each control zone (the live ownership ring is drawn by ZoneRenderer).
-    private static func drawZonePad(_ ctx: CGContext, center: CGPoint) {
+    static func drawZonePad(_ ctx: CGContext, center: CGPoint) {
         ctx.fillCircle(center, ZoneConfig.radius, Palette.rgb(0.3, 0.31, 0.3))
         ctx.setLineDash(phase: 0, lengths: [18, 14])
         ctx.strokeCircle(center, ZoneConfig.radius - 6, Palette.rgb(0.85, 0.85, 0.8, 0.45), width: 4)

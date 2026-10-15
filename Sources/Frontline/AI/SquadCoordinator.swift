@@ -13,7 +13,11 @@ final class SquadCoordinator {
         self.ctx = ctx
         var nextId = 1
         for team in Team.playable {
-            let teamBots = bots.filter { $0.soldier.team == team }
+            // A few bots per team are rogues: lone flankers outside any squad.
+            let allBots = bots.filter { $0.soldier.team == team }
+            let rogueCount = Swift.min(AIConfig.roguesPerTeam, allBots.count / 4)
+            for bot in allBots.suffix(rogueCount) { bot.isRogue = true }
+            let teamBots = Array(allBots.dropLast(rogueCount))
             let count = Int((CGFloat(teamBots.count) / CGFloat(AIConfig.squadSize)).rounded(.up))
             for squadIndex in 0..<count {
                 let squad = Squad(id: nextId, team: team, role: squadIndex)
@@ -42,6 +46,10 @@ final class SquadCoordinator {
         }
         for squad in squads where !squad.members.isEmpty {
             decideStance(squad)
+            if let flank = squad.flankPoint, let leader = squad.leader,
+               leader.soldier.position.distance(to: flank) < AIConfig.flankReachedDistance {
+                squad.flankPoint = nil
+            }
         }
         assignSupport()
     }
@@ -88,23 +96,35 @@ final class SquadCoordinator {
     private func assignObjective(_ squad: Squad) {
         let set = zones(for: squad.team)
         if squad.role == 1 {
-            squad.objective = set.home
+            setObjective(squad, set.home, flank: false)
             return
         }
         let homeLost = set.home.owner != squad.team && set.home.owner != nil
         if homeLost && squad.role == 2 {
-            squad.objective = set.home
+            setObjective(squad, set.home, flank: false)
             return
         }
         if let current = squad.objective, current.owner != squad.team { return }
         let origin = squad.centroid ?? set.home.center
         let candidates = [set.middle, set.enemy, set.home].filter { $0.owner != squad.team }
+        // Roles 2 and 3 take the long way round the top / bottom of the map instead of going through the middle.
+        let flank = squad.role == 2 || squad.role == 3
         if let target = candidates.min(by: { score($0, origin, squad.team) < score($1, origin, squad.team) }) {
-            squad.objective = target
+            setObjective(squad, target, flank: flank)
         } else {
             // Everything is ours: push toward the enemy zone and hold it.
-            squad.objective = squad.role % 2 == 0 ? set.enemy : set.middle
+            setObjective(squad, squad.role % 2 == 0 ? set.enemy : set.middle, flank: flank)
         }
+    }
+
+    private func setObjective(_ squad: Squad, _ zone: ControlZone, flank: Bool) {
+        guard squad.objective !== zone else { return }
+        squad.objective = zone
+        squad.flankPoint = nil
+        guard flank, let origin = squad.centroid, abs(zone.center.x - origin.x) > AIConfig.flankMinDistance else { return }
+        let size = ctx.world.map.size
+        let edgeY = squad.role == 2 ? size.height - AIConfig.flankEdgeMargin : AIConfig.flankEdgeMargin
+        squad.flankPoint = ctx.world.nav.nearestWalkable(CGPoint(x: (origin.x + zone.center.x) / 2, y: edgeY))
     }
 
     /// Lower is better: distance, with the middle zone preferred.

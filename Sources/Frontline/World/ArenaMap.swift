@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum ObstacleKind {
-    case building, crate, barrier
+    case building, crate, barrier, rock
 }
 
 struct Obstacle {
@@ -9,43 +9,55 @@ struct Obstacle {
     let kind: ObstacleKind
 }
 
-/// Static geometry of the arena: obstacles (solid to movement, bullets and sight), spawns and irregular barriers.
+/// Static geometry of the arena: obstacles (solid to movement, bullets and sight), spawns and zone positions.
 struct ArenaMap {
+    let kind: MapKind
     let size: CGSize
     let bounds: CGRect
     let obstacles: [Obstacle]
+    let zoneSpecs: [ZoneConfig.ZoneSpec]
+    /// Rock grid when this is a cave map.
+    let cave: CaveGrid?
+    let seed: UInt64
+    private let blueSpawn: CGRect
+    private let redSpawn: CGRect
+    private let index: ObstacleIndex
 
-    init() {
-        size = MapConfig.size
-        bounds = CGRect(origin: .zero, size: MapConfig.size)
-        var list: [Obstacle] = []
-        for rect in MapConfig.blueBuildings {
-            list.append(Obstacle(rect: rect, kind: .building))
-            list.append(Obstacle(rect: MapConfig.mirror(rect), kind: .building))
-        }
-        for rect in MapConfig.blueCrates {
-            list.append(Obstacle(rect: rect, kind: .crate))
-            list.append(Obstacle(rect: MapConfig.mirror(rect), kind: .crate))
-        }
-        for rect in MapConfig.irregularBarriers {
-            list.append(Obstacle(rect: rect, kind: .barrier))
-        }
-        obstacles = list
+    init(layout: MapLayout) {
+        kind = layout.kind
+        size = layout.size
+        bounds = CGRect(origin: .zero, size: layout.size)
+        obstacles = layout.obstacles
+        zoneSpecs = layout.zones
+        cave = layout.cave
+        seed = layout.seed
+        blueSpawn = layout.blueSpawn
+        redSpawn = layout.redSpawn
+        index = ObstacleIndex(obstacles: layout.obstacles, size: layout.size)
     }
 
     func spawnZone(_ team: Team) -> CGRect {
-        team == .red ? MapConfig.mirror(MapConfig.blueSpawn) : MapConfig.blueSpawn
+        team == .red ? redSpawn : blueSpawn
+    }
+
+    /// Obstacles that may overlap `rect`.
+    func obstacles(near rect: CGRect) -> [Obstacle] {
+        index.candidates(in: rect).map { obstacles[$0] }
     }
 
     func isInsideObstacle(_ p: CGPoint, padding: CGFloat = 0) -> Bool {
-        obstacles.contains { $0.rect.insetBy(dx: -padding, dy: -padding).contains(p) }
+        let probe = CGRect(x: p.x - padding, y: p.y - padding, width: padding * 2, height: padding * 2)
+        return index.candidates(in: probe).contains { obstacles[$0].rect.insetBy(dx: -padding, dy: -padding).contains(p) }
     }
 
     /// Fraction (0...1) along a-b where the first obstacle is hit, or nil if the segment is clear.
     func raycast(from a: CGPoint, to b: CGPoint) -> CGFloat? {
         var best: CGFloat?
-        for obstacle in obstacles {
-            if let t = ArenaMap.segmentHit(a, b, obstacle.rect), t < (best ?? 2) { best = t }
+        let box = CGRect(x: Swift.min(a.x, b.x), y: Swift.min(a.y, b.y), width: abs(b.x - a.x), height: abs(b.y - a.y))
+        for i in index.candidates(in: box) {
+            let rect = obstacles[i].rect
+            guard rect.intersects(box.insetBy(dx: -1, dy: -1)) else { continue }
+            if let t = ArenaMap.segmentHit(a, b, rect), t < (best ?? 2) { best = t }
         }
         return best
     }

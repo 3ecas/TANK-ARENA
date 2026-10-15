@@ -12,7 +12,7 @@ final class MainMenuScene: SKScene {
 
     init(size: CGSize, router: SceneRouter) {
         self.router = router
-        let map = ArenaMap()
+        let map = ArenaMap(layout: MapLayout.city())
         background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
                                   size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
         super.init(size: size)
@@ -39,16 +39,21 @@ final class MainMenuScene: SKScene {
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
-        let play = UIButton(title: "PLAY", size: CGSize(width: 320, height: 56), fontSize: 22, color: UIStyle.buttonOwned)
-        play.position = CGPoint(x: 0, y: 50)
-        play.onClick = { [unowned self] in self.router.startGame() }
+        let play = UIButton(title: "PLAY · CITY", size: CGSize(width: 320, height: 50), fontSize: 20,
+                            color: UIStyle.buttonOwned)
+        play.position = CGPoint(x: 0, y: 60)
+        play.onClick = { [unowned self] in self.router.startGame(map: .city) }
+        let caves = UIButton(title: "PLAY · CAVES", size: CGSize(width: 320, height: 50), fontSize: 20,
+                             color: UIStyle.buttonOwned)
+        caves.position = CGPoint(x: 0, y: 2)
+        caves.onClick = { [unowned self] in self.router.startGame(map: .caves) }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -15)
+        help.position = CGPoint(x: 0, y: -58)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -70)
+        quit.position = CGPoint(x: 0, y: -110)
         quit.onClick = { [unowned self] in self.router.quit() }
-        for node in [title, subtitle, info, play, help, quit] as [SKNode] { menuLayer.addChild(node) }
+        for node in [title, subtitle, info, play, caves, help, quit] as [SKNode] { menuLayer.addChild(node) }
         controls.root.zPosition = 20
         addChild(controls.root)
     }
