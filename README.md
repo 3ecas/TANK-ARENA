@@ -46,6 +46,7 @@ Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
 In the main menu pick a map: **Play · City** or **Play · Caves** (Enter replays the last map).
+The camera stays locked on your soldier, even at the edges of the map.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
 ### Maps
@@ -75,7 +76,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 - **View range:** nobody sees further than ~640 points; beyond that it is fog, even in front of you.
 - **Range line:** a dashed line runs from your soldier along your aim to the max range of the weapon in your hand
   (rifle 1000, pistol 800, SMG 700, shotgun 430), with a gold arc at the end. Walls cut it short.
-- **Field of view:** you only see a ~110° cone in front of your soldier, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have a similar cone (~150°), so you can flank them.
+- **Field of view:** you and every bot see the same ~120° cone in front of you, up to the same range, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have exactly the same vision, so you can flank them and they can flank you.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
 - Bots are tuned "medium-hard": quick reactions and decent aim. They fight as **squads of ~5**:
   - they move in formation behind a squad leader, who waits for stragglers;
@@ -103,7 +104,6 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 | **G** | Throw your grenade at the cursor |
 | **F** | Knife (hitting someone from behind is an instant kill) |
 | **Tab** (hold) | Scoreboard |
-| **Space** | Re-centre the camera |
 | **Esc** | Pause menu |
 | **Cmd+F** / green button | Toggle full screen |
 | **F1** | Toggle FPS counter |

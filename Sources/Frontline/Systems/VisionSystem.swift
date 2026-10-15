@@ -36,7 +36,7 @@ final class VisionSystem {
     }
 
     static func fieldOfView(for soldier: Soldier) -> CGFloat {
-        soldier.isPlayer ? GameConfig.playerFieldOfView : GameConfig.botFieldOfView
+        GameConfig.fieldOfView
     }
 
     /// The closest enemy `viewer` can see, or nil.

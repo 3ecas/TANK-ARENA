@@ -19,7 +19,6 @@ extension GameScene {
             session.player.wantsToFire = false
             return
         }
-        if input.wasPressed(KeyCode.space) { cameraController.lock() }
         playerController.update(input: input, mouseWorld: mouseScene, leftClickAvailable: leftAvailable)
     }
 }

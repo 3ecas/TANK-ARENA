@@ -79,4 +79,4 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - Rogues: `AIConfig.roguesPerTeam` bots per team stay outside squads (`SoldierAIRogue`). They route along an edge to a point behind the enemy front line, then repeat.
 - Square window: `WindowFactory` sets a 1:1 aspect ratio, and `SquareContainerView` keeps the game view square in full screen.
 - View range limited to `GameConfig.visionRange` (640). `Rendering/RangeIndicator` draws the player's dashed aim line to the weapon's max range, plus an arc marker.
-
+- One `GameConfig.fieldOfView` for the player and all bots. The camera is always centred on the player (no edge clamping, no free camera).

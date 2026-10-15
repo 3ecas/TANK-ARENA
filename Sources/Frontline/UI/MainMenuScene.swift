@@ -91,7 +91,6 @@ final class ControlsPanel {
         "G ................... throw grenade at cursor",
         "F ................... knife (backstab = kill)",
         "Tab ................. scoreboard",
-        "Space ............... re-centre camera",
         "Esc ................. pause  ·  Cmd+F full screen",
     ]
 

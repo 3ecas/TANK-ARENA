@@ -20,8 +20,10 @@ enum GameConfig {
     /// Angular width of the max-range marker on the player's aim line.
     static let rangeMarkerSpan: CGFloat = 0.22
     /// Field of view (full angle, radians): the player sees ~110 degrees in front, bots a bit wider.
-    static let playerFieldOfView: CGFloat = 1.92
-    static let botFieldOfView: CGFloat = 2.6
+    /// View cone (radians) — identical for the player and every bot.
+    static let fieldOfView: CGFloat = 2.1
+    /// How quickly the camera catches up with the player (higher = tighter).
+    static let cameraFollowRate: CGFloat = 22
     /// Everyone notices enemies this close, even behind them.
     static let peripheralRadius: CGFloat = 70
     /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.
