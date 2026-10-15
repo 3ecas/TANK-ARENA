@@ -25,7 +25,7 @@ enum GameConfig {
     /// Everyone notices enemies this close, even behind them.
     static let peripheralRadius: CGFloat = 70
     /// Fog of war drawing: darkness outside the view cone, rays cast per frame, texture resolution.
-    static let fogAlpha: CGFloat = 0.82
+    static let fogAlpha: CGFloat = 0.55
     static let fogRayCount = 200
     static let fogResolution: CGFloat = 0.25
     /// Shots are less accurate while moving.

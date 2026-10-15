@@ -5,6 +5,11 @@ import CoreGraphics
 extension SoldierAI {
     func rogueMove(dt: CGFloat) {
         if rogueRoute.isEmpty { planRogueRoute() }
+        // Give up on a waypoint that takes too long (blocked or unreachable).
+        if !rogueRoute.isEmpty && ctx.world.time > rogueDeadline {
+            rogueRoute.removeFirst()
+            rogueDeadline = ctx.world.time + AIConfig.waypointTimeout
+        }
         guard let goal = rogueRoute.first else {
             soldier.moveDir = .zero
             return
@@ -12,13 +17,11 @@ extension SoldierAI {
         travelGoal = goal
         if soldier.position.distance(to: goal) < 60 {
             rogueRoute.removeFirst()
+            rogueDeadline = ctx.world.time + AIConfig.waypointTimeout
             return
         }
         moveToward(goal, dt: dt)
-        if soldier.moveDir.lengthSquared < 0.0001 {
-            // No path to this waypoint: skip it.
-            rogueRoute.removeFirst()
-        } else {
+        if soldier.moveDir.lengthSquared > 0.01 {
             soldier.aimPoint = soldier.position + soldier.moveDir * 200
         }
     }
@@ -40,6 +43,7 @@ extension SoldierAI {
         }
         route.append(nav.nearestWalkable(target))
         rogueRoute = route
+        rogueDeadline = world.time + AIConfig.waypointTimeout
     }
 
     /// A point behind the enemies closest to our side (toward their spawn), or their spawn if none are alive.

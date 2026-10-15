@@ -23,6 +23,8 @@ final class Squad {
     var objective: ControlZone?
     /// Waypoint on the edge of the map the squad passes through first to flank the objective.
     var flankPoint: CGPoint?
+    /// Time after which an unreached flank point is abandoned.
+    var flankDeadline: CGFloat = 0
     /// Squad role inside its team: 1 = defends the home zone, others attack.
     var role: Int
     var stance: SquadStance = .advance

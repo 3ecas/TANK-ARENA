@@ -39,6 +39,9 @@ enum AIConfig {
     /// Squads only flank when the objective is at least this far away horizontally.
     static let flankMinDistance: CGFloat = 600
     static let flankReachedDistance: CGFloat = 150
+    /// Seconds before an unreached flank point or rogue waypoint is abandoned.
+    static let flankTimeout: CGFloat = 25
+    static let waypointTimeout: CGFloat = 20
     /// Rogues aim for a point this far behind the enemy front line.
     static let rogueBehindDistance: CGFloat = 320
     /// Seconds between control-zone objective reviews.

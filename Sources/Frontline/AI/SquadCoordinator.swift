@@ -47,7 +47,8 @@ final class SquadCoordinator {
         for squad in squads where !squad.members.isEmpty {
             decideStance(squad)
             if let flank = squad.flankPoint, let leader = squad.leader,
-               leader.soldier.position.distance(to: flank) < AIConfig.flankReachedDistance {
+               leader.soldier.position.distance(to: flank) < AIConfig.flankReachedDistance
+                || ctx.world.time > squad.flankDeadline {
                 squad.flankPoint = nil
             }
         }
@@ -124,7 +125,11 @@ final class SquadCoordinator {
         guard flank, let origin = squad.centroid, abs(zone.center.x - origin.x) > AIConfig.flankMinDistance else { return }
         let size = ctx.world.map.size
         let edgeY = squad.role == 2 ? size.height - AIConfig.flankEdgeMargin : AIConfig.flankEdgeMargin
-        squad.flankPoint = ctx.world.nav.nearestWalkable(CGPoint(x: (origin.x + zone.center.x) / 2, y: edgeY))
+        let nav = ctx.world.nav
+        let point = nav.nearestWalkable(CGPoint(x: (origin.x + zone.center.x) / 2, y: edgeY))
+        guard nav.findPath(from: origin, to: point) != nil else { return }
+        squad.flankPoint = point
+        squad.flankDeadline = ctx.world.time + AIConfig.flankTimeout
     }
 
     /// Lower is better: distance, with the middle zone preferred.

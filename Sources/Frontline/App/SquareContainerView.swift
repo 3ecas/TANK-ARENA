@@ -18,8 +18,17 @@ final class SquareContainerView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        centerContent()
+    }
+
     override func layout() {
         super.layout()
+        centerContent()
+    }
+
+    private func centerContent() {
         let side = Swift.min(bounds.width, bounds.height)
         content.frame = NSRect(x: (bounds.width - side) / 2, y: (bounds.height - side) / 2, width: side, height: side)
     }

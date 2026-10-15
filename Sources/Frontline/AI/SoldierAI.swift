@@ -40,6 +40,7 @@ final class SoldierAI {
     /// Lone flanker outside any squad.
     var isRogue = false
     var rogueRoute: [CGPoint] = []
+    var rogueDeadline: CGFloat = 0
     /// Where the bot is heading out of combat (used by the squad formation).
     var travelGoal: CGPoint?
 
