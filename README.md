@@ -73,7 +73,9 @@ Press **Play** in the main menu.
     to retake their home zone if it is lost;
   - idle squads move in to **support** a nearby fight, and squads down to one or two soldiers **merge** into another squad;
   - in a firefight bots take **cover behind crates and walls**, peek out to shoot and duck back to reload. Wounded bots look for cover further back;
-  - they also throw grenades, knife up close and strafe when there is no cover.
+  - they notice when an enemy has its **back turned** (or is flashed or stunned). They prefer that target, leave cover and go for the kill:
+    if it is close they sneak up behind it and **knife** it (a backstab is lethal), otherwise they stop and shoot it;
+  - they also throw grenades, knife only at close range and strafe when there is no cover.
 
 ### Controls
 

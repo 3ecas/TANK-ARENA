@@ -5,6 +5,11 @@ import CoreGraphics
 extension SoldierAI {
     func combat(threat: CGPoint, dt: CGFloat) {
         let target = ctx.world.soldier(targetId).flatMap { $0.isAlive ? $0 : nil }
+        if let target = target, targetExposed, services.vision.isUnaware(target, of: soldier),
+           ctx.world.map.hasLineOfSight(soldier.position, target.position) {
+            attackExposed(target, dt: dt)
+            return
+        }
         soldier.aimPoint = target.map { $0.position + aimOffset } ?? threat
         shootIfPossible(target)
 
@@ -21,6 +26,38 @@ extension SoldierAI {
         } else {
             strafe(around: target?.position ?? threat, dt: dt)
         }
+    }
+
+    /// The target has its back turned: leave cover and go for the kill. Close by, sneak up behind it
+    /// and knife it (a backstab is lethal); further away, stop and shoot it while it is not looking.
+    private func attackExposed(_ target: Soldier, dt: CGFloat) {
+        cover = nil
+        phase = .moving
+        let distance = target.position.distance(to: soldier.position)
+        let knifeReady = soldier.knifeCooldown <= 0 && !soldier.isStunned
+        if distance <= AIConfig.backstabRange && knifeReady {
+            soldier.aimPoint = target.position
+            soldier.wantsToFire = false
+            soldier.firePressed = false
+            // Approach from behind the target.
+            let behind = target.position - CGPoint(angle: target.facing) * (target.radius + 14)
+            if distance <= GameConfig.knifeRange + target.radius {
+                soldier.moveDir = .zero
+                soldier.facing = (target.position - soldier.position).angle
+                services.melee.swing(soldier)
+            } else {
+                moveToward(ctx.world.nav.nearestWalkable(behind), dt: dt)
+            }
+            return
+        }
+        // Too far to knife: hold still for accuracy and shoot (closing in a little if out of range).
+        soldier.aimPoint = target.position + aimOffset
+        if distance > soldier.activeWeapon.def.range * 0.9 {
+            moveToward(target.position, dt: dt)
+        } else {
+            soldier.moveDir = .zero
+        }
+        shootIfPossible(target)
     }
 
     private func shootIfPossible(_ target: Soldier?) {

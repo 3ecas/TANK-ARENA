@@ -41,14 +41,25 @@ final class VisionSystem {
 
     /// The closest enemy `viewer` can see, or nil.
     func nearestVisibleEnemy(for viewer: Soldier) -> Soldier? {
-        guard !viewer.isBlind else { return nil }
+        visibleEnemies(for: viewer).first
+    }
+
+    /// Enemies `viewer` can see, closest first (only the closest few are checked).
+    func visibleEnemies(for viewer: Soldier) -> [Soldier] {
+        guard !viewer.isBlind else { return [] }
         let candidates = ctx.world.soldiers
             .filter { $0.isAlive && $0.team != viewer.team
                 && $0.position.distance(to: viewer.position) <= GameConfig.visionRange }
             .sorted { $0.position.distance(to: viewer.position) < $1.position.distance(to: viewer.position) }
-        for enemy in candidates.prefix(8) where canSee(viewer, enemy) {
-            return enemy
-        }
-        return nil
+        return candidates.prefix(8).filter { canSee(viewer, $0) }
+    }
+
+    /// True when `target` cannot see `watcher`: it faces away (watcher outside its view cone), or it is blind or stunned.
+    func isUnaware(_ target: Soldier, of watcher: Soldier) -> Bool {
+        if target.isBlind || target.isStunned { return true }
+        let toWatcher = watcher.position - target.position
+        if toWatcher.length <= GameConfig.peripheralRadius + watcher.radius { return false }
+        let halfFov = VisionSystem.fieldOfView(for: target) / 2
+        return abs(Angle.normalize(toWatcher.angle - target.facing)) > halfFov + AIConfig.unawareMargin
     }
 }

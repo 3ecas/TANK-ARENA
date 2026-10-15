@@ -21,6 +21,12 @@ enum AIConfig {
     static let strafeIntervalMax: CGFloat = 1.3
     /// Bots try to fight at this fraction of their weapon range.
     static let preferredRangeFraction: CGFloat = 0.55
+    /// Extra radians outside an enemy's view cone before a bot treats it as having its back turned.
+    static let unawareMargin: CGFloat = 0.15
+    /// Visible enemies with their back turned count as this many points closer when picking a target.
+    static let exposedTargetBonus: CGFloat = 350
+    /// Within this distance a bot sneaks up on an unaware enemy to backstab it; further away it shoots.
+    static let backstabRange: CGFloat = 170
     /// Reload when the magazine falls below this fraction and nobody is in sight.
     static let reloadThreshold: CGFloat = 0.35
 

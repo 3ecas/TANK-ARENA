@@ -63,3 +63,8 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - AI: squads get a zone objective from `SquadCoordinator` (one home defender, attackers go middle → enemy, retake home if lost) and spread out inside the zone.
 - Rendering/UI: `ZoneRenderer` (owner ring, capture arc, letter), zone markers on the minimap, scoreboard with points, countdown / SUDDEN DEATH and zone ownership; game-over screen shows VICTORY / DEFEAT / DRAW with the score.
 
+## Revision 5: punishing exposed enemies
+- `VisionSystem.isUnaware` tells whether an enemy is facing away from a bot (outside its view cone) or is blinded or stunned.
+- Bots prefer exposed targets (`AIConfig.exposedTargetBonus`), react faster and aim better at them, and never hide from them:
+  within `AIConfig.backstabRange` they sneak behind and knife; further away they stand and shoot.
+

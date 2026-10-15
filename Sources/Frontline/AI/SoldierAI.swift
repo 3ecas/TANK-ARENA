@@ -21,6 +21,8 @@ final class SoldierAI {
 
     // Perception and memory
     var targetId: Int?
+    /// The current target has its back turned (or is blinded): go for the kill instead of hiding.
+    var targetExposed = false
     var reactionTimer: CGFloat = 0
     var threatPosition: CGPoint?
     var threatTime: CGFloat = -100
@@ -74,6 +76,7 @@ final class SoldierAI {
 
     private func reset() {
         targetId = nil
+        targetExposed = false
         threatPosition = nil
         cover = nil
         travelGoal = nil
@@ -88,19 +91,25 @@ final class SoldierAI {
             strafeTimer = CGFloat.random(in: AIConfig.strafeIntervalMin...AIConfig.strafeIntervalMax)
         }
         let now = ctx.world.time
-        if let enemy = services.vision.nearestVisibleEnemy(for: soldier) {
-            if enemy.id != targetId { reactionTimer = AIConfig.reactionTime * CGFloat.random(in: 0.8...1.3) }
+        if let pick = pickTarget() {
+            let enemy = pick.0, exposed = pick.1
+            if enemy.id != targetId {
+                reactionTimer = AIConfig.reactionTime * CGFloat.random(in: 0.8...1.3) * (exposed ? 0.6 : 1)
+            }
             targetId = enemy.id
+            targetExposed = exposed
             threatPosition = enemy.position
             threatTime = now
             squad?.reportContact(enemy.position, time: now)
             let distance = enemy.position.distance(to: soldier.position)
-            let error = AIConfig.aimErrorBase + AIConfig.aimErrorPerDistance * distance
+            // An unaware target gives time for a calmer, more accurate shot.
+            let error = (AIConfig.aimErrorBase + AIConfig.aimErrorPerDistance * distance) * (exposed ? 0.6 : 1)
             aimOffset = CGPoint(x: CGFloat.random(in: -error...error), y: CGFloat.random(in: -error...error))
             chooseWeapon()
-            considerGrenade(at: enemy.position, distance: distance)
+            if !exposed { considerGrenade(at: enemy.position, distance: distance) }
         } else {
             targetId = nil
+            targetExposed = false
             if let threat = threatPosition, now - threatTime > 0.6, hasRecentThreat {
                 considerGrenade(at: threat, distance: threat.distance(to: soldier.position))
             }
@@ -108,6 +117,21 @@ final class SoldierAI {
                 services.weapons.reload(soldier)
             }
         }
+    }
+
+    /// Visible enemy to fight: an enemy with its back turned is preferred over a closer one that is watching.
+    private func pickTarget() -> (Soldier, Bool)? {
+        var best: (Soldier, Bool)?
+        var bestScore = CGFloat.greatestFiniteMagnitude
+        for enemy in services.vision.visibleEnemies(for: soldier) {
+            let exposed = services.vision.isUnaware(enemy, of: soldier)
+            let score = enemy.position.distance(to: soldier.position) - (exposed ? AIConfig.exposedTargetBonus : 0)
+            if score < bestScore {
+                bestScore = score
+                best = (enemy, exposed)
+            }
+        }
+        return best
     }
 
     /// Primary unless it is completely out of ammo.
