@@ -16,6 +16,7 @@ final class GameSession {
     private let respawns: RespawnSystem
     private let match: MatchSystem
     private var bots: [SoldierAI] = []
+    private var squads: SquadCoordinator?
 
     init() {
         let world = BattleWorld()
@@ -37,19 +38,10 @@ final class GameSession {
         BattleSetup.populate(world)
         guard let player = world.player else { fatalError("Battle has no player") }
         self.player = player
-        let services = BotServices(vision: vision, weapons: weapons, grenades: grenades, melee: melee)
-        for team in Team.playable {
-            let teamBots = world.soldiers(of: team).filter { !$0.isPlayer }
-            for (slot, soldier) in teamBots.enumerated() {
-                let route = BattleSetup.routeIndex(for: slot, of: teamBots.count)
-                bots.append(SoldierAI(soldier: soldier, ctx: ctx, services: services, routeIndex: route))
-            }
-        }
-        bus.subscribe { [unowned self] event in
-            if case .soldierRespawned(let id) = event {
-                self.bots.first(where: { $0.soldier.id == id })?.onRespawn()
-            }
-        }
+        let services = BotServices(vision: vision, weapons: weapons, grenades: grenades, melee: melee,
+                                   cover: CoverFinder(map: world.map))
+        bots = world.soldiers.filter { !$0.isPlayer }.map { SoldierAI(soldier: $0, ctx: ctx, services: services) }
+        squads = SquadCoordinator(ctx: ctx, bots: bots)
     }
 
     /// The soldier whose eyes the player sees through (themselves, or a teammate when eliminated).
@@ -61,6 +53,7 @@ final class GameSession {
     func update(dt: CGFloat) {
         guard world.winner == nil, dt > 0 else { return }
         world.time += dt
+        squads?.update(dt: dt)
         for bot in bots { bot.update(dt: dt) }
         status.update(dt: dt)
         movement.update(dt: dt)

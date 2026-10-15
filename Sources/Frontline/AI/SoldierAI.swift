@@ -1,62 +1,83 @@
 import CoreGraphics
 
-/// Bot brain: advance along an attack route, fight the nearest visible enemy (strafing, reloading,
-/// knifing at close range, throwing grenades), and hunt enemies it recently lost sight of.
+enum CombatPhase {
+    /// Running to a cover spot.
+    case moving
+    /// Hidden behind cover (reloading, waiting).
+    case covered
+    /// Stepped out of cover to shoot.
+    case peeking
+}
+
+/// Bot brain. Out of combat it moves with its squad; in combat it fights from cover
+/// (peek, shoot, duck back), strafes when no cover is near, knifes up close and throws grenades.
 @MainActor
 final class SoldierAI {
     let soldier: Soldier
     unowned let ctx: BattleContext
     let services: BotServices
     let follower = PathFollower()
+    weak var squad: Squad?
 
+    // Perception and memory
     var targetId: Int?
     var reactionTimer: CGFloat = 0
-    var lastSeenPosition: CGPoint?
-    var lastSeenTime: CGFloat = -100
+    var threatPosition: CGPoint?
+    var threatTime: CGFloat = -100
     var aimOffset: CGPoint = .zero
     var strafeSign: CGFloat = 1
-    private var strafeTimer: CGFloat = 0
+    var strafeTimer: CGFloat = 0
     private var thinkTimer = CGFloat.random(in: 0...AIConfig.thinkInterval)
-    private var route: [CGPoint] = []
-    private var routeIndex = 0
 
-    init(soldier: Soldier, ctx: BattleContext, services: BotServices, routeIndex: Int) {
+    // Cover combat
+    var cover: CoverSpot?
+    var coverThreat: CGPoint = .zero
+    var coverRetryTimer: CGFloat = 0
+    var phase: CombatPhase = .moving
+    var phaseTimer: CGFloat = 0
+    /// Where the bot is heading out of combat (used by the squad formation).
+    var travelGoal: CGPoint?
+
+    init(soldier: Soldier, ctx: BattleContext, services: BotServices) {
         self.soldier = soldier
         self.ctx = ctx
         self.services = services
-        assignRoute(routeIndex)
+    }
+
+    var hasRecentThreat: Bool {
+        threatPosition != nil && ctx.world.time - threatTime < AIConfig.combatMemory
     }
 
     func update(dt: CGFloat) {
         guard soldier.isAlive else {
-            targetId = nil
-            lastSeenPosition = nil
-            routeIndex = 0
-            follower.clear()
+            reset()
             return
         }
         thinkTimer -= dt
         reactionTimer -= dt
         strafeTimer -= dt
+        phaseTimer -= dt
+        coverRetryTimer -= dt
         if thinkTimer <= 0 {
             thinkTimer = AIConfig.thinkInterval * CGFloat.random(in: 0.8...1.2)
             think()
         }
-        if let target = ctx.world.soldier(targetId), target.isAlive {
-            fight(target, dt: dt)
+        if hasRecentThreat, let threat = threatPosition {
+            combat(threat: threat, dt: dt)
         } else {
             soldier.wantsToFire = false
-            if let spot = lastSeenPosition, ctx.world.time - lastSeenTime < AIConfig.huntMemory {
-                hunt(spot, dt: dt)
-            } else {
-                advance(dt: dt)
-            }
+            soldier.firePressed = false
+            cover = nil
+            groupMove(dt: dt)
         }
     }
 
-    /// Bots spawn again at their base after respawning: restart the route.
-    func onRespawn() {
-        assignRoute(Int.random(in: 0..<ctx.world.map.routeCount))
+    private func reset() {
+        targetId = nil
+        threatPosition = nil
+        cover = nil
+        travelGoal = nil
+        follower.clear()
     }
 
     // MARK: Decisions
@@ -66,11 +87,13 @@ final class SoldierAI {
             strafeSign = Bool.random() ? 1 : -1
             strafeTimer = CGFloat.random(in: AIConfig.strafeIntervalMin...AIConfig.strafeIntervalMax)
         }
+        let now = ctx.world.time
         if let enemy = services.vision.nearestVisibleEnemy(for: soldier) {
             if enemy.id != targetId { reactionTimer = AIConfig.reactionTime * CGFloat.random(in: 0.8...1.3) }
             targetId = enemy.id
-            lastSeenPosition = enemy.position
-            lastSeenTime = ctx.world.time
+            threatPosition = enemy.position
+            threatTime = now
+            squad?.reportContact(enemy.position, time: now)
             let distance = enemy.position.distance(to: soldier.position)
             let error = AIConfig.aimErrorBase + AIConfig.aimErrorPerDistance * distance
             aimOffset = CGPoint(x: CGFloat.random(in: -error...error), y: CGFloat.random(in: -error...error))
@@ -78,11 +101,12 @@ final class SoldierAI {
             considerGrenade(at: enemy.position, distance: distance)
         } else {
             targetId = nil
-            if let spot = lastSeenPosition, ctx.world.time - lastSeenTime > 0.6 {
-                considerGrenade(at: spot, distance: spot.distance(to: soldier.position))
+            if let threat = threatPosition, now - threatTime > 0.6, hasRecentThreat {
+                considerGrenade(at: threat, distance: threat.distance(to: soldier.position))
             }
-            let weapon = soldier.activeWeapon
-            if weapon.magazineFraction < AIConfig.reloadThreshold { services.weapons.reload(soldier) }
+            if !hasRecentThreat && soldier.activeWeapon.magazineFraction < AIConfig.reloadThreshold {
+                services.weapons.reload(soldier)
+            }
         }
     }
 
@@ -99,35 +123,6 @@ final class SoldierAI {
         else { return }
         let error = CGPoint(x: CGFloat.random(in: -40...40), y: CGFloat.random(in: -40...40))
         services.grenades.throwGrenade(soldier, at: point + error)
-    }
-
-    // MARK: Movement
-
-    private func assignRoute(_ index: Int) {
-        route = ctx.world.map.route(index, for: soldier.team)
-        routeIndex = 0
-    }
-
-    private func advance(dt: CGFloat) {
-        guard !route.isEmpty else { return }
-        let waypoint = route[routeIndex]
-        if soldier.position.distance(to: waypoint) < 60 {
-            if routeIndex < route.count - 1 {
-                routeIndex += 1
-            } else {
-                // Reached the enemy side: sweep another route backwards toward the middle.
-                assignRoute(Int.random(in: 0..<ctx.world.map.routeCount))
-                route.reverse()
-            }
-        }
-        moveToward(route[routeIndex], dt: dt)
-        soldier.aimPoint = soldier.position + soldier.moveDir * 200
-    }
-
-    private func hunt(_ spot: CGPoint, dt: CGFloat) {
-        moveToward(spot, dt: dt)
-        soldier.aimPoint = spot
-        if soldier.position.distance(to: spot) < 40 { lastSeenPosition = nil }
     }
 
     func moveToward(_ point: CGPoint, dt: CGFloat) {

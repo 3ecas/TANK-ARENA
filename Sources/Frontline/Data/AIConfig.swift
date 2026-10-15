@@ -23,4 +23,33 @@ enum AIConfig {
     static let preferredRangeFraction: CGFloat = 0.55
     /// Reload when the magazine falls below this fraction and nobody is in sight.
     static let reloadThreshold: CGFloat = 0.35
+
+    // MARK: Squads & cover
+
+    static let squadSize = 5
+    /// Squads with this many (or fewer) living members merge into the nearest squad.
+    static let mergeThreshold = 2
+    static let squadUpdateInterval: CGFloat = 0.4
+    /// How long a squad remembers a contact report.
+    static let contactMemory: CGFloat = 6
+    /// How long a bot stays in combat mode after last seeing an enemy.
+    static let combatMemory: CGFloat = 3.5
+    /// Idle squads within this distance of another squad's fight come to help.
+    static let supportRadius: CGFloat = 1100
+    /// Members further than this from the leader make it wait (unless they are very far, e.g. respawning).
+    static let gatherRadius: CGFloat = 240
+    static let stragglerRadius: CGFloat = 900
+    /// Strength ratio (allies / known enemies) needed to push, below which the squad falls back.
+    static let pushRatio: CGFloat = 1.5
+    static let retreatRatio: CGFloat = 0.75
+    /// Squad average HP fraction below which it falls back.
+    static let retreatHealth: CGFloat = 0.4
+    /// Individual bots seek fallback cover below this HP fraction.
+    static let lowHealth: CGFloat = 0.35
+    /// How far bots look for cover.
+    static let coverSearchRadius: CGFloat = 300
+    static let fallbackSearchRadius: CGFloat = 480
+    /// Preferred distance to the enemy when holding a position.
+    static let holdDistance: CGFloat = 430
+    static let fallbackDistance: CGFloat = 700
 }

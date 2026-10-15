@@ -56,7 +56,13 @@ Press **Play** in the main menu.
 - Walls and crates block movement, bullets, grenade blasts and line of sight.
 - **Field of view:** you only see a ~110° cone in front of your soldier, cut off by walls. Everything behind you and around corners is fog, apart from a small awareness ring right around you. Enemies in the fog are invisible. Bots have a similar cone (~150°), so you can flank them.
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
-- Bots are tuned "medium-hard": quick reactions and decent aim. They strafe, reload, throw grenades, knife up close and hunt you after losing sight of you.
+- Bots are tuned "medium-hard": quick reactions and decent aim. They fight as **squads of ~5**:
+  - they move in formation behind a squad leader, who waits for stragglers;
+  - they share enemy sightings with their squad;
+  - each squad weighs its numbers and health against the enemy, then **pushes**, **holds** or **falls back a bit**;
+  - idle squads move in to **support** a nearby fight, and squads down to one or two soldiers **merge** into another squad;
+  - in a firefight bots take **cover behind crates and walls**, peek out to shoot and duck back to reload. Wounded bots look for cover further back;
+  - they also throw grenades, knife up close and strafe when there is no cover.
 
 ### Controls
 
