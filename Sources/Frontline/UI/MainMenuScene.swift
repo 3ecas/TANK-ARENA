@@ -5,7 +5,7 @@ import SpriteKit
 final class MainMenuScene: SKScene {
     private unowned let router: SceneRouter
     private var settings: GameSettings
-    private let menu = SKNode()
+    private let menuLayer = SKNode()
     private let background: SKSpriteNode
     private let difficultyButton = UIButton(title: "", size: CGSize(width: 320, height: 46), fontSize: 16)
     private let loadoutButton = UIButton(title: "", size: CGSize(width: 320, height: 46), fontSize: 16)
@@ -35,13 +35,13 @@ final class MainMenuScene: SKScene {
         background.alpha = 0.45
         background.zPosition = -10
         addChild(background)
-        addChild(menu)
+        addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 220)
         let subtitle = UIStyle.label("3-lane modern warfare MOBA", size: 18, color: UIStyle.textColor, align: .center)
         subtitle.position = CGPoint(x: 0, y: 168)
-        menu.addChild(title)
-        menu.addChild(subtitle)
+        menuLayer.addChild(title)
+        menuLayer.addChild(subtitle)
 
         let play = UIButton(title: "PLAY", size: CGSize(width: 320, height: 56), fontSize: 22, color: UIStyle.buttonOwned)
         play.position = CGPoint(x: 0, y: 90)
@@ -64,7 +64,7 @@ final class MainMenuScene: SKScene {
         quit.position = CGPoint(x: 0, y: -170)
         quit.onClick = { [unowned self] in self.router.quit() }
         for node in [play, difficultyButton, loadoutButton, loadoutSummary, help, quit] as [SKNode] {
-            menu.addChild(node)
+            menuLayer.addChild(node)
         }
         controls.root.zPosition = 20
         addChild(controls.root)
