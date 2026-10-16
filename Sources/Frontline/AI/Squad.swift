@@ -19,8 +19,8 @@ final class Squad {
     let id: Int
     let team: Team
     private(set) var members: [SoldierAI] = []
-    /// Control zone the squad is taking or defending.
-    var objective: ControlZone?
+    /// Bomb site the squad is attacking or guarding.
+    var objective: BombSite?
     /// Waypoint on the edge of the map the squad passes through first to flank the objective.
     var flankPoint: CGPoint?
     /// Time after which an unreached flank point is abandoned.

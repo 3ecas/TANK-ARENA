@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum ObstacleKind {
-    case building, crate, barrier, rock
+    case building, crate, barrier, rock, wall
 }
 
 struct Obstacle {
@@ -15,7 +15,9 @@ struct ArenaMap {
     let size: CGSize
     let bounds: CGRect
     let obstacles: [Obstacle]
-    let sectors: [BreakthroughConfig.SectorSpec]
+    let siteSpecs: [ZoneConfig.ZoneSpec]
+    let attackerSpawn: CGRect
+    let defenderSpawn: CGRect
     /// Rock grid when this is a cave map.
     let cave: CaveGrid?
     let seed: UInt64
@@ -26,17 +28,15 @@ struct ArenaMap {
         size = layout.size
         bounds = CGRect(origin: .zero, size: layout.size)
         obstacles = layout.obstacles
-        sectors = layout.sectors
+        siteSpecs = layout.sites
+        attackerSpawn = layout.attackerSpawn
+        defenderSpawn = layout.defenderSpawn
         cave = layout.cave
         seed = layout.seed
         index = ObstacleIndex(obstacles: layout.obstacles, size: layout.size)
     }
 
-    /// Every control zone, sector by sector.
-    var zoneSpecs: [ZoneConfig.ZoneSpec] { sectors.flatMap { $0.zones } }
-
-    /// Every spawn rectangle (attacker and defender, all sectors).
-    var allSpawns: [CGRect] { sectors.flatMap { [$0.attackerSpawn, $0.defenderSpawn] } }
+    var allSpawns: [CGRect] { [attackerSpawn, defenderSpawn] }
 
     /// Obstacles that may overlap `rect`.
     func obstacles(near rect: CGRect) -> [Obstacle] {

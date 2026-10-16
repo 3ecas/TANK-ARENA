@@ -11,7 +11,7 @@ final class WorldRenderer {
     private let unitLayer: SKNode
     private let grenadeLayer: SKNode
     private let effectLayer: SKNode
-    private let zoneRenderer: ZoneRenderer
+    private let siteRenderer: SiteRenderer
     private let rangeIndicator = RangeIndicator()
     private var views: [Int: SoldierView] = [:]
     private var grenadeSprites: [Int: SKSpriteNode] = [:]
@@ -24,7 +24,7 @@ final class WorldRenderer {
         grenadeLayer = grenade
         effectLayer = effect
         effects = EffectsRenderer(session: session, effectLayer: effect, decalLayer: decal)
-        zoneRenderer = ZoneRenderer(zones: session.world.zones)
+        siteRenderer = SiteRenderer(sites: session.world.sites)
         buildTree()
     }
 
@@ -34,8 +34,8 @@ final class WorldRenderer {
         ground.anchorPoint = .zero
         ground.zPosition = 0
         root.addChild(ground)
-        zoneRenderer.root.zPosition = 0.5
-        root.addChild(zoneRenderer.root)
+        siteRenderer.root.zPosition = 0.5
+        root.addChild(siteRenderer.root)
         rangeIndicator.root.zPosition = 9
         root.addChild(rangeIndicator.root)
         let layers: [(SKNode, CGFloat)] = [(decalLayer, 1), (unitLayer, 10), (grenadeLayer, 15), (effectLayer, 20)]
@@ -46,7 +46,7 @@ final class WorldRenderer {
     }
 
     func update(dt: CGFloat) {
-        zoneRenderer.update(dt: dt, activeSector: session.world.sector)
+        siteRenderer.update(dt: dt, world: session.world, isShown: { [unowned self] in self.isShown($0) })
         rangeIndicator.update(player: session.player, map: session.world.map)
         syncSoldiers()
         syncGrenades()

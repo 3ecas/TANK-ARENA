@@ -1,6 +1,7 @@
 import CoreGraphics
 
-/// Spawns both teams: the player plus 24 blue bots against 25 red bots.
+/// Spawns both teams (the player plus 4 blue bots against 5 red bots) and gives the bomb to an attacker:
+/// the player when attacking, otherwise a random attacking bot.
 @MainActor
 enum BattleSetup {
     static func populate(_ world: BattleWorld) {
@@ -15,6 +16,11 @@ enum BattleSetup {
                 soldier.aimPoint = soldier.position + CGPoint(angle: soldier.facing, length: 100)
                 world.add(soldier)
             }
+        }
+        let attackers = world.soldiers(of: world.attackers)
+        if let carrier = attackers.first(where: { $0.isPlayer }) ?? attackers.randomElement() {
+            world.bomb.state = .carried(by: carrier.id)
+            world.bomb.position = carrier.position
         }
     }
 }

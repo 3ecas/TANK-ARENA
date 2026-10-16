@@ -68,6 +68,8 @@ final class SoldierAI {
             thinkTimer = AIConfig.thinkInterval * CGFloat.random(in: 0.8...1.2)
             think()
         }
+        soldier.wantsToInteract = false
+        if bombDuty(dt: dt) { return }
         if hasRecentThreat, let threat = threatPosition {
             combat(threat: threat, dt: dt)
         } else {

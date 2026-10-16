@@ -9,6 +9,7 @@ final class HUD {
     let counter = TeamCounter()
     let killFeed = KillFeed()
     let notices = CenterNotices()
+    let bombPrompt = BombPrompt()
     let banner = AnnouncementBanner()
     let crosshair = Crosshair()
     let flash = FlashOverlay()
@@ -25,7 +26,7 @@ final class HUD {
         root.zPosition = 100
         let layers: [(SKNode, CGFloat)] = [
             (flash.node, 0), (vitals.root, 1), (weapons.root, 1), (counter.root, 1), (killFeed.root, 1),
-            (minimap.root, 1), (notices.root, 2), (banner.root, 2), (crosshair.root, 5), (scoreboard.root, 10),
+            (minimap.root, 1), (notices.root, 2), (bombPrompt.root, 2), (banner.root, 2), (crosshair.root, 5), (scoreboard.root, 10),
             (pauseMenu.root, 20), (gameOver.root, 30),
         ]
         for (node, z) in layers {
@@ -55,6 +56,7 @@ final class HUD {
         counter.update(world: session.world, playerTeam: session.player.team)
         killFeed.update(dt: dt)
         notices.update(player: player, spectating: player.isAlive ? nil : session.viewer)
+        bombPrompt.update(world: session.world, player: player)
         banner.update(dt: dt)
         flash.update(soldier: player)
         let moving = player.velocity.lengthSquared > 100

@@ -96,3 +96,17 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - AI: squads split over the two active zones (defenders prioritise threatened zones). Attacking squads 2–3 flank; rogues target the enemy's current spawn side.
 - HUD: role, sector, tickets, active zones and alive counts. Locked zones are faded in the world and on the minimap. Painted sector lines and letters.
 
+## Revision 9: 5 vs 5 bomb defusal
+- Replaces Breakthrough. `Data/BombConfig` holds the timers: 2:00 round, 3 s plant, 5 s defuse, 45 s fuse, blast radii. Teams of 5, one life (`respawnsPerSoldier = 0`).
+- `Entities/Bomb` (carried / dropped / planted / defused / exploded) and `Entities/BombSite`.
+- `Systems/BombSystem`: carry, drop, pick-up, plant and defuse on the use key (holding it roots the soldier), fuse and explosion damage.
+- `Systems/MatchSystem`: explosion or all defenders dead = attackers win; defuse, all attackers dead before the plant, or time out = defenders win.
+- New indoor map "Compound": designed on a 60×40 grid of 40-point cells and checked for reachability, then frozen into wall and crate rectangles in `MapConfig`. Caves reuse the same spawns and sites.
+- AI:
+  - `SoldierAIBomb` covers the carrier planting, the retrieval of a dropped bomb, and the closest defender defusing.
+  - `SquadCoordinator` sends the attackers to one random site and splits defenders into pairs over both; everyone converges after the plant.
+- UI:
+  - The round panel shows the timer or fuse, bomb status and alive counts.
+  - A `BombPrompt` hint and progress bar shows while planting or defusing.
+  - `SiteRenderer` draws the sites and a blinking bomb; the minimap shows the bomb.
+

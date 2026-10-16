@@ -38,6 +38,8 @@ final class Soldier {
     var wantsToFire = false
     /// Trigger pressed this frame (semi-automatic weapons fire once).
     var firePressed = false
+    /// Holding the use key: plants the bomb inside a site (attacker carrier) or defuses it (defender).
+    var wantsToInteract = false
 
     var timeSinceShot: CGFloat = 10
     var kills = 0
@@ -78,6 +80,7 @@ final class Soldier {
         knifeCooldown = 0
         switchTimer = 0
         wantsToFire = false
+        wantsToInteract = false
         firePressed = false
         spawnProtection = GameConfig.spawnProtection
     }

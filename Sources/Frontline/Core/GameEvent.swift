@@ -10,9 +10,11 @@ enum GameEvent {
     case grenadeThrown(soldierId: Int, type: GrenadeType)
     case grenadeExploded(type: GrenadeType, position: CGPoint, radius: CGFloat)
     case knifeSwing(soldierId: Int, position: CGPoint, angle: CGFloat, hit: Bool)
-    case zoneCaptured(name: String, team: Team)
-    /// Both zones of a sector were taken: the front moves to the next sector.
-    case sectorCaptured(name: String, attackers: Team)
+    case bombPickedUp(soldierId: Int)
+    case bombDropped(position: CGPoint)
+    case bombPlanted(site: String, planterId: Int)
+    case bombDefused(defuserId: Int)
+    case bombExploded(position: CGPoint)
     case announcement(text: String)
     /// nil winner = draw.
     case matchOver(winner: Team?)

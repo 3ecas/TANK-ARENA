@@ -1,30 +1,37 @@
 import CoreGraphics
 
 /// Team-level coordination: builds squads, decides push / hold / retreat, sends idle squads to
-/// support nearby fights, sends squads to take and defend control zones and merges decimated squads.
+/// support nearby fights, sends attackers to their target bomb site and defenders to guard both sites
+/// (everyone converges on the bomb once it is planted), and merges decimated squads.
 @MainActor
 final class SquadCoordinator {
     unowned let ctx: BattleContext
     private(set) var squads: [Squad] = []
     private var timer: CGFloat = 0
     private var objectiveTimer: CGFloat = 0
-    private var lastSector = 0
+    private var bombWasPlanted = false
+    /// The site the attackers go for this round.
+    private let attackTarget: BombSite?
 
     init(ctx: BattleContext, bots: [SoldierAI]) {
         self.ctx = ctx
+        attackTarget = ctx.world.sites.randomElement()
         var nextId = 1
+        let carrierId = ctx.world.bomb.carrierId
         for team in Team.playable {
-            // A few bots per team are rogues: lone flankers outside any squad.
+            // A few bots per team are rogues: lone flankers outside any squad (never the bomb carrier).
             let allBots = bots.filter { $0.soldier.team == team }
             let rogueCount = Swift.min(AIConfig.roguesPerTeam, allBots.count / 4)
-            for bot in allBots.suffix(rogueCount) { bot.isRogue = true }
-            let teamBots = Array(allBots.dropLast(rogueCount))
-            let count = Int((CGFloat(teamBots.count) / CGFloat(AIConfig.squadSize)).rounded(.up))
+            let rogues = Array(allBots.filter { $0.soldier.id != carrierId }.suffix(rogueCount))
+            for bot in rogues { bot.isRogue = true }
+            let teamBots = allBots.filter { !$0.isRogue }
+            let size = team == ctx.world.attackers ? AIConfig.squadSize : AIConfig.defenderSquadSize
+            let count = Int((CGFloat(teamBots.count) / CGFloat(size)).rounded(.up))
             for squadIndex in 0..<count {
                 let squad = Squad(id: nextId, team: team, role: squadIndex)
                 nextId += 1
-                let start = squadIndex * AIConfig.squadSize
-                let end = Swift.min(start + AIConfig.squadSize, teamBots.count)
+                let start = squadIndex * size
+                let end = Swift.min(start + size, teamBots.count)
                 for bot in teamBots[start..<end] { squad.add(bot) }
                 squads.append(squad)
             }
@@ -37,9 +44,9 @@ final class SquadCoordinator {
         timer = AIConfig.squadUpdateInterval
         mergeWeakSquads()
         objectiveTimer -= AIConfig.squadUpdateInterval
-        // A sector just fell: everyone gets a new objective right away.
-        if ctx.world.sector != lastSector {
-            lastSector = ctx.world.sector
+        // The bomb was just planted: everyone gets a new objective right away.
+        if ctx.world.bomb.isPlanted != bombWasPlanted {
+            bombWasPlanted = ctx.world.bomb.isPlanted
             objectiveTimer = 0
         }
         if objectiveTimer <= 0 {
@@ -92,30 +99,23 @@ final class SquadCoordinator {
         }.count
     }
 
-    /// Splits each team's squads over the two zones of the current sector. Attackers go for zones they
-    /// don't hold yet; defenders rush to zones being taken or already lost. Squads 2 and 3 of the
-    /// attackers take a flanking route along the map edge.
+    /// Before the plant: attackers all go for one site; defender pairs split over both sites.
+    /// After the plant: both teams converge on the planted site (attackers to guard it, defenders to defuse).
     private func assignObjective(_ squad: Squad) {
         let world = ctx.world
-        let active = world.activeZones
-        guard !active.isEmpty else { return }
-        let attacking = squad.team == world.attackers
-        let needed = active.filter { zone in
-            attacking ? zone.owner != squad.team
-                      : zone.owner != squad.team || zone.capturingTeam == world.attackers || zone.isContested
-        }
-        // One attacking squad guards a zone the attackers already hold, so it isn't simply retaken.
-        let held = active.filter { $0.owner == squad.team }
-        if attacking && squad.role == 1, let guardZone = held.first {
-            setObjective(squad, guardZone, flank: false)
+        guard !world.sites.isEmpty else { return }
+        if world.bomb.isPlanted, let planted = world.bomb.site {
+            setObjective(squad, planted, flank: false)
             return
         }
-        let pool = needed.isEmpty ? active : needed
-        let target = pool[squad.role % pool.count]
-        setObjective(squad, target, flank: attacking && (squad.role == 2 || squad.role == 3))
+        if squad.team == world.attackers {
+            if let target = attackTarget { setObjective(squad, target, flank: squad.role == 1) }
+        } else {
+            setObjective(squad, world.sites[squad.role % world.sites.count], flank: false)
+        }
     }
 
-    private func setObjective(_ squad: Squad, _ zone: ControlZone, flank: Bool) {
+    private func setObjective(_ squad: Squad, _ zone: BombSite, flank: Bool) {
         guard squad.objective !== zone else { return }
         squad.objective = zone
         squad.flankPoint = nil

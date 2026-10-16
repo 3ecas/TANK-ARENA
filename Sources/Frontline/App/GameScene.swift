@@ -60,10 +60,9 @@ final class GameScene: SKScene {
         session.bus.subscribe { [unowned self] event in self.handle(event) }
         layoutForSize()
         cameraController.snap(to: session.player.position)
-        let sector = session.world.currentSector.name
         hud.banner.announce(session.world.attackers == session.player.team
-                                ? "ATTACK — capture both zones of sector \(sector)!"
-                                : "DEFEND — hold sector \(sector)!", color: UIStyle.accent)
+                                ? "ATTACK — plant the bomb on site A or B!"
+                                : "DEFEND — stop the bomb!", color: UIStyle.accent)
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -108,22 +107,23 @@ final class GameScene: SKScene {
             }
         case .announcement(let text):
             hud.banner.announce(text, color: UIStyle.accent)
-        case .sectorCaptured(let name, let attackers):
-            let ours = attackers == session.player.team
-            hud.banner.announce(ours ? "Sector \(name) captured — push to sector \(world.currentSector.name)!"
-                                     : "Sector \(name) lost — fall back to sector \(world.currentSector.name)!",
-                                color: ours ? Palette.team(session.player.team) : Palette.warning)
-        case .zoneCaptured(let name, let team):
-            let ours = team == session.player.team
-            hud.banner.announce(ours ? "Zone \(name) captured" : "Zone \(name) lost",
-                                color: ours ? Palette.team(team) : Palette.warning)
+        case .bombPickedUp(let id):
+            if world.attackers == session.player.team, let carrier = world.soldier(id) {
+                hud.banner.announce(carrier.isPlayer ? "You picked up the bomb" : "\(carrier.name) has the bomb",
+                                    color: UIStyle.accent)
+            }
+        case .bombDropped:
+            if world.attackers == session.player.team {
+                hud.banner.announce("The bomb has been dropped!", color: Palette.warning)
+            }
+        case .bombExploded:
+            cameraController.shake(magnitude: 22, duration: 0.8)
         case .matchOver(let winner):
             gameEnded = true
             hud.pauseMenu.isVisible = false
             let attacking = world.attackers == session.player.team
-            let progress = winner == world.attackers ? "All sectors taken" : "Stopped at sector \(world.currentSector.name)"
             hud.gameOver.show(victory: winner.map { $0 == session.player.team }, player: session.player,
-                              time: world.time, score: "\(attacking ? "Attack" : "Defence") · \(progress)")
+                              time: world.time, score: "\(attacking ? "Attack" : "Defence") · \(MatchSummary.reason(world))")
         default:
             break
         }

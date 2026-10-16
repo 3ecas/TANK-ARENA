@@ -45,45 +45,41 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu pick **Attack / Defend** and **City / Caves** (Enter replays the last choice).
+In the main menu pick **Attack / Defend** and **Compound / Caves** (Enter replays the last choice).
 The camera follows your soldier and leans toward the mouse pointer (half-way, at most 280 points), so you can look further in the direction you aim; it is not limited by the map edges. Resizing the window or going full screen only scales the picture: you always see the same 1000×1000 area.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
-### Rules: Breakthrough
+### Rules: bomb defusal (5 vs 5)
 
-- In the main menu pick **Attack** or **Defend**, and a map (**City** or **Caves**). You are always blue; the
-  other team takes the other role. 25 vs 25 (you plus 49 bots).
-- The map (4800×2400) is split into **four sectors, A → B → C → D**, each with **two control zones**
-  (A1/A2 … D1/D2), far apart from each other. Only the two zones of the current sector can be captured; the
-  others are faded out.
-- **Attackers** must hold **both** zones of the sector at the same time. Then the sector falls, the front moves
-  to the next sector and both teams' spawns move forward. Taking both zones of **sector D** wins the battle.
-- Stand in a zone with no enemies inside to capture it (4 s from neutral, 8 s to flip an enemy zone; more
-  soldiers capture faster; enemies inside contest it). Defenders can take zones back.
-- **Respawns are unlimited, after 8 seconds.** Every attacker respawn costs one of the attackers' **200
-  tickets** (+50 for each sector captured). When the tickets run out, attackers can't respawn, and the
-  defenders win once the last attacker is down.
+- In the main menu pick **Attack** or **Defend** and a map (**Compound** or **Caves**). You are always blue,
+  with 4 bot teammates against 5 bots.
+- **One life per round**, no respawns.
+- The attackers carry **one bomb** (you have it when attacking). Take it to **site A or B** and **hold E** inside
+  the site for 3 s to plant it. Planting or defusing roots you in place.
+- Once planted, the bomb **explodes after 45 seconds** and the attackers win (the blast kills anyone close).
+  A defender standing next to it can **hold E for 5 s to defuse** it.
+- If the bomb carrier dies, the bomb drops on the floor; any attacker can walk over it to pick it up.
+- **Attackers win** if the bomb explodes or all defenders are dead.
+  **Defenders win** if they defuse the bomb, kill all attackers before the plant, or the **2:00 round timer**
+  runs out before a plant. After the plant the timer stops: the defenders must defuse.
 - Every soldier has **100 HP**, a random **primary** (Assault Rifle, SMG or Shotgun), a **pistol**, **one grenade** (Frag, Flashbang or Stun) and a **knife**.
 - Walls, crates and rock block movement, bullets, grenade blasts and line of sight. Soldiers of different teams don't collide with each other.
-- **View range:** nobody sees further than ~640 points; beyond that it is fog, even in front of you.
-- **Range line:** a dashed line runs from your soldier along your aim to the max range of the weapon in your hand
-  (rifle 1000, pistol 800, SMG 700, shotgun 430), with a gold arc at the end. Walls cut it short.
-- **Field of view:** you and every bot see the same ~120° cone in front of you, cut off by walls. The fog only follows **your own** eyes and has a soft edge.
-- Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds: your screen whites out and bots stop shooting. **Stun** slows the target and stops it from shooting.
-- Bots are tuned "medium-hard". They fight as **squads of ~5**:
-  - each team's squads split over the two active zones. Attackers go for zones they don't hold yet; defenders rush to zones being captured or lost;
-  - two attacking squads **flank** along the top or bottom edge instead of going straight in, and **3 rogue bots per team** circle round to come in behind the enemy line;
-  - they share enemy sightings, and **push**, **hold** or **fall back a bit** depending on numbers and health;
-  - they take **cover behind crates and walls**, peek out to shoot and duck back to reload;
-  - they notice enemies with their **back turned** (or flashed / stunned) and go for the kill: a knife backstab up close, shots from further away.
+- **View range** ~640 points, **field of view** ~120° for everyone; the fog follows only your own eyes and has a soft edge.
+- **Range line:** a dashed line from your soldier to the max range of the weapon in hand (rifle 1000, pistol 800, SMG 700, shotgun 430).
+- Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds. **Stun** slows and stops shooting.
+- Bots ("medium-hard"):
+  - the attackers move as one squad to a site picked at random each round, the carrier plants as soon as it is inside the site with no enemy in sight, and the nearest attacker picks up a dropped bomb;
+  - the defenders split into pairs guarding A and B; after a plant everyone converges on the bomb and the nearest defender defuses when no enemy is in sight;
+  - one lone **rogue** per team takes the long way round to come in from behind;
+  - they share sightings, push / hold / fall back, use cover, and punish enemies with their backs turned.
 
 ### Maps
 
-- **City:** a hand-made, irregular town with roads, a few dozen buildings of different sizes, crates and wrecks.
-  Sector boundaries and big sector letters are painted on the ground, and all spawn pads are marked.
-- **Caves:** a new cave system every battle, built from a noise function. Two winding tunnels cross the whole map,
-  a third route snakes through every zone and spawn, and narrow side passages connect them. Every passage is at least
-  two soldiers wide, and a cave where a zone or spawn can't be reached is thrown away and generated again.
+- **Compound:** a closed indoor map (2400×1600) of rooms, corridors and doorways. Attackers start in the west room,
+  defenders in the east room between the sites. Three routes: the long north corridor to A, the mid hall with short
+  connectors to A and B, and the south tunnels to B.
+- **Caves:** a new cave system every round, built from a noise function, with the same spawns and sites; every
+  passage is at least two soldiers wide and unreachable layouts are regenerated.
 
 ### Controls
 
@@ -96,6 +92,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 | **1 / 2 / Q** | Primary / pistol / swap |
 | **G** | Throw your grenade at the cursor |
 | **F** | Knife (hitting someone from behind is an instant kill) |
+| **E** (hold) | Plant the bomb (attacker carrying it, inside a site) / defuse it (defender, next to it) |
 | **Tab** (hold) | Scoreboard |
 | **Esc** | Pause menu |
 | **Cmd+F** / green button | Toggle full screen |

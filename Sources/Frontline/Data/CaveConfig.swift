@@ -12,14 +12,14 @@ enum CaveConfig {
     static let noiseWeightLarge: CGFloat = 0.65
 
     /// Main tunnels: y positions of the outer routes (a middle route snakes through every zone and spawn).
-    static let laneYs: [CGFloat] = [400, 2000]
+    static let laneYs: [CGFloat] = [300, 1300]
     static let routeRadius: ClosedRange<CGFloat> = 44...58
     static let middleRadius: ClosedRange<CGFloat> = 46...60
     static let laneJitter: CGFloat = 140
     static let laneStep: ClosedRange<CGFloat> = 180...240
 
     /// Small side passages linking neighbouring tunnels.
-    static let connectorsPerGap: ClosedRange<Int> = 8...11
+    static let connectorsPerGap: ClosedRange<Int> = 4...6
     static let connectorRadius: ClosedRange<CGFloat> = 34...40
     static let connectorWiggle: CGFloat = 120
 

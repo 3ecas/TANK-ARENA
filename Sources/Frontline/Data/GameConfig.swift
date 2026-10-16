@@ -7,11 +7,11 @@ enum GameConfig {
     static let minWindowSide: CGFloat = 860
     /// World area shown on screen (points). The scene is scaled to fit the window, so this never changes.
     static let viewSize = CGSize(width: 1000, height: 1000)
-    static let teamSize = 25
+    static let teamSize = 5
     static let maxHp: CGFloat = 100
     /// Each soldier can come back once after dying.
-    /// Respawns are unlimited in Breakthrough (attackers pay a ticket per respawn).
-    static let respawnsPerSoldier = Int.max / 2
+    /// Bomb rounds: one life, no respawns.
+    static let respawnsPerSoldier = 0
     static let respawnDelay: CGFloat = 8
     static let spawnProtection: CGFloat = 2
     static let soldierRadius: CGFloat = 12

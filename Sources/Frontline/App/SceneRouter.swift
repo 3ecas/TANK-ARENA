@@ -8,7 +8,7 @@ final class SceneRouter {
     let input: InputManager
     let sound = SoundEngine()
     /// Map of the last battle (Play Again / Enter reuse it).
-    private(set) var lastMap: MapKind = .city
+    private(set) var lastMap: MapKind = .compound
     private(set) var lastAttacking = true
 
     init(view: GameView, input: InputManager) {

@@ -15,7 +15,7 @@ final class GameSession {
     private let status: StatusSystem
     private let respawns: RespawnSystem
     private let match: MatchSystem
-    private let zones: ZoneSystem
+    let bombSystem: BombSystem
     private var bots: [SoldierAI] = []
     private var squads: SquadCoordinator?
 
@@ -36,7 +36,7 @@ final class GameSession {
         status = StatusSystem(ctx: ctx)
         respawns = RespawnSystem(ctx: ctx)
         match = MatchSystem(ctx: ctx)
-        zones = ZoneSystem(ctx: ctx)
+        bombSystem = BombSystem(ctx: ctx, damage: damage)
 
         BattleSetup.populate(world)
         guard let player = world.player else { fatalError("Battle has no player") }
@@ -58,6 +58,7 @@ final class GameSession {
         world.time += dt
         squads?.update(dt: dt)
         for bot in bots { bot.update(dt: dt) }
+        bombSystem.update(dt: dt)
         status.update(dt: dt)
         movement.update(dt: dt)
         weapons.update(dt: dt)
@@ -65,7 +66,6 @@ final class GameSession {
         grenades.update(dt: dt)
         respawns.update(dt: dt)
         vision.update(dt: dt, viewer: viewer)
-        zones.update(dt: dt)
         match.update(dt: dt)
         world.purge()
     }

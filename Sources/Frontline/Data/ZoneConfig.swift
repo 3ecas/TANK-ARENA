@@ -1,13 +1,12 @@
 import CoreGraphics
 
-/// Control zone size and capture speed.
+/// Bomb site size.
 enum ZoneConfig {
     struct ZoneSpec {
         let name: String
         let center: CGPoint
     }
 
-    static let radius: CGFloat = 140
-    /// Seconds for a lone team to capture a neutral zone (twice that to flip an enemy zone).
-    static let captureTime: CGFloat = 4
+    /// Radius of a bomb site (the bomb can only be planted inside it).
+    static let radius: CGFloat = 150
 }

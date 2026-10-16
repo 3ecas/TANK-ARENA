@@ -22,13 +22,11 @@ enum ArenaPainter {
             caveTexture = (map.seed, texture)
             return texture
         }
-        return TextureFactory.texture("arena", size: map.size, scale: scale) { ctx, size in
-            ctx.setFillColor(Palette.rgb(0.31, 0.31, 0.3))
-            ctx.fill(CGRect(origin: .zero, size: size))
-            drawStreetMarkings(ctx, size: size)
-            drawSectors(ctx, map: map)
-            for obstacle in map.obstacles where obstacle.kind == .building {
-                ctx.fillRoundedRect(obstacle.rect.insetBy(dx: -12, dy: -12), radius: 6, Palette.rgb(0.42, 0.42, 0.41))
+        return TextureFactory.texture("compound", size: map.size, scale: scale) { ctx, size in
+            drawFloor(ctx, size: size)
+            drawSitesAndSpawns(ctx, map: map)
+            for obstacle in map.obstacles where obstacle.kind == .wall {
+                ctx.fillRoundedRect(obstacle.rect.offsetBy(dx: 8, dy: -8), radius: 2, Palette.rgb(0, 0, 0, 0.35))
             }
             for (index, obstacle) in map.obstacles.enumerated() {
                 switch obstacle.kind {
@@ -36,65 +34,49 @@ enum ArenaPainter {
                 case .crate: drawCrate(ctx, rect: obstacle.rect)
                 case .barrier: drawBarrier(ctx, rect: obstacle.rect, style: index)
                 case .rock: ctx.fillRoundedRect(obstacle.rect, radius: 2, Palette.rgb(0.16, 0.14, 0.12))
+                case .wall: drawWall(ctx, rect: obstacle.rect)
                 }
             }
-            ctx.strokeRoundedRect(CGRect(origin: .zero, size: size).insetBy(dx: 4, dy: 4), radius: 4,
-                                  Palette.rgb(0.08, 0.08, 0.09), width: 8)
         }
     }
 
-    /// Weathered ground, then asphalt roads with dashed centre lines.
-    private static func drawStreetMarkings(_ ctx: CGContext, size: CGSize) {
-        var rng = SeededRandom(seed: 11)
-        for _ in 0..<260 {
+    /// Indoor floor: concrete tiles with faint seams and stains.
+    private static func drawFloor(_ ctx: CGContext, size: CGSize) {
+        ctx.setFillColor(Palette.rgb(0.42, 0.41, 0.38))
+        ctx.fill(CGRect(origin: .zero, size: size))
+        var rng = SeededRandom(seed: 21)
+        for _ in 0..<160 {
             let p = CGPoint(x: rng.next() * size.width, y: rng.next() * size.height)
-            let shade = 0.27 + rng.next() * 0.06
-            ctx.fillCircle(p, 15 + rng.next() * 50, Palette.rgb(shade, shade, shade - 0.01, 0.4))
+            let shade = 0.36 + rng.next() * 0.08
+            ctx.fillCircle(p, 12 + rng.next() * 40, Palette.rgb(shade, shade * 0.98, shade * 0.92, 0.35))
         }
-        for road in MapConfig.roads {
-            ctx.fillRoundedRect(road, radius: 4, Palette.rgb(0.2, 0.2, 0.21))
-            ctx.setLineDash(phase: 0, lengths: [36, 30])
-            if road.width >= road.height {
-                ctx.strokeLine(CGPoint(x: road.minX, y: road.midY), CGPoint(x: road.maxX, y: road.midY),
-                               Palette.rgb(0.9, 0.75, 0.25, 0.6), width: 4)
-            } else {
-                ctx.strokeLine(CGPoint(x: road.midX, y: road.minY), CGPoint(x: road.midX, y: road.maxY),
-                               Palette.rgb(0.9, 0.75, 0.25, 0.6), width: 4)
-            }
-            ctx.setLineDash(phase: 0, lengths: [])
+        let seam = Palette.rgb(0.3, 0.3, 0.28, 0.5)
+        var x: CGFloat = 0
+        while x <= size.width {
+            ctx.strokeLine(CGPoint(x: x, y: 0), CGPoint(x: x, y: size.height), seam, width: 2)
+            x += 80
+        }
+        var y: CGFloat = 0
+        while y <= size.height {
+            ctx.strokeLine(CGPoint(x: 0, y: y), CGPoint(x: size.width, y: y), seam, width: 2)
+            y += 80
         }
     }
 
-    /// Sector boundaries and letters, every spawn pad (spawns move as sectors fall) and the zone pads.
-    static func drawSectors(_ ctx: CGContext, map: ArenaMap) {
-        let line = Palette.rgb(0.95, 0.9, 0.7, 0.18)
-        for (index, sector) in map.sectors.enumerated() {
-            if index > 0 {
-                ctx.setLineDash(phase: 0, lengths: [50, 40])
-                ctx.strokeLine(CGPoint(x: sector.minX, y: 0), CGPoint(x: sector.minX, y: map.size.height), line, width: 8)
-                ctx.setLineDash(phase: 0, lengths: [])
-            }
-            let center = sector.zones.reduce(CGPoint.zero) { $0 + $1.center } / CGFloat(Swift.max(1, sector.zones.count))
-            drawLetter(ctx, sector.name, at: CGPoint(x: center.x, y: map.size.height / 2 + 260))
-        }
+    /// Thick concrete wall with a lit top edge.
+    private static func drawWall(_ ctx: CGContext, rect: CGRect) {
+        ctx.setFillColor(Palette.rgb(0.17, 0.18, 0.2))
+        ctx.fill(rect)
+        ctx.strokeLine(CGPoint(x: rect.minX, y: rect.maxY - 2), CGPoint(x: rect.maxX, y: rect.maxY - 2),
+                       Palette.rgb(0.4, 0.42, 0.45, 0.8), width: 3)
+        ctx.strokeLine(CGPoint(x: rect.minX + 2, y: rect.minY), CGPoint(x: rect.minX + 2, y: rect.maxY),
+                       Palette.rgb(0.32, 0.34, 0.37, 0.6), width: 3)
+    }
+
+    /// Both spawn pads and the bomb site pads.
+    static func drawSitesAndSpawns(_ ctx: CGContext, map: ArenaMap) {
         for spawn in map.allSpawns { drawSpawn(ctx, zone: spawn) }
-        for zone in map.zoneSpecs { drawZonePad(ctx, center: zone.center) }
-    }
-
-    /// Huge faint sector letter painted on the ground (simple block strokes, no font needed).
-    private static func drawLetter(_ ctx: CGContext, _ letter: String, at p: CGPoint) {
-        let color = Palette.rgb(0.95, 0.9, 0.7, 0.1)
-        let s: CGFloat = 70
-        let strokes: [(CGFloat, CGFloat, CGFloat, CGFloat)]
-        switch letter {
-        case "A": strokes = [(-1, -1, 0, 1), (0, 1, 1, -1), (-0.5, 0, 0.5, 0)]
-        case "B": strokes = [(-1, -1, -1, 1), (-1, 1, 0.6, 1), (0.6, 1, 0.6, 0), (-1, 0, 0.8, 0), (0.8, 0, 0.8, -1), (0.8, -1, -1, -1)]
-        case "C": strokes = [(1, 1, -1, 1), (-1, 1, -1, -1), (-1, -1, 1, -1)]
-        default: strokes = [(-1, -1, -1, 1), (-1, 1, 0.5, 1), (0.5, 1, 1, 0.5), (1, 0.5, 1, -0.5), (1, -0.5, 0.5, -1), (0.5, -1, -1, -1)]
-        }
-        for (x1, y1, x2, y2) in strokes {
-            ctx.strokeLine(CGPoint(x: p.x + x1 * s, y: p.y + y1 * s), CGPoint(x: p.x + x2 * s, y: p.y + y2 * s), color, width: 22)
-        }
+        for site in map.siteSpecs { drawZonePad(ctx, center: site.center) }
     }
 
     static func drawSpawn(_ ctx: CGContext, zone: CGRect) {

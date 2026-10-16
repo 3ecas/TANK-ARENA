@@ -1,7 +1,7 @@
 import CoreGraphics
 
 /// Top-down shooter controls: WASD to move, mouse to aim, left mouse to shoot,
-/// R reload, 1 / 2 / Q weapons, G grenade, F knife.
+/// R reload, 1 / 2 / Q weapons, G grenade, F knife, hold E to plant / defuse the bomb.
 @MainActor
 final class PlayerController {
     let soldier: Soldier
@@ -23,12 +23,14 @@ final class PlayerController {
         guard soldier.isAlive else {
             soldier.moveDir = .zero
             soldier.wantsToFire = false
+            soldier.wantsToInteract = false
             return
         }
         soldier.aimPoint = mouseWorld
         soldier.moveDir = movement(input)
         soldier.wantsToFire = input.leftDown && leftClickAvailable
         if input.leftPressed && leftClickAvailable { soldier.firePressed = true }
+        soldier.wantsToInteract = input.isDown(KeyCode.e)
 
         if input.wasPressed(KeyCode.r) { weapons.reload(soldier) }
         if input.wasPressed(KeyCode.one) { weapons.switchTo(soldier, index: 0) }

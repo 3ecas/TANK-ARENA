@@ -12,7 +12,7 @@ final class MainMenuScene: SKScene {
 
     init(size: CGSize, router: SceneRouter) {
         self.router = router
-        let map = ArenaMap(layout: MapLayout.city())
+        let map = ArenaMap(layout: MapLayout.compound())
         background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
                                   size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
         super.init(size: GameConfig.viewSize)
@@ -33,13 +33,13 @@ final class MainMenuScene: SKScene {
         addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 200)
-        let subtitle = UIStyle.label("Breakthrough · 25 vs 25 · four sectors", size: 18, align: .center)
+        let subtitle = UIStyle.label("Bomb defusal · 5 vs 5 · one life", size: 18, align: .center)
         subtitle.position = CGPoint(x: 0, y: 148)
-        let info = UIStyle.label("Attackers take both zones of each sector, A to D. Respawn every 8 s.", size: 13,
+        let info = UIStyle.label("Attackers plant the bomb on site A or B (45 s fuse). Defenders stop or defuse it.", size: 13,
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
-        let modes: [(String, MapKind, Bool)] = [("ATTACK · CITY", .city, true), ("DEFEND · CITY", .city, false),
+        let modes: [(String, MapKind, Bool)] = [("ATTACK · COMPOUND", .compound, true), ("DEFEND · COMPOUND", .compound, false),
                                                 ("ATTACK · CAVES", .caves, true), ("DEFEND · CAVES", .caves, false)]
         var buttons: [SKNode] = []
         for (index, mode) in modes.enumerated() {
@@ -93,6 +93,7 @@ final class ControlsPanel {
         "1 / 2 / Q ........... primary / pistol / swap",
         "G ................... throw grenade at cursor",
         "F ................... knife (backstab = kill)",
+        "E (hold) ............ plant / defuse the bomb",
         "Tab ................. scoreboard",
         "Esc ................. pause  ·  Cmd+F full screen",
     ]

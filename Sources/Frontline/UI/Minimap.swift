@@ -12,6 +12,7 @@ final class Minimap {
     private var dots: [SKSpriteNode] = []
     private let cameraFrame: SKShapeNode
     private var zoneMarkers: [SKShapeNode] = []
+    private let bombDot = SKShapeNode(rectOf: CGSize(width: 7, height: 5), cornerRadius: 1)
     private var frameSize: CGSize = .zero
 
     init(session: GameSession) {
@@ -29,7 +30,11 @@ final class Minimap {
         dotLayer.zPosition = 1
         cameraFrame.zPosition = 2
         for node in [border, terrain, dotLayer, cameraFrame] as [SKNode] { root.addChild(node) }
-        for zone in session.world.zones {
+        bombDot.fillColor = SKColor(red: 1, green: 0.6, blue: 0.15, alpha: 1)
+        bombDot.strokeColor = .black
+        bombDot.zPosition = 1.5
+        root.addChild(bombDot)
+        for zone in session.world.sites {
             let marker = SKShapeNode(circleOfRadius: zone.radius * scale)
             marker.lineWidth = 2
             marker.position = CGPoint(x: zone.center.x * scale - size.width / 2, y: zone.center.y * scale - size.height / 2)
@@ -61,13 +66,18 @@ final class Minimap {
             node.position = toMinimap(soldier.position)
         }
         for i in used..<dots.count { dots[i].isHidden = true }
-        for (marker, zone) in zip(zoneMarkers, session.world.zones) {
-            let color = zone.owner.map { Palette.team($0) } ?? SKColor(white: 0.9, alpha: 1)
-            let active = zone.sector == session.world.sector
-            marker.strokeColor = color.withAlphaComponent(active ? 1 : 0.35)
-            marker.fillColor = color.withAlphaComponent(active ? 0.3 : 0.08)
-            marker.lineWidth = active ? 2.5 : 1
+        let world = session.world
+        let bomb = world.bomb
+        for (marker, site) in zip(zoneMarkers, world.sites) {
+            let planted = bomb.isPlanted && bomb.site === site
+            marker.strokeColor = SKColor(red: 0.95, green: 0.35, blue: 0.25, alpha: 1)
+            marker.fillColor = SKColor(red: 0.95, green: 0.35, blue: 0.25, alpha: planted ? 0.6 : 0.15)
+            marker.lineWidth = planted ? 2.5 : 1.5
         }
+        // Attackers always know where their bomb is; everyone sees it once planted.
+        let known = bomb.isPlanted || (world.attackers == session.player.team && !(bomb.carrierId == session.player.id))
+        bombDot.isHidden = !known || bomb.isExploded
+        bombDot.position = toMinimap(bomb.position)
         let frame = CGSize(width: cameraRect.width * scale, height: cameraRect.height * scale)
         if frame != frameSize {
             frameSize = frame

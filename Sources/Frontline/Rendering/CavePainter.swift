@@ -6,7 +6,7 @@ enum CavePainter {
     static func draw(_ ctx: CGContext, size: CGSize, map: ArenaMap, grid: CaveGrid) {
         drawFloor(ctx, size: size, seed: map.seed)
         // Spawn and zone pads go under the rock so pillars inside a zone stay visible.
-        ArenaPainter.drawSectors(ctx, map: map)
+        ArenaPainter.drawSitesAndSpawns(ctx, map: map)
         drawShadows(ctx, grid: grid)
         drawRock(ctx, grid: grid, seed: map.seed)
     }

@@ -19,13 +19,8 @@ final class CenterNotices {
             main.text = ""
             sub.text = ""
         } else if player.isAwaitingRespawn {
-            if player.respawnTimer > 0 {
-                main.text = "RESPAWNING IN \(Int(player.respawnTimer.rounded(.up)))"
-                sub.text = ""
-            } else {
-                main.text = "NO TICKETS LEFT"
-                sub.text = spectating.map { "Spectating \($0.name)" } ?? ""
-            }
+            main.text = "RESPAWNING IN \(Int(player.respawnTimer.rounded(.up)))"
+            sub.text = ""
         } else {
             main.text = "ELIMINATED"
             sub.text = spectating.map { "Spectating \($0.name)" } ?? ""
