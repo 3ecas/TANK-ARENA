@@ -7,9 +7,8 @@ final class SceneRouter {
     let view: GameView
     let input: InputManager
     let sound = SoundEngine()
-    /// Map of the last battle (Play Again / Enter reuse it).
-    private(set) var lastMap: MapKind = .compound
-    private(set) var lastAttacking = true
+    /// Mode of the last battle (Play Again / Enter reuse it).
+    private(set) var lastMode: GameMode = .bomb
 
     init(view: GameView, input: InputManager) {
         self.view = view
@@ -22,13 +21,12 @@ final class SceneRouter {
         view.presentScene(scene, transition: SKTransition.fade(withDuration: 0.4))
     }
 
-    func startGame(map: MapKind? = nil, attacking: Bool? = nil) {
+    /// Starts a round on a freshly generated office; the player's side (attack / defend) is random.
+    func startGame(mode: GameMode? = nil) {
         input.reset()
-        let kind = map ?? lastMap
-        let attack = attacking ?? lastAttacking
-        lastMap = kind
-        lastAttacking = attack
-        let scene = GameScene(size: view.bounds.size, router: self, map: kind, attacking: attack)
+        let chosen = mode ?? lastMode
+        lastMode = chosen
+        let scene = GameScene(size: view.bounds.size, router: self, mode: chosen, attacking: Bool.random())
         view.presentScene(scene, transition: SKTransition.fade(withDuration: 0.5))
     }
 

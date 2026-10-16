@@ -12,7 +12,7 @@ final class MainMenuScene: SKScene {
 
     init(size: CGSize, router: SceneRouter) {
         self.router = router
-        let map = ArenaMap(layout: MapLayout.compound())
+        let map = ArenaMap(layout: MapLayout.office(for: .bomb))
         background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
                                   size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
         super.init(size: GameConfig.viewSize)
@@ -33,29 +33,27 @@ final class MainMenuScene: SKScene {
         addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 200)
-        let subtitle = UIStyle.label("Bomb defusal · 5 vs 5 · one life", size: 18, align: .center)
+        let subtitle = UIStyle.label("Office · Bomb or Rush · random side", size: 18, align: .center)
         subtitle.position = CGPoint(x: 0, y: 148)
-        let info = UIStyle.label("Attackers plant the bomb on site A or B (45 s fuse). Defenders stop or defuse it.", size: 13,
+        let info = UIStyle.label("Bomb: plant on A or B, one life.  Rush: arm both stations, respawns + tickets.", size: 13,
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
-        let maps: [MapKind] = [.compound, .office, .caves]
+        let modes: [(GameMode, String)] = [(.bomb, "BOMB · 5 vs 5"), (.rush, "RUSH · 16 vs 16")]
         var buttons: [SKNode] = []
-        for (row, map) in maps.enumerated() {
-            for attacking in [true, false] {
-                let title = "\(attacking ? "ATTACK" : "DEFEND") · \(map.displayName.uppercased())"
-                let button = UIButton(title: title, size: CGSize(width: 230, height: 44), fontSize: 16,
-                                      color: attacking ? UIStyle.buttonOwned : UIStyle.buttonColor)
-                button.position = CGPoint(x: attacking ? -122 : 122, y: 70 - CGFloat(row) * 52)
-                button.onClick = { [unowned self] in self.router.startGame(map: map, attacking: attacking) }
-                buttons.append(button)
-            }
+        for (index, entry) in modes.enumerated() {
+            let button = UIButton(title: entry.1, size: CGSize(width: 320, height: 52), fontSize: 20,
+                                  color: UIStyle.buttonOwned)
+            button.position = CGPoint(x: 0, y: 60 - CGFloat(index) * 62)
+            let mode = entry.0
+            button.onClick = { [unowned self] in self.router.startGame(mode: mode) }
+            buttons.append(button)
         }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -100)
+        help.position = CGPoint(x: 0, y: -80)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -150)
+        quit.position = CGPoint(x: 0, y: -132)
         quit.onClick = { [unowned self] in self.router.quit() }
         for node in ([title, subtitle, info, help, quit] as [SKNode]) + buttons { menuLayer.addChild(node) }
         controls.root.zPosition = 20

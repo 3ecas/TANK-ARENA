@@ -34,6 +34,8 @@ enum AIConfig {
 
     /// Lone flankers per team that circle around the map to hit the enemy from behind.
     static let roguesPerTeam = 1
+    /// Rush has bigger teams, so more lone flankers.
+    static let rushRogues = 3
     /// How far from the top / bottom edge flanking routes run.
     static let flankEdgeMargin: CGFloat = 170
     /// Squads only flank when the objective is at least this far away horizontally.
@@ -65,6 +67,8 @@ enum AIConfig {
     static let stackDistance: CGFloat = 100
     static let stackHold: ClosedRange<CGFloat> = 1.0...1.8
     static let stackMaxWait: CGFloat = 4
+    /// Rush: the nearest free attacker within this distance of an idle station goes to arm it.
+    static let armReach: CGFloat = 600
     /// Chance a squad just pushes through a doorway without stacking (always when time is short).
     static let rushChance: CGFloat = 0.3
     static let rushTimeLeft: CGFloat = 35

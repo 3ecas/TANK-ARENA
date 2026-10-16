@@ -67,15 +67,18 @@ final class Minimap {
         }
         for i in used..<dots.count { dots[i].isHidden = true }
         let world = session.world
-        let bomb = world.bomb
         for (marker, site) in zip(zoneMarkers, world.sites) {
-            let planted = bomb.isPlanted && bomb.site === site
-            marker.strokeColor = SKColor(red: 0.95, green: 0.35, blue: 0.25, alpha: 1)
-            marker.fillColor = SKColor(red: 0.95, green: 0.35, blue: 0.25, alpha: planted ? 0.6 : 0.15)
-            marker.lineWidth = planted ? 2.5 : 1.5
+            let armed = world.bombs.contains { $0.isPlanted && $0.site === site }
+            let destroyed = world.mode == .rush && world.station(at: site)?.isExploded == true
+            let red = SKColor(red: 0.95, green: 0.35, blue: 0.25, alpha: 1)
+            marker.strokeColor = destroyed ? SKColor(white: 0.4, alpha: 1) : red
+            marker.fillColor = destroyed ? SKColor(white: 0.1, alpha: 0.6) : red.withAlphaComponent(armed ? 0.6 : 0.15)
+            marker.lineWidth = armed ? 2.5 : 1.5
         }
-        // Attackers always know where their bomb is; everyone sees it once planted.
-        let known = bomb.isPlanted || (world.attackers == session.player.team && !(bomb.carrierId == session.player.id))
+        // Bomb mode: attackers always know where their bomb is; everyone sees it once planted.
+        let bomb = world.bomb
+        let known = world.mode == .bomb && (bomb.isPlanted
+            || (world.attackers == session.player.team && bomb.carrierId != session.player.id))
         bombDot.isHidden = !known || bomb.isExploded
         bombDot.position = toMinimap(bomb.position)
         let frame = CGSize(width: cameraRect.width * scale, height: cameraRect.height * scale)

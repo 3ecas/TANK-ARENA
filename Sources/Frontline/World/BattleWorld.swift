@@ -9,27 +9,45 @@ final class BattleWorld {
     private var byId: [Int: Soldier] = [:]
     var grenades: [Grenade] = []
     let sites: [BombSite]
-    /// The round's bomb; BattleSetup hands it to one attacker.
-    let bomb: Bomb
+    let mode: GameMode
+    /// Bomb mode: the single carried bomb. Rush: one station per site.
+    let bombs: [Bomb]
     var time: CGFloat = 0
     /// The team carrying the bomb (the other team defends the sites).
     let attackers: Team
     var defenders: Team { attackers.opponent }
-    /// Seconds left before the bomb must be planted.
+    /// Bomb mode: seconds left before the bomb must be planted.
     var roundTimeLeft = BombConfig.roundTime
+    /// Rush: attacker respawns left.
+    var tickets = BombConfig.rushTickets
     /// Set when the battle is over.
     var result: MatchResult?
     private var nextId = 1
 
-    init(layout: MapLayout, attackers: Team) {
+    init(layout: MapLayout, mode: GameMode, attackers: Team) {
         let arena = ArenaMap(layout: layout)
         var grid = NavGrid(size: arena.size, cellSize: GameConfig.navCellSize)
         grid.rebuild(rects: arena.obstacles.map { $0.rect }, padding: GameConfig.navPadding)
         map = arena
         nav = grid
         self.attackers = attackers
-        bomb = Bomb(carrier: -1, position: .zero)
-        sites = arena.siteSpecs.map { BombSite(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
+        self.mode = mode
+        let siteList = arena.siteSpecs.map { BombSite(name: $0.name, center: $0.center, radius: ZoneConfig.radius) }
+        sites = siteList
+        switch mode {
+        case .bomb: bombs = [Bomb(carrier: -1, position: .zero)]
+        case .rush: bombs = siteList.map { Bomb(station: $0) }
+        }
+    }
+
+    /// The bomb-mode bomb (the first station in rush).
+    var bomb: Bomb { bombs[0] }
+
+    var anyPlanted: Bool { bombs.contains { $0.isPlanted } }
+
+    /// Rush: the station on a site.
+    func station(at site: BombSite) -> Bomb? {
+        bombs.first { $0.site === site }
     }
 
     /// Where a team starts the round.

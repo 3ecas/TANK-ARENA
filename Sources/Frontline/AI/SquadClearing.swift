@@ -16,7 +16,7 @@ extension SquadCoordinator {
         if let door = squad.stackDoor, let point = squad.stackPoint {
             let leaderDistance = leader.soldier.position.distance(to: point)
             // Bomb ticking, new goal, or pulled away: drop the stack and go.
-            if world.bomb.isPlanted || currentGoal != squad.stackGoal || leaderDistance > 450 {
+            if world.anyPlanted || currentGoal != squad.stackGoal || leaderDistance > 450 {
                 cancelStack(squad)
             } else if let goAt = squad.stackGoAt {
                 if now >= goAt {
@@ -63,8 +63,8 @@ extension SquadCoordinator {
     /// Push straight in: the bomb is ticking, the attackers are short of time, or just sometimes.
     private func shouldRush(_ squad: Squad) -> Bool {
         let world = ctx.world
-        if world.bomb.isPlanted { return true }
-        if squad.team == world.attackers && world.roundTimeLeft < AIConfig.rushTimeLeft { return true }
+        if world.anyPlanted { return true }
+        if world.mode == .bomb && squad.team == world.attackers && world.roundTimeLeft < AIConfig.rushTimeLeft { return true }
         return CGFloat.random(in: 0...1) < AIConfig.rushChance
     }
 

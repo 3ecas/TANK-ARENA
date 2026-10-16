@@ -1,7 +1,7 @@
 import CoreGraphics
 
-/// Brings dead soldiers back after a delay at their team's spawn, while they have respawns left.
-/// (Bomb rounds give no respawns, so this only matters if `GameConfig.respawnsPerSoldier` is raised.)
+/// Brings dead soldiers back after a delay at their team's spawn, while they have respawns left
+/// (bomb mode has none). In rush each attacker respawn costs a ticket; with no tickets left attackers stay down.
 @MainActor
 final class RespawnSystem {
     unowned let ctx: BattleContext
@@ -11,9 +11,15 @@ final class RespawnSystem {
     }
 
     func update(dt: CGFloat) {
-        for soldier in ctx.world.soldiers where soldier.isAwaitingRespawn {
+        let world = ctx.world
+        for soldier in world.soldiers where soldier.isAwaitingRespawn {
             soldier.respawnTimer -= dt
-            if soldier.respawnTimer <= 0 { respawn(soldier) }
+            guard soldier.respawnTimer <= 0 else { continue }
+            if world.mode == .rush && soldier.team == world.attackers {
+                guard world.tickets > 0 else { continue }
+                world.tickets -= 1
+            }
+            respawn(soldier)
         }
     }
 

@@ -1,16 +1,14 @@
 import CoreGraphics
 
-/// General rules of the 25 vs 25 battle.
+/// General soldier and display rules (team sizes and respawns depend on the GameMode).
 enum GameConfig {
     /// Square game window: preferred and minimum side in points.
     static let windowSide: CGFloat = 1000
     static let minWindowSide: CGFloat = 860
     /// World area shown on screen (points). The scene is scaled to fit the window, so this never changes.
     static let viewSize = CGSize(width: 1000, height: 1000)
-    static let teamSize = 5
     static let maxHp: CGFloat = 100
-    /// Each soldier can come back once after dying.
-    /// Bomb rounds: one life, no respawns.
+    /// Default respawns (BattleSetup sets the mode's value on every soldier).
     static let respawnsPerSoldier = 0
     static let respawnDelay: CGFloat = 8
     static let spawnProtection: CGFloat = 2

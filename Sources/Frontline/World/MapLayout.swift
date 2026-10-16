@@ -1,79 +1,33 @@
 import CoreGraphics
 
-enum MapKind {
-    case compound, office, caves
-
-    var displayName: String {
-        switch self {
-        case .compound: return "Compound"
-        case .office: return "Office"
-        case .caves: return "Caves"
-        }
-    }
-
-    /// Generated maps get a new layout every round.
-    var isGenerated: Bool { self != .compound }
-}
-
-/// Everything that describes one map: size, solid obstacles, the two spawns and the two bomb sites.
+/// One generated office floor: size, solid obstacles, the two spawns and the two sites.
 struct MapLayout {
-    let kind: MapKind
     let size: CGSize
     let obstacles: [Obstacle]
     let attackerSpawn: CGRect
     let defenderSpawn: CGRect
     let sites: [ZoneConfig.ZoneSpec]
-    /// Rock grid of a cave map (used for painting), nil for the other maps.
-    let cave: CaveGrid?
     let seed: UInt64
 
-    static func make(_ kind: MapKind) -> MapLayout {
-        switch kind {
-        case .compound: return compound()
-        case .office: return office(seed: UInt64.random(in: 1...UInt64(UInt32.max))) ?? compound()
-        case .caves: return caves(seed: UInt64.random(in: 1...UInt64(UInt32.max))) ?? compound()
-        }
-    }
-
-    /// The hand-made indoor compound: walls, rooms, corridors and crates.
-    static func compound() -> MapLayout {
-        let list = MapConfig.walls.map { Obstacle(rect: $0, kind: .wall) }
-            + MapConfig.crates.map { Obstacle(rect: $0, kind: .crate) }
-        return MapLayout(kind: .compound, size: MapConfig.size, obstacles: list, attackerSpawn: MapConfig.attackerSpawn,
-                         defenderSpawn: MapConfig.defenderSpawn, sites: MapConfig.sites, cave: nil, seed: 0)
-    }
-
-    /// A freshly generated office floor: rooms, doorways and desks. Retried if anything is unreachable.
-    static func office(seed: UInt64) -> MapLayout? {
-        let spawns = [MapConfig.attackerSpawn, MapConfig.defenderSpawn]
-        for attempt in 0..<UInt64(CaveConfig.maxAttempts) {
+    /// A new office for the mode. Layouts with anything unreachable are thrown away; after
+    /// `maxAttempts` the last one is used anyway (its spawns and sites are always open floor).
+    static func office(for mode: GameMode) -> MapLayout {
+        let style = mode.style
+        let seed = UInt64.random(in: 1...UInt64(UInt32.max))
+        var layout: MapLayout?
+        for attempt in 0..<UInt64(maxAttempts) {
             let currentSeed = seed &+ attempt &* 7919
-            var generator = OfficeGenerator(seed: currentSeed, size: MapConfig.size, spawns: spawns)
+            var generator = OfficeGenerator(seed: currentSeed, style: style)
             let obstacles = generator.generate()
-            let layout = MapLayout(kind: .office, size: MapConfig.size, obstacles: obstacles,
-                                   attackerSpawn: MapConfig.attackerSpawn, defenderSpawn: MapConfig.defenderSpawn,
-                                   sites: generator.sites, cave: nil, seed: currentSeed)
-            if layout.isFullyConnected() { return layout }
+            let candidate = MapLayout(size: style.size, obstacles: obstacles, attackerSpawn: style.attackerSpawn,
+                                      defenderSpawn: style.defenderSpawn, sites: generator.sites, seed: currentSeed)
+            layout = candidate
+            if candidate.isFullyConnected() { return candidate }
         }
-        return nil
+        return layout!
     }
 
-    /// A freshly generated cave system with the same spawns and sites. Seeds with anything cut off are skipped.
-    static func caves(seed: UInt64) -> MapLayout? {
-        let spawns = [MapConfig.attackerSpawn, MapConfig.defenderSpawn]
-        for attempt in 0..<UInt64(CaveConfig.maxAttempts) {
-            let currentSeed = seed &+ attempt &* 7919
-            var generator = CaveGenerator(seed: currentSeed, size: MapConfig.size, spawns: spawns,
-                                          zones: MapConfig.sites.map { $0.center })
-            let grid = generator.generate()
-            let obstacles = grid.rectangles().map { Obstacle(rect: $0, kind: .rock) }
-            let layout = MapLayout(kind: .caves, size: MapConfig.size, obstacles: obstacles,
-                                   attackerSpawn: MapConfig.attackerSpawn, defenderSpawn: MapConfig.defenderSpawn,
-                                   sites: MapConfig.sites, cave: grid, seed: currentSeed)
-            if layout.isFullyConnected() { return layout }
-        }
-        return nil
-    }
+    private static let maxAttempts = 12
 
     /// Soldiers can walk from the attacker spawn to the defender spawn and both sites.
     func isFullyConnected() -> Bool {

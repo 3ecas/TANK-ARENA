@@ -16,8 +16,8 @@ final class GameScene: SKScene {
     var gameEnded = false
     var mouseScene: CGPoint = .zero
 
-    init(size: CGSize, router: SceneRouter, map: MapKind, attacking: Bool) {
-        let session = GameSession(map: map, playerAttacks: attacking)
+    init(size: CGSize, router: SceneRouter, mode: GameMode, attacking: Bool) {
+        let session = GameSession(mode: mode, playerAttacks: attacking)
         self.router = router
         self.session = session
         worldRenderer = WorldRenderer(session: session)
@@ -60,9 +60,13 @@ final class GameScene: SKScene {
         session.bus.subscribe { [unowned self] event in self.handle(event) }
         layoutForSize()
         cameraController.snap(to: session.player.position)
-        hud.banner.announce(session.world.attackers == session.player.team
-                                ? "ATTACK — plant the bomb on site A or B!"
-                                : "DEFEND — stop the bomb!", color: UIStyle.accent)
+        let attacking = session.world.attackers == session.player.team
+        let intro: String
+        switch session.world.mode {
+        case .bomb: intro = attacking ? "ATTACK — plant the bomb on site A or B!" : "DEFEND — stop the bomb!"
+        case .rush: intro = attacking ? "RUSH ATTACK — arm and destroy stations A and B!" : "RUSH DEFEND — protect stations A and B!"
+        }
+        hud.banner.announce(intro, color: UIStyle.accent)
     }
 
     override func didChangeSize(_ oldSize: CGSize) {

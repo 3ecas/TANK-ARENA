@@ -1,8 +1,9 @@
 import CoreGraphics
 
-/// The bomb: follows its carrier, drops where the carrier dies, gets picked up by attackers,
-/// is planted by holding E inside a site, ticks for 45 s and is defused by a defender holding E next to it.
-/// Planting or defusing roots the soldier in place.
+/// Every bomb, every frame. Bomb mode: the bomb follows its carrier, drops where the carrier dies, is picked
+/// up by attackers and planted by holding E inside a site. Rush: any attacker holding E next to an idle station
+/// arms it. Armed bombs tick for 45 s; a defender holding E next to one defuses it (a rush station can then
+/// be armed again). Planting, arming or defusing roots the soldier in place.
 @MainActor
 final class BombSystem {
     unowned let ctx: BattleContext
@@ -14,22 +15,15 @@ final class BombSystem {
     }
 
     func update(dt: CGFloat) {
-        let bomb = ctx.world.bomb
-        switch bomb.state {
-        case .carried(let id):
-            updateCarried(bomb, carrierId: id, dt: dt)
-        case .dropped:
-            pickUp(bomb)
-        case .planted:
-            updatePlanted(bomb, dt: dt)
-        case .defused, .exploded:
-            break
+        for bomb in ctx.world.bombs {
+            switch bomb.state {
+            case .idle: updateStation(bomb, dt: dt)
+            case .carried(let id): updateCarried(bomb, carrierId: id, dt: dt)
+            case .dropped: pickUp(bomb)
+            case .planted: updatePlanted(bomb, dt: dt)
+            case .defused, .exploded: break
+            }
         }
-    }
-
-    /// The site the soldier stands in, if any.
-    func site(at point: CGPoint) -> BombSite? {
-        ctx.world.sites.first { $0.contains(point) }
     }
 
     private func updateCarried(_ bomb: Bomb, carrierId: Int, dt: CGFloat) {
@@ -40,20 +34,38 @@ final class BombSystem {
             return
         }
         bomb.position = carrier.position
-        guard carrier.wantsToInteract, let site = site(at: carrier.position) else {
+        guard carrier.wantsToInteract, let site = ctx.world.sites.first(where: { $0.contains(carrier.position) }) else {
             bomb.plantProgress = 0
             return
         }
-        root(carrier)
+        advancePlant(bomb, by: carrier, site: site, dt: dt)
+    }
+
+    /// Rush station: armed by any attacker standing next to it and holding E.
+    private func updateStation(_ bomb: Bomb, dt: CGFloat) {
+        let world = ctx.world
+        guard let site = bomb.site, let armer = world.soldiers.first(where: {
+            $0.isAlive && $0.team == world.attackers && $0.wantsToInteract
+                && $0.position.distance(to: bomb.position) <= BombConfig.armRadius
+        }) else {
+            bomb.plantProgress = 0
+            return
+        }
+        advancePlant(bomb, by: armer, site: site, dt: dt)
+    }
+
+    private func advancePlant(_ bomb: Bomb, by soldier: Soldier, site: BombSite, dt: CGFloat) {
+        root(soldier)
         bomb.plantProgress += dt / BombConfig.plantTime
         guard bomb.plantProgress >= 1 else { return }
+        if bomb.carrierId != nil { bomb.position = soldier.position }
         bomb.state = .planted
         bomb.site = site
         bomb.fuseLeft = BombConfig.fuseTime
         bomb.plantProgress = 0
-        carrier.wantsToInteract = false
-        ctx.bus.publish(.bombPlanted(site: site.name, planterId: carrier.id))
-        ctx.bus.publish(.announcement(text: "Bomb planted on site \(site.name)!"))
+        soldier.wantsToInteract = false
+        ctx.bus.publish(.bombPlanted(site: site.name, planterId: soldier.id))
+        ctx.bus.publish(.announcement(text: ctx.world.mode == .rush ? "Station \(site.name) armed!" : "Bomb planted on site \(site.name)!"))
     }
 
     private func pickUp(_ bomb: Bomb) {
@@ -85,10 +97,14 @@ final class BombSystem {
         root(defuser)
         bomb.defuseProgress += dt / BombConfig.defuseTime
         guard bomb.defuseProgress >= 1 else { return }
-        bomb.state = .defused
+        // A rush station can be armed again; the bomb-mode bomb is done.
+        bomb.state = world.mode == .rush ? .idle : .defused
+        bomb.defuserId = nil
+        bomb.defuseProgress = 0
         defuser.wantsToInteract = false
         ctx.bus.publish(.bombDefused(defuserId: defuser.id))
-        ctx.bus.publish(.announcement(text: "Bomb defused!"))
+        let name = bomb.site?.name ?? ""
+        ctx.bus.publish(.announcement(text: world.mode == .rush ? "Station \(name) defused!" : "Bomb defused!"))
     }
 
     private func canDefuse(_ soldier: Soldier, _ bomb: Bomb) -> Bool {
@@ -114,5 +130,8 @@ final class BombSystem {
         }
         ctx.bus.publish(.grenadeExploded(type: .frag, position: bomb.position, radius: blast))
         ctx.bus.publish(.bombExploded(position: bomb.position))
+        if ctx.world.mode == .rush, let name = bomb.site?.name {
+            ctx.bus.publish(.announcement(text: "Station \(name) destroyed!"))
+        }
     }
 }

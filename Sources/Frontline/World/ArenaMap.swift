@@ -1,7 +1,10 @@
 import CoreGraphics
 
 enum ObstacleKind {
-    case building, crate, barrier, rock, wall, desk
+    /// Office walls: block movement, bullets and sight.
+    case wall
+    /// Desks: low cover, same collision as walls.
+    case desk
 }
 
 struct Obstacle {
@@ -11,27 +14,22 @@ struct Obstacle {
 
 /// Static geometry of the arena: obstacles (solid to movement, bullets and sight), spawns and zone positions.
 struct ArenaMap {
-    let kind: MapKind
     let size: CGSize
     let bounds: CGRect
     let obstacles: [Obstacle]
     let siteSpecs: [ZoneConfig.ZoneSpec]
     let attackerSpawn: CGRect
     let defenderSpawn: CGRect
-    /// Rock grid when this is a cave map.
-    let cave: CaveGrid?
     let seed: UInt64
     private let index: ObstacleIndex
 
     init(layout: MapLayout) {
-        kind = layout.kind
         size = layout.size
         bounds = CGRect(origin: .zero, size: layout.size)
         obstacles = layout.obstacles
         siteSpecs = layout.sites
         attackerSpawn = layout.attackerSpawn
         defenderSpawn = layout.defenderSpawn
-        cave = layout.cave
         seed = layout.seed
         index = ObstacleIndex(obstacles: layout.obstacles, size: layout.size)
     }

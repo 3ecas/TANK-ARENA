@@ -24,7 +24,7 @@ final class WorldRenderer {
         grenadeLayer = grenade
         effectLayer = effect
         effects = EffectsRenderer(session: session, effectLayer: effect, decalLayer: decal)
-        siteRenderer = SiteRenderer(sites: session.world.sites, playerTeam: session.player.team)
+        siteRenderer = SiteRenderer(world: session.world, playerTeam: session.player.team)
         buildTree()
     }
 

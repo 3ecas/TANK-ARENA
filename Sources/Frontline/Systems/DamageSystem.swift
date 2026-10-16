@@ -25,7 +25,7 @@ final class DamageSystem {
         victim.firePressed = false
         victim.moveDir = .zero
         victim.velocity = .zero
-        victim.respawnTimer = victim.respawnsLeft > 0 ? GameConfig.respawnDelay : 0
+        victim.respawnTimer = victim.respawnsLeft > 0 ? BombConfig.rushRespawnDelay : 0
         if let attacker = attacker, attacker.team != victim.team { attacker.kills += 1 }
         ctx.bus.publish(.soldierKilled(victimId: victim.id, killerId: attacker?.id, weaponName: weaponName))
     }

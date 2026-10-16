@@ -1,6 +1,7 @@
 import SpriteKit
 
-/// Below the crosshair area: "Hold E to plant / defuse" when the player can, and a progress bar while doing it.
+/// Below the crosshair area: what the player can do with E right now (plant, arm, defuse),
+/// and a progress bar while doing it.
 @MainActor
 final class BombPrompt {
     let root = SKNode()
@@ -17,26 +18,38 @@ final class BombPrompt {
     }
 
     func update(world: BattleWorld, player: Soldier) {
-        let bomb = world.bomb
         var text = ""
         var progress: CGFloat?
         if player.isAlive {
-            if bomb.carrierId == player.id {
-                if world.sites.contains(where: { $0.contains(player.position) }) {
-                    text = bomb.plantProgress > 0 ? "PLANTING…" : "Hold E to plant the bomb"
-                    if bomb.plantProgress > 0 { progress = bomb.plantProgress }
-                } else {
-                    text = "You have the bomb — take it to site A or B"
+            for bomb in world.bombs {
+                if let prompt = prompt(for: bomb, world: world, player: player) {
+                    text = prompt.0
+                    progress = prompt.1
+                    break
                 }
-            } else if bomb.isPlanted && player.team == world.defenders
-                        && player.position.distance(to: bomb.position) <= BombConfig.defuseRadius {
-                text = bomb.defuserId == player.id ? "DEFUSING…" : "Hold E to defuse"
-                if bomb.defuserId == player.id { progress = bomb.defuseProgress }
             }
         }
         label.text = text
         barBack.isHidden = progress == nil
         barFill.isHidden = progress == nil
         barFill.xScale = Swift.max(0, Swift.min(1, progress ?? 0))
+    }
+
+    private func prompt(for bomb: Bomb, world: BattleWorld, player: Soldier) -> (String, CGFloat?)? {
+        let attacker = player.team == world.attackers
+        let distance = player.position.distance(to: bomb.position)
+        if bomb.carrierId == player.id {
+            guard world.sites.contains(where: { $0.contains(player.position) }) else {
+                return ("You have the bomb — take it to site A or B", nil)
+            }
+            return bomb.plantProgress > 0 ? ("PLANTING…", bomb.plantProgress) : ("Hold E to plant the bomb", nil)
+        }
+        if attacker && bomb.isIdle && distance <= BombConfig.armRadius {
+            return bomb.plantProgress > 0 ? ("ARMING…", bomb.plantProgress) : ("Hold E to arm station \(bomb.site?.name ?? "")", nil)
+        }
+        if !attacker && bomb.isPlanted && distance <= BombConfig.defuseRadius {
+            return bomb.defuserId == player.id ? ("DEFUSING…", bomb.defuseProgress) : ("Hold E to defuse", nil)
+        }
+        return nil
     }
 }

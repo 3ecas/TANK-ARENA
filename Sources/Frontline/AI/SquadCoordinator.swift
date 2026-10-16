@@ -1,15 +1,16 @@
 import CoreGraphics
 
 /// Team-level coordination: builds squads, decides push / hold / retreat, sends idle squads to
-/// support nearby fights, sends attackers to their target bomb site and defenders to guard both sites
-/// (everyone converges on the bomb once it is planted), and merges decimated squads.
+/// support nearby fights, sends squads to bomb sites / rush stations (see assignObjective), and merges
+/// decimated squads.
 @MainActor
 final class SquadCoordinator {
     unowned let ctx: BattleContext
     private(set) var squads: [Squad] = []
     private var timer: CGFloat = 0
     private var objectiveTimer: CGFloat = 0
-    private var bombWasPlanted = false
+    /// Changes whenever a bomb is armed, defused or destroyed, to retarget everyone at once.
+    private var bombSignature = 0
     /// The site the attackers go for this round.
     private let attackTarget: BombSite?
 
@@ -24,7 +25,8 @@ final class SquadCoordinator {
         for team in Team.playable {
             // A few bots per team are rogues: lone flankers outside any squad (never the bomb carrier).
             let allBots = bots.filter { $0.soldier.team == team }
-            let rogueCount = Swift.min(AIConfig.roguesPerTeam, allBots.count / 4)
+            let rogueLimit = ctx.world.mode == .rush ? AIConfig.rushRogues : AIConfig.roguesPerTeam
+            let rogueCount = Swift.min(rogueLimit, allBots.count / 4)
             let rogues = Array(allBots.filter { $0.soldier.id != carrierId }.suffix(rogueCount))
             for bot in rogues { bot.isRogue = true }
             let teamBots = allBots.filter { !$0.isRogue }
@@ -51,9 +53,10 @@ final class SquadCoordinator {
         timer = AIConfig.squadUpdateInterval
         mergeWeakSquads()
         objectiveTimer -= AIConfig.squadUpdateInterval
-        // The bomb was just planted: everyone gets a new objective right away.
-        if ctx.world.bomb.isPlanted != bombWasPlanted {
-            bombWasPlanted = ctx.world.bomb.isPlanted
+        // A bomb was just armed, defused or destroyed: everyone gets a new objective right away.
+        let signature = ctx.world.bombs.reduce(0) { $0 * 4 + ($1.isPlanted ? 1 : 0) + ($1.isExploded ? 2 : 0) }
+        if signature != bombSignature {
+            bombSignature = signature
             objectiveTimer = 0
         }
         if objectiveTimer <= 0 {
@@ -107,11 +110,17 @@ final class SquadCoordinator {
         }.count
     }
 
-    /// Before the plant: attackers all go for one site; defender pairs split over both sites.
-    /// After the plant: both teams converge on the planted site (attackers to guard it, defenders to defuse).
+    /// Bomb mode: before the plant, attackers all go for one site and defenders split over both; after the
+    /// plant both teams converge on the planted site.
+    /// Rush: attacking squads split over the stations still to arm (one squad guards an armed station);
+    /// defenders split over the standing stations and rush to any armed one.
     private func assignObjective(_ squad: Squad) {
         let world = ctx.world
         guard !world.sites.isEmpty else { return }
+        if world.mode == .rush {
+            assignRushObjective(squad)
+            return
+        }
         if world.bomb.isPlanted, let planted = world.bomb.site {
             setObjective(squad, planted, flank: false)
             return
@@ -120,6 +129,26 @@ final class SquadCoordinator {
             if let target = attackTarget { setObjective(squad, target, flank: squad.role == 1) }
         } else {
             setObjective(squad, world.sites[squad.role % world.sites.count], flank: false)
+        }
+    }
+
+    private func assignRushObjective(_ squad: Squad) {
+        let world = ctx.world
+        let standing = world.bombs.filter { !$0.isExploded }
+        let armed = standing.filter { $0.isPlanted }.compactMap { $0.site }
+        let idle = standing.filter { $0.isIdle }.compactMap { $0.site }
+        if squad.team == world.attackers {
+            if squad.role == 1, let guardSite = armed.first {
+                setObjective(squad, guardSite, flank: false)
+                return
+            }
+            let pool = idle.isEmpty ? armed : idle
+            guard !pool.isEmpty else { return }
+            setObjective(squad, pool[squad.role % pool.count], flank: squad.role == 2 || squad.role == 3)
+        } else {
+            let pool = armed.isEmpty ? standing.compactMap { $0.site } : armed
+            guard !pool.isEmpty else { return }
+            setObjective(squad, pool[squad.role % pool.count], flank: false)
         }
     }
 
@@ -162,7 +191,7 @@ final class SquadCoordinator {
         let world = ctx.world
         for squad in squads where !squad.members.isEmpty {
             // Before the plant, defender squads never merge, so no site is left unguarded.
-            if squad.team == world.defenders && !world.bomb.isPlanted { continue }
+            if squad.team == world.defenders && !world.anyPlanted { continue }
             let living = squad.alive.count
             let pending = squad.members.filter { $0.soldier.isAwaitingRespawn }.count
             guard living + pending <= AIConfig.mergeThreshold, living > 0 || pending > 0 else { continue }

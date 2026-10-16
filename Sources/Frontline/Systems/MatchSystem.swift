@@ -1,10 +1,10 @@
 import CoreGraphics
 
-/// Bomb round rules (one life each):
-/// - attackers win if the bomb explodes, or if every defender is dead;
-/// - defenders win if the bomb is defused, if every attacker dies before planting,
-///   or if the round timer runs out with no bomb planted.
-/// Once the bomb is planted the round timer stops; killing the attackers is then not enough — it must be defused.
+/// How a round ends.
+/// Bomb mode (one life): attackers win if the bomb explodes or every defender is dead; defenders win if it is
+/// defused, if every attacker dies before the plant, or if the round timer runs out with no plant.
+/// Rush: attackers win when both stations are destroyed; defenders win once the attackers are out of tickets
+/// and nobody of theirs is left alive.
 @MainActor
 final class MatchSystem {
     unowned let ctx: BattleContext
@@ -14,8 +14,15 @@ final class MatchSystem {
     }
 
     func update(dt: CGFloat) {
+        guard ctx.world.result == nil else { return }
+        switch ctx.world.mode {
+        case .bomb: updateBomb(dt: dt)
+        case .rush: updateRush()
+        }
+    }
+
+    private func updateBomb(dt: CGFloat) {
         let world = ctx.world
-        guard world.result == nil else { return }
         let bomb = world.bomb
         switch bomb.state {
         case .exploded:
@@ -39,6 +46,15 @@ final class MatchSystem {
         world.roundTimeLeft -= dt
         if world.roundTimeLeft <= 0 {
             world.roundTimeLeft = 0
+            finish(.victory(world.defenders))
+        }
+    }
+
+    private func updateRush() {
+        let world = ctx.world
+        if world.bombs.allSatisfy({ $0.isExploded }) {
+            finish(.victory(world.attackers))
+        } else if world.tickets <= 0 && world.aliveCount(world.attackers) == 0 && !world.anyPlanted {
             finish(.victory(world.defenders))
         }
     }

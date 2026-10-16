@@ -1,7 +1,7 @@
 import CoreGraphics
 
-/// Bomb round (5 vs 5): attackers carry one bomb and plant it on site A or B; it blows after 45 s
-/// unless a defender defuses it. One life per round.
+/// Bomb timings. Bomb mode (5 vs 5, one life): one carried bomb planted on A or B. Rush (16 vs 16):
+/// two stations armed in place by any attacker. Either way it blows 45 s after arming unless defused.
 enum BombConfig {
     /// Round length before the bomb is planted. If time runs out with no bomb planted, defenders win.
     static let roundTime: CGFloat = 120
@@ -18,4 +18,8 @@ enum BombConfig {
     static let killRadius: CGFloat = 260
     static let blastRadius: CGFloat = 560
     static let blastDamage: CGFloat = 400
+    /// Rush: how close an attacker must stand to a station to arm it, and the attackers' respawn tickets.
+    static let armRadius: CGFloat = 70
+    static let rushTickets = 120
+    static let rushRespawnDelay: CGFloat = 8
 }

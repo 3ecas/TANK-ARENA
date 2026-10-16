@@ -9,13 +9,13 @@ struct Chokepoint {
 
 /// Finds the doorways and entrances of any map once, by probing the open floor: a spot is an entrance when
 /// it is narrow across (walls close on both sides) but opens into a wide area a little further along.
-/// Only walls and rock count — gaps between crates or desks are cover, not doorways.
+/// Only walls count — gaps between desks are cover, not doorways.
 @MainActor
 final class Chokepoints {
     private(set) var points: [Chokepoint] = []
 
     init(map: ArenaMap) {
-        let structure = map.obstacles.filter { $0.kind == .wall || $0.kind == .rock || $0.kind == .building }
+        let structure = map.obstacles.filter { $0.kind == .wall }
         let walls = Walls(obstacles: structure, size: map.size)
         var found: [(CGPoint, CGPoint)] = []
         let step = AIConfig.chokeProbeStep

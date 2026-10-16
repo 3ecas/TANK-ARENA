@@ -1,7 +1,7 @@
 import SpriteKit
 
-/// Top-centre round panel: your role, the round timer (or the bomb fuse once planted),
-/// where the bomb is, and how many soldiers are alive on each side.
+/// Top-centre round panel: your role, the round timer / bomb fuse (bomb mode) or tickets (rush),
+/// bomb or station status, and how many soldiers are alive on each side.
 @MainActor
 final class TeamCounter {
     let root = SKNode()
@@ -25,9 +25,16 @@ final class TeamCounter {
 
     func update(world: BattleWorld, playerTeam: Team) {
         let attacking = world.attackers == playerTeam
-        roleLabel.text = attacking ? "ATTACK — PLANT THE BOMB ON A OR B" : "DEFEND — PROTECT SITES A AND B"
         blueAlive.text = "BLUE \(world.aliveCount(.blue))"
         redAlive.text = "\(world.aliveCount(.red)) RED"
+        switch world.mode {
+        case .bomb: updateBomb(world: world, attacking: attacking)
+        case .rush: updateRush(world: world, attacking: attacking)
+        }
+    }
+
+    private func updateBomb(world: BattleWorld, attacking: Bool) {
+        roleLabel.text = attacking ? "ATTACK — PLANT THE BOMB ON A OR B" : "DEFEND — PROTECT SITES A AND B"
         let bomb = world.bomb
         if bomb.isPlanted {
             timerLabel.text = "BOMB " + UIStyle.formatTime(bomb.fuseLeft.rounded(.up))
@@ -45,10 +52,25 @@ final class TeamCounter {
             bombLabel.text = attacking ? "Bomb dropped — pick it up!" : "Bomb not planted"
         case .planted:
             bombLabel.text = "Bomb planted on \(bomb.site?.name ?? "?")" + (bomb.defuserId != nil ? " — DEFUSING" : "")
-        case .defused:
+        case .idle, .defused:
             bombLabel.text = "Bomb defused"
         case .exploded:
             bombLabel.text = "Bomb exploded"
         }
+    }
+
+    /// Rush: attacker tickets and the state of each station.
+    private func updateRush(world: BattleWorld, attacking: Bool) {
+        roleLabel.text = attacking ? "RUSH ATTACK — ARM AND DESTROY A AND B" : "RUSH DEFEND — PROTECT STATIONS A AND B"
+        timerLabel.text = "TICKETS \(world.tickets)"
+        timerLabel.fontColor = world.tickets < 20 ? Palette.warning : UIStyle.accent
+        bombLabel.text = world.bombs.map { bomb -> String in
+            let name = bomb.site?.name ?? "?"
+            switch bomb.state {
+            case .planted: return "\(name): ARMED \(Int(bomb.fuseLeft.rounded(.up)))s"
+            case .exploded: return "\(name): destroyed"
+            default: return "\(name): standing"
+            }
+        }.joined(separator: "   ")
     }
 }

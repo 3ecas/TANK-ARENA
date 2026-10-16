@@ -4,8 +4,9 @@ import CoreGraphics
 /// position (never through a spawn, a bomb site or an existing doorway), and every wall gets one or two
 /// doorways, so every room stays reachable. Rooms get a few desks as cover. Nothing is mirrored.
 struct OfficeGenerator {
-    let size: CGSize
-    let spawns: [CGRect]
+    let style: OfficeStyle
+    var size: CGSize { style.size }
+    var spawns: [CGRect] { [style.attackerSpawn, style.defenderSpawn] }
     private(set) var sites: [ZoneConfig.ZoneSpec] = []
     private var rng: SeededRandom
     private var walls: [CGRect] = []
@@ -13,15 +14,14 @@ struct OfficeGenerator {
     private var rooms: [CGRect] = []
     private var protected: [CGRect] = []
 
-    init(seed: UInt64, size: CGSize, spawns: [CGRect]) {
-        self.size = size
-        self.spawns = spawns
+    init(seed: UInt64, style: OfficeStyle) {
+        self.style = style
         rng = SeededRandom(seed: seed)
     }
 
     mutating func generate() -> [Obstacle] {
         var placedSites: [ZoneConfig.ZoneSpec] = []
-        for spec in OfficeConfig.siteAreas {
+        for spec in style.siteAreas {
             let x = spec.area.minX + rng.next() * spec.area.width
             let y = spec.area.minY + rng.next() * spec.area.height
             placedSites.append(ZoneConfig.ZoneSpec(name: spec.name, center: CGPoint(x: x, y: y)))
@@ -40,7 +40,7 @@ struct OfficeGenerator {
     }
 
     private mutating func divide(_ rect: CGRect, depth: Int) {
-        if depth > 0 && rect.width * rect.height < OfficeConfig.stopArea && rng.next() < OfficeConfig.stopChance {
+        if depth > 0 && rect.width * rect.height < style.stopArea && rng.next() < style.stopChance {
             rooms.append(rect)
             return
         }
@@ -65,7 +65,7 @@ struct OfficeGenerator {
 
     /// Wall positions (every 20 points) that keep both rooms big enough and cross no spawn, site or doorway.
     private func splitOptions(_ rect: CGRect, vertical: Bool) -> [CGFloat] {
-        let t = OfficeConfig.wallThickness, minRoom = OfficeConfig.minRoom
+        let t = OfficeConfig.wallThickness, minRoom = style.minRoom
         let low = (vertical ? rect.minX : rect.minY) + minRoom
         let high = (vertical ? rect.maxX : rect.maxY) - minRoom
         guard low <= high else { return [] }
@@ -77,12 +77,12 @@ struct OfficeGenerator {
         }
     }
 
-    /// A wall across `rect` with one doorway (two on long walls).
+    /// A wall across `rect` with one doorway (more on long walls).
     private mutating func buildWall(in rect: CGRect, at: CGFloat, vertical: Bool) {
-        let t = OfficeConfig.wallThickness, door = OfficeConfig.doorWidth
+        let t = OfficeConfig.wallThickness, door = style.doorWidth
         let start = vertical ? rect.minY : rect.minX
         let span = vertical ? rect.height : rect.width
-        let count = span > OfficeConfig.twoDoorSpan ? 2 : 1
+        let count = span > style.doorSpan * 2 ? 3 : (span > style.doorSpan ? 2 : 1)
         var gaps: [CGFloat] = []
         for _ in 0..<count { gaps.append(start + 40 + rng.next() * (span - 80 - door)) }
         var position = start
@@ -101,7 +101,7 @@ struct OfficeGenerator {
                               : CGRect(x: a, y: at - t / 2, width: b - a, height: t))
     }
 
-    /// 0–3 desks per room (bigger rooms get more), clear of the walls, spawns and site centres.
+    /// A few desks per room (bigger rooms get more), clear of the walls, spawns and site centres.
     private mutating func placeDesks() -> [CGRect] {
         var result: [CGRect] = []
         let margin = OfficeConfig.deskMargin
@@ -109,7 +109,7 @@ struct OfficeGenerator {
             let area = room.insetBy(dx: margin, dy: margin)
             guard area.width >= 60, area.height >= 60,
                   !spawns.contains(where: { $0.insetBy(dx: -40, dy: -40).intersects(area) }) else { continue }
-            let count = Int(rng.next() * 3) + (room.width * room.height > 300 * 300 ? 1 : 0)
+            let count = Swift.min(style.maxDesks, Int(rng.next() * CGFloat(style.maxDesks)) + (room.width * room.height > 300 * 300 ? 1 : 0))
             var placed: [CGRect] = []
             for _ in 0..<(count * 6) where placed.count < count {
                 let sizes = OfficeConfig.deskSizes
