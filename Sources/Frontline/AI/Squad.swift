@@ -23,6 +23,8 @@ final class Squad {
     var objective: BombSite?
     /// Waypoint on the edge of the map the squad passes through first to flank the objective.
     var flankPoint: CGPoint?
+    /// Team push: where the squad waits for the rest of the team before going in (nil = go).
+    var stagePoint: CGPoint?
     /// Room clearing: the doorway the squad is stacked on, where it waits, and when it goes in.
     var stackDoor: Chokepoint?
     var stackPoint: CGPoint?
@@ -107,6 +109,13 @@ final class Squad {
         let count = Swift.max(1, alive.count)
         let angle = CGFloat(index) / CGFloat(count) * 2 * .pi + CGFloat(id)
         return zone.center + CGPoint(angle: angle) * (zone.radius * 0.55)
+    }
+
+    /// Spot around a staging point (squads use different angles so the team spreads out).
+    func stageSpot(for member: SoldierAI, around stage: CGPoint) -> CGPoint? {
+        guard let index = alive.firstIndex(where: { $0 === member }) else { return nil }
+        let angle = CGFloat(index) * 1.3 + CGFloat(id) * 2.1
+        return stage + CGPoint(angle: angle, length: 50 + CGFloat(index % 3) * 35)
     }
 
     /// Place in the stack next to a doorway: two files behind the leader, away from the opening.

@@ -11,8 +11,11 @@ final class SquadCoordinator {
     private var objectiveTimer: CGFloat = 0
     /// Changes whenever a bomb is armed, defused or destroyed, to retarget everyone at once.
     private var bombSignature = 0
-    /// The site the attackers go for this round.
-    private let attackTarget: BombSite?
+    /// The site the attackers go for this round (bomb mode).
+    let attackTarget: BombSite?
+    /// Team pushes: the attackers' execute and the defenders' retake.
+    let attackPlan = TeamPlan()
+    let retakePlan = TeamPlan()
 
     let services: BotServices
 
@@ -67,6 +70,7 @@ final class SquadCoordinator {
             }
             for squad in squads { assignObjective(squad) }
         }
+        updateTactics()
         for squad in squads where !squad.members.isEmpty {
             decideStance(squad)
             updateRoomClearing(squad)
@@ -138,13 +142,13 @@ final class SquadCoordinator {
         let armed = standing.filter { $0.isPlanted }.compactMap { $0.site }
         let idle = standing.filter { $0.isIdle }.compactMap { $0.site }
         if squad.team == world.attackers {
-            if squad.role == 1, let guardSite = armed.first {
+            // Push together: every squad on the same station; while one is armed, everyone guards it.
+            if let guardSite = armed.first {
                 setObjective(squad, guardSite, flank: false)
                 return
             }
-            let pool = idle.isEmpty ? armed : idle
-            guard !pool.isEmpty else { return }
-            setObjective(squad, pool[squad.role % pool.count], flank: squad.role == 2 || squad.role == 3)
+            guard let target = attackPlan.target ?? idle.first else { return }
+            setObjective(squad, target, flank: squad.role == 2)
         } else {
             let pool = armed.isEmpty ? standing.compactMap { $0.site } : armed
             guard !pool.isEmpty else { return }
@@ -191,9 +195,12 @@ final class SquadCoordinator {
         let world = ctx.world
         for squad in squads where !squad.members.isEmpty {
             // Before the plant, defender squads never merge, so no site is left unguarded.
-            if squad.team == world.defenders && !world.anyPlanted { continue }
+            // Defender squads never merge in rush (respawns refill them) or before a plant in bomb mode,
+            // so no site is left unguarded.
+            if squad.team == world.defenders && (world.mode == .rush || !world.anyPlanted) { continue }
             let living = squad.alive.count
-            let pending = squad.members.filter { $0.soldier.isAwaitingRespawn }.count
+            let canRespawn = world.mode != .rush || squad.team != world.attackers || world.tickets > 0
+            let pending = canRespawn ? squad.members.filter { $0.soldier.isAwaitingRespawn }.count : 0
             guard living + pending <= AIConfig.mergeThreshold, living > 0 || pending > 0 else { continue }
             let origin = squad.centroid ?? squad.members[0].soldier.position
             let target = squads

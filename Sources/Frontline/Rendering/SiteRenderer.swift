@@ -7,6 +7,7 @@ import SpriteKit
 final class SiteRenderer {
     let root = SKNode()
     private var rings: [SKShapeNode] = []
+    private var letters: [SKLabelNode] = []
     private var views: [BombView] = []
     private var blink: CGFloat = 0
     private let playerTeam: Team
@@ -28,6 +29,7 @@ final class SiteRenderer {
             root.addChild(ring)
             root.addChild(letter)
             rings.append(ring)
+            letters.append(letter)
         }
         for _ in world.bombs {
             let view = BombView(station: world.mode == .rush)
@@ -38,10 +40,12 @@ final class SiteRenderer {
 
     func update(dt: CGFloat, world: BattleWorld, isShown: (Soldier) -> Bool, canSee: (CGPoint) -> Bool) {
         blink += dt
-        for (ring, site) in zip(rings, world.sites) {
+        for (index, site) in world.sites.enumerated() {
             let armed = world.bombs.contains { $0.isPlanted && $0.site === site }
-            ring.lineWidth = armed ? 8 : 5
-            ring.alpha = armed ? 0.6 + 0.4 * abs(sin(blink * 5)) : 1
+            let destroyed = world.mode == .rush && world.station(at: site)?.isExploded == true
+            rings[index].lineWidth = armed ? 8 : 5
+            rings[index].alpha = destroyed ? 0.25 : (armed ? 0.6 + 0.4 * abs(sin(blink * 5)) : 1)
+            letters[index].alpha = destroyed ? 0.3 : 1
         }
         for (view, bomb) in zip(views, world.bombs) {
             view.update(bomb: bomb, world: world, blink: blink, playerTeam: playerTeam, isShown: isShown, canSee: canSee)

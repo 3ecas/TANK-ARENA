@@ -129,3 +129,14 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - AI: `SquadCoordinator.assignRushObjective`, the arming duty in `SoldierAIBomb`, and 3 rogues per team in rush.
 - HUD: rush tickets and station status, the arm / defuse prompt, station views in `SiteRenderer`, and station state on the minimap.
 
+## Revision 12: team pushes, smaller Office
+- `AI/TeamPlan` and `AI/SquadTactics` give each team a push plan:
+  - attackers gather at a staging point 520 before their site, found along the nav route (`Squad.stagePoint` / `stageSpot`);
+  - they execute when 70% have arrived, on timeout, or when time is short, and open with grenades;
+  - in rush all squads push the same station;
+  - defenders do the same to retake an armed bomb or station, with a 7 s gather;
+  - squads skip door-stacking for 12 s after an execute;
+  - the support radius is now 1500 so the other site rotates in.
+- Office map scaled to 2400×1520, with extra partitions splitting the halls and the middle into smaller rooms. It is still mirrored; site radius is 130.
+- Review fixes: defender squads never merge in rush; attackers with no tickets are not counted as pending; destroyed station rings are dimmed; `Bomb.armerId` so the arming bar only shows for the one arming; a duplicate desk is removed.
+

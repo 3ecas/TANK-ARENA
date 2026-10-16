@@ -69,6 +69,17 @@ enum AIConfig {
     static let stackMaxWait: CGFloat = 4
     /// Rush: the nearest free attacker within this distance of an idle station goes to arm it.
     static let armReach: CGFloat = 600
+    /// Team pushes: staging point this far before the site, radius that counts as "arrived", share of the
+    /// team that must have arrived, max wait (attack / retake), retake hurries when the fuse is under this,
+    /// chance each bot opens with its grenade, and how long squads skip door-stacking after going in.
+    static let stageDistance: CGFloat = 520
+    static let stageRadius: CGFloat = 260
+    static let gatherFraction: CGFloat = 0.7
+    static let gatherTimeout: CGFloat = 16
+    static let retakeGatherTimeout: CGFloat = 7
+    static let retakeHurry: CGFloat = 22
+    static let executeUtilityChance: CGFloat = 0.6
+    static let executeRushTime: CGFloat = 12
     /// Chance a squad just pushes through a doorway without stacking (always when time is short).
     static let rushChance: CGFloat = 0.3
     static let rushTimeLeft: CGFloat = 35
@@ -87,7 +98,7 @@ enum AIConfig {
     /// How long a bot stays in combat mode after last seeing an enemy.
     static let combatMemory: CGFloat = 3.5
     /// Idle squads within this distance of another squad's fight come to help.
-    static let supportRadius: CGFloat = 1100
+    static let supportRadius: CGFloat = 1500
     /// Members further than this from the leader make it wait (unless they are very far, e.g. respawning).
     static let gatherRadius: CGFloat = 240
     static let stragglerRadius: CGFloat = 900

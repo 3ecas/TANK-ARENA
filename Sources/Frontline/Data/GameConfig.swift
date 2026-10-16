@@ -10,7 +10,6 @@ enum GameConfig {
     static let maxHp: CGFloat = 100
     /// Default respawns (BattleSetup sets the mode's value on every soldier).
     static let respawnsPerSoldier = 0
-    static let respawnDelay: CGFloat = 8
     static let spawnProtection: CGFloat = 2
     static let soldierRadius: CGFloat = 12
     /// Walking speed (points per second) before weapon weight.

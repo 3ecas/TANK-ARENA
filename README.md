@@ -55,10 +55,10 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 
 ### Modes
 
-Both modes are played on **Office**, a hand-made indoor map (3000×1900) with few, large rooms. It is balanced:
+Both modes are played on **Office**, a hand-made indoor map (2400×1520) of compact rooms. It is balanced:
 the floor is mirrored top/bottom, so sites A and B are exactly as far from each spawn. Attackers start in the
-west lobby, whose three doors lead into the north hall, the open-plan middle and the south hall. Defenders start in
-the east room, with doors straight into both site rooms. You are put on **attack or defence at random** and are always blue.
+west lobby, with doors into the north rooms, the middle and the south rooms; defenders start in the east room, with
+doors straight into both site rooms. You are put on **attack or defence at random** and are always blue.
 
 **Bomb — 5 vs 5, one life**
 - The attackers carry **one bomb** (you have it when you attack). Take it to **site A or B** and **hold E** for 3 s
@@ -82,7 +82,11 @@ the east room, with doors straight into both site rooms. You are put on **attack
 - **Range line:** a dashed line from your soldier to the max range of the weapon in hand (rifle 1000, pistol 800, SMG 700, shotgun 430).
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds. **Stun** slows and stops shooting.
 - Bots ("medium-hard"):
-  - attackers move in squads to their target site; the carrier plants (bomb) or the nearest free attacker arms a station (rush) when no enemy is in sight; the nearest free attacker grabs a dropped bomb;
+  - **they push together**: the attackers first gather at a staging point short of their site, wait until most of
+    the team is there (or time runs short), then all go in at once, opening with grenades and flashbangs. In rush
+    the whole team pushes one station at a time and guards an armed one. Defenders retaking an armed bomb or
+    station gather first too, then retake together, and squads from the other site come over to help;
+  - the carrier plants (bomb) or the nearest free attacker arms a station (rush) when no enemy is in sight; the nearest free attacker grabs a dropped bomb;
   - defenders split over both sites; when a bomb is armed they converge on it and the nearest free defender defuses;
   - lone **rogues** (1 per team in bomb, 3 in rush) take the long way round to come in from behind;
   - they know the map's **doorways** and keep their guns on them, share and **predict** enemy positions, and **clear rooms** as a squad (stack beside the door, cover it, go in together — or sometimes just rush in);

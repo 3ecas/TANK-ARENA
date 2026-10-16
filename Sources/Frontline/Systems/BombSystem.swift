@@ -36,6 +36,7 @@ final class BombSystem {
         bomb.position = carrier.position
         guard carrier.wantsToInteract, let site = ctx.world.sites.first(where: { $0.contains(carrier.position) }) else {
             bomb.plantProgress = 0
+            bomb.armerId = nil
             return
         }
         advancePlant(bomb, by: carrier, site: site, dt: dt)
@@ -49,6 +50,7 @@ final class BombSystem {
                 && $0.position.distance(to: bomb.position) <= BombConfig.armRadius
         }) else {
             bomb.plantProgress = 0
+            bomb.armerId = nil
             return
         }
         advancePlant(bomb, by: armer, site: site, dt: dt)
@@ -56,6 +58,10 @@ final class BombSystem {
 
     private func advancePlant(_ bomb: Bomb, by soldier: Soldier, site: BombSite, dt: CGFloat) {
         root(soldier)
+        if bomb.armerId != soldier.id {
+            bomb.armerId = soldier.id
+            bomb.plantProgress = 0
+        }
         bomb.plantProgress += dt / BombConfig.plantTime
         guard bomb.plantProgress >= 1 else { return }
         if bomb.carrierId != nil { bomb.position = soldier.position }
@@ -63,6 +69,7 @@ final class BombSystem {
         bomb.site = site
         bomb.fuseLeft = BombConfig.fuseTime
         bomb.plantProgress = 0
+        bomb.armerId = nil
         soldier.wantsToInteract = false
         ctx.bus.publish(.bombPlanted(site: site.name, planterId: soldier.id))
         ctx.bus.publish(.announcement(text: ctx.world.mode == .rush ? "Station \(site.name) armed!" : "Bomb planted on site \(site.name)!"))

@@ -28,6 +28,8 @@ final class Bomb {
     var plantProgress: CGFloat = 0
     var defuseProgress: CGFloat = 0
     var defuserId: Int?
+    /// Who is planting / arming right now (nil when nobody is).
+    var armerId: Int?
 
     /// Bomb-mode bomb, handed to a carrier by BattleSetup.
     init(carrier: Int, position: CGPoint) {

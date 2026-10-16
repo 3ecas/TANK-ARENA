@@ -8,5 +8,5 @@ enum ZoneConfig {
     }
 
     /// Radius of a bomb site (the bomb can only be planted inside it).
-    static let radius: CGFloat = 150
+    static let radius: CGFloat = 130
 }

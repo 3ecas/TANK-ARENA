@@ -39,6 +39,15 @@ extension SoldierAI {
                 if squad.leader === self { return point }
                 return squad.stackSlot(for: self, point: point, door: door).map { nav.nearestWalkable($0) }
             }
+            // Team push: wait at the staging point, spread around it, until everyone goes in together.
+            if let stage = squad.stagePoint {
+                let leaderPosition = squad.leader?.soldier.position ?? soldier.position
+                if leaderPosition.distance(to: stage) < AIConfig.stageRadius * 0.6 {
+                    return squad.stageSpot(for: self, around: stage).map { nav.nearestWalkable($0) }
+                }
+                if squad.leader === self { return squad.isGathered ? stage : nil }
+                return squad.formationPosition(for: self).map { nav.nearestWalkable($0) }
+            }
             if let flank = squad.flankPoint {
                 if squad.leader === self { return squad.isGathered ? flank : nil }
                 return squad.formationPosition(for: self).map { nav.nearestWalkable($0) }

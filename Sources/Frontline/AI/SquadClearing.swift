@@ -63,7 +63,7 @@ extension SquadCoordinator {
     /// Push straight in: the bomb is ticking, the attackers are short of time, or just sometimes.
     private func shouldRush(_ squad: Squad) -> Bool {
         let world = ctx.world
-        if world.anyPlanted { return true }
+        if world.anyPlanted || isExecuting(squad.team) { return true }
         if world.mode == .bomb && squad.team == world.attackers && world.roundTimeLeft < AIConfig.rushTimeLeft { return true }
         return CGFloat.random(in: 0...1) < AIConfig.rushChance
     }

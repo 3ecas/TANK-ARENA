@@ -42,10 +42,11 @@ final class BombPrompt {
             guard world.sites.contains(where: { $0.contains(player.position) }) else {
                 return ("You have the bomb — take it to site A or B", nil)
             }
-            return bomb.plantProgress > 0 ? ("PLANTING…", bomb.plantProgress) : ("Hold E to plant the bomb", nil)
+            return bomb.armerId == player.id ? ("PLANTING…", bomb.plantProgress) : ("Hold E to plant the bomb", nil)
         }
         if attacker && bomb.isIdle && distance <= BombConfig.armRadius {
-            return bomb.plantProgress > 0 ? ("ARMING…", bomb.plantProgress) : ("Hold E to arm station \(bomb.site?.name ?? "")", nil)
+            if bomb.armerId == player.id { return ("ARMING…", bomb.plantProgress) }
+            return (bomb.armerId != nil ? "A teammate is arming station \(bomb.site?.name ?? "")" : "Hold E to arm station \(bomb.site?.name ?? "")", nil)
         }
         if !attacker && bomb.isPlanted && distance <= BombConfig.defuseRadius {
             return bomb.defuserId == player.id ? ("DEFUSING…", bomb.defuseProgress) : ("Hold E to defuse", nil)
