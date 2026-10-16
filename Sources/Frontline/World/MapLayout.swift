@@ -1,14 +1,18 @@
 import CoreGraphics
 
 enum MapKind {
-    case compound, caves
+    case compound, office, caves
 
     var displayName: String {
         switch self {
         case .compound: return "Compound"
+        case .office: return "Office"
         case .caves: return "Caves"
         }
     }
+
+    /// Generated maps get a new layout every round.
+    var isGenerated: Bool { self != .compound }
 }
 
 /// Everything that describes one map: size, solid obstacles, the two spawns and the two bomb sites.
@@ -19,13 +23,14 @@ struct MapLayout {
     let attackerSpawn: CGRect
     let defenderSpawn: CGRect
     let sites: [ZoneConfig.ZoneSpec]
-    /// Rock grid of a cave map (used for painting), nil for the compound.
+    /// Rock grid of a cave map (used for painting), nil for the other maps.
     let cave: CaveGrid?
     let seed: UInt64
 
     static func make(_ kind: MapKind) -> MapLayout {
         switch kind {
         case .compound: return compound()
+        case .office: return office(seed: UInt64.random(in: 1...UInt64(UInt32.max))) ?? compound()
         case .caves: return caves(seed: UInt64.random(in: 1...UInt64(UInt32.max))) ?? compound()
         }
     }
@@ -36,6 +41,21 @@ struct MapLayout {
             + MapConfig.crates.map { Obstacle(rect: $0, kind: .crate) }
         return MapLayout(kind: .compound, size: MapConfig.size, obstacles: list, attackerSpawn: MapConfig.attackerSpawn,
                          defenderSpawn: MapConfig.defenderSpawn, sites: MapConfig.sites, cave: nil, seed: 0)
+    }
+
+    /// A freshly generated office floor: rooms, doorways and desks. Retried if anything is unreachable.
+    static func office(seed: UInt64) -> MapLayout? {
+        let spawns = [MapConfig.attackerSpawn, MapConfig.defenderSpawn]
+        for attempt in 0..<UInt64(CaveConfig.maxAttempts) {
+            let currentSeed = seed &+ attempt &* 7919
+            var generator = OfficeGenerator(seed: currentSeed, size: MapConfig.size, spawns: spawns,
+                                            sites: OfficeConfig.sites.map { $0.center })
+            let layout = MapLayout(kind: .office, size: MapConfig.size, obstacles: generator.generate(),
+                                   attackerSpawn: MapConfig.attackerSpawn, defenderSpawn: MapConfig.defenderSpawn,
+                                   sites: OfficeConfig.sites, cave: nil, seed: currentSeed)
+            if layout.isFullyConnected() { return layout }
+        }
+        return nil
     }
 
     /// A freshly generated cave system with the same spawns and sites. Seeds with anything cut off are skipped.

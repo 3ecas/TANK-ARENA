@@ -39,22 +39,23 @@ final class MainMenuScene: SKScene {
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
-        let modes: [(String, MapKind, Bool)] = [("ATTACK · COMPOUND", .compound, true), ("DEFEND · COMPOUND", .compound, false),
-                                                ("ATTACK · CAVES", .caves, true), ("DEFEND · CAVES", .caves, false)]
+        let maps: [MapKind] = [.compound, .office, .caves]
         var buttons: [SKNode] = []
-        for (index, mode) in modes.enumerated() {
-            let button = UIButton(title: mode.0, size: CGSize(width: 230, height: 48), fontSize: 17,
-                                  color: mode.2 ? UIStyle.buttonOwned : UIStyle.buttonColor)
-            button.position = CGPoint(x: index % 2 == 0 ? -122 : 122, y: index < 2 ? 60 : 4)
-            let (map, attacking) = (mode.1, mode.2)
-            button.onClick = { [unowned self] in self.router.startGame(map: map, attacking: attacking) }
-            buttons.append(button)
+        for (row, map) in maps.enumerated() {
+            for attacking in [true, false] {
+                let title = "\(attacking ? "ATTACK" : "DEFEND") · \(map.displayName.uppercased())"
+                let button = UIButton(title: title, size: CGSize(width: 230, height: 44), fontSize: 16,
+                                      color: attacking ? UIStyle.buttonOwned : UIStyle.buttonColor)
+                button.position = CGPoint(x: attacking ? -122 : 122, y: 70 - CGFloat(row) * 52)
+                button.onClick = { [unowned self] in self.router.startGame(map: map, attacking: attacking) }
+                buttons.append(button)
+            }
         }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -58)
+        help.position = CGPoint(x: 0, y: -100)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -110)
+        quit.position = CGPoint(x: 0, y: -150)
         quit.onClick = { [unowned self] in self.router.quit() }
         for node in ([title, subtitle, info, help, quit] as [SKNode]) + buttons { menuLayer.addChild(node) }
         controls.root.zPosition = 20

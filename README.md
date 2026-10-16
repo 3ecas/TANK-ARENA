@@ -45,13 +45,13 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu pick **Attack / Defend** and **Compound / Caves** (Enter replays the last choice).
+In the main menu pick **Attack / Defend** and **Compound / Office / Caves** (Enter replays the last choice).
 The camera follows your soldier and leans toward the mouse pointer (half-way, at most 280 points), so you can look further in the direction you aim; it is not limited by the map edges. Resizing the window or going full screen only scales the picture: you always see the same 1000×1000 area.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
 ### Rules: bomb defusal (5 vs 5)
 
-- In the main menu pick **Attack** or **Defend** and a map (**Compound** or **Caves**). You are always blue,
+- In the main menu pick **Attack** or **Defend** and a map (**Compound**, **Office** or **Caves**). You are always blue,
   with 4 bot teammates against 5 bots.
 - **One life per round**, no respawns.
 - The attackers carry **one bomb** (you have it when attacking). Take it to **site A or B** and **hold E** inside
@@ -78,6 +78,9 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 - **Compound:** a closed indoor map (2400×1600) of rooms, corridors and doorways. Attackers start in the west room,
   defenders in the east room between the sites. Three routes: the long north corridor to A, the mid hall with short
   connectors to A and B, and the south tunnels to B.
+- **Office:** a simple floor generated new every round: a 6×4 grid of rooms with doorways (every room is
+  reachable), the rooms around each spawn opened into one hall, desks with monitors as cover, and the two bomb
+  sites in the middle of rooms on the defenders' side.
 - **Caves:** a new cave system every round, built from a noise function, with the same spawns and sites; every
   passage is at least two soldiers wide and unreachable layouts are regenerated.
 

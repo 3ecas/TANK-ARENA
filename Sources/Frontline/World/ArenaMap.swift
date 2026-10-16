@@ -1,7 +1,7 @@
 import CoreGraphics
 
 enum ObstacleKind {
-    case building, crate, barrier, rock, wall
+    case building, crate, barrier, rock, wall, desk
 }
 
 struct Obstacle {

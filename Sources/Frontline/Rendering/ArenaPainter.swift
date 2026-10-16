@@ -10,16 +10,20 @@ enum ArenaPainter {
         Palette.rgb(0.56, 0.48, 0.38), Palette.rgb(0.42, 0.45, 0.4),
     ]
 
-    /// Cave maps are new every battle, so only the latest cave texture is kept.
-    private static var caveTexture: (seed: UInt64, texture: SKTexture)?
+    /// Generated maps are new every round, so only the latest generated texture is kept.
+    private static var generatedTexture: (kind: MapKind, seed: UInt64, texture: SKTexture)?
 
     static func texture(for map: ArenaMap) -> SKTexture {
-        if map.kind == .caves, let grid = map.cave {
-            if let cached = caveTexture, cached.seed == map.seed { return cached.texture }
+        if map.kind.isGenerated {
+            if let cached = generatedTexture, cached.kind == map.kind, cached.seed == map.seed { return cached.texture }
             let texture = TextureFactory.render(size: map.size, scale: scale) { ctx, size in
-                CavePainter.draw(ctx, size: size, map: map, grid: grid)
+                if let grid = map.cave {
+                    CavePainter.draw(ctx, size: size, map: map, grid: grid)
+                } else {
+                    drawOffice(ctx, size: size, map: map)
+                }
             }
-            caveTexture = (map.seed, texture)
+            generatedTexture = (map.kind, map.seed, texture)
             return texture
         }
         return TextureFactory.texture("compound", size: map.size, scale: scale) { ctx, size in
@@ -35,9 +39,44 @@ enum ArenaPainter {
                 case .barrier: drawBarrier(ctx, rect: obstacle.rect, style: index)
                 case .rock: ctx.fillRoundedRect(obstacle.rect, radius: 2, Palette.rgb(0.16, 0.14, 0.12))
                 case .wall: drawWall(ctx, rect: obstacle.rect)
+                case .desk: drawDesk(ctx, rect: obstacle.rect, style: index)
                 }
             }
         }
+    }
+
+    /// Office: carpet floor, white-ish partition walls and desks with monitors.
+    private static func drawOffice(_ ctx: CGContext, size: CGSize, map: ArenaMap) {
+        ctx.setFillColor(Palette.rgb(0.3, 0.33, 0.38))
+        ctx.fill(CGRect(origin: .zero, size: size))
+        var rng = SeededRandom(seed: map.seed &+ 3)
+        for _ in 0..<900 {
+            let p = CGPoint(x: rng.next() * size.width, y: rng.next() * size.height)
+            ctx.fillCircle(p, 2 + rng.next() * 3, Palette.rgb(0.26, 0.29, 0.34, 0.6))
+        }
+        drawSitesAndSpawns(ctx, map: map)
+        for obstacle in map.obstacles where obstacle.kind == .wall {
+            ctx.fillRoundedRect(obstacle.rect.offsetBy(dx: 6, dy: -6), radius: 2, Palette.rgb(0, 0, 0, 0.3))
+        }
+        for (index, obstacle) in map.obstacles.enumerated() {
+            if obstacle.kind == .wall {
+                ctx.setFillColor(Palette.rgb(0.78, 0.78, 0.74))
+                ctx.fill(obstacle.rect)
+                ctx.strokeRoundedRect(obstacle.rect, radius: 1, Palette.rgb(0.5, 0.5, 0.48), width: 2)
+            } else {
+                drawDesk(ctx, rect: obstacle.rect, style: index)
+            }
+        }
+    }
+
+    /// Wooden desk with a monitor and a keyboard.
+    private static func drawDesk(_ ctx: CGContext, rect: CGRect, style: Int) {
+        ctx.fillRoundedRect(rect.offsetBy(dx: 4, dy: -4), radius: 3, Palette.rgb(0, 0, 0, 0.35))
+        ctx.fillRoundedRect(rect, radius: 3, Palette.rgb(0.55 + CGFloat(style % 3) * 0.04, 0.42, 0.28))
+        ctx.strokeRoundedRect(rect, radius: 3, Palette.rgb(0.3, 0.22, 0.14), width: 2)
+        let screen = CGRect(x: rect.midX - 12, y: rect.midY - 6, width: 24, height: 12)
+        ctx.fillRoundedRect(screen, radius: 2, Palette.rgb(0.12, 0.14, 0.18))
+        ctx.fillRoundedRect(screen.insetBy(dx: 2, dy: 2), radius: 1, Palette.rgb(0.35, 0.6, 0.85, 0.8))
     }
 
     /// Indoor floor: concrete tiles with faint seams and stains.
