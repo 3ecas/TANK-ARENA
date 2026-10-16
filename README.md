@@ -87,6 +87,11 @@ doors straight into both site rooms. You are put on **attack or defence at rando
     the whole team pushes one station at a time and guards an armed one. Defenders retaking an armed bomb or
     station gather first too, then retake together, and squads from the other site come over to help;
   - the carrier plants (bomb) or the nearest free attacker arms a station (rush) when no enemy is in sight; the nearest free attacker grabs a dropped bomb;
+  - they **shoot the objective player first** (whoever carries, plants, arms or defuses a bomb);
+  - defenders **hold the entrances** of their site room instead of standing on the site, and the nearest free
+    defender runs to a station the moment an attacker starts arming it;
+  - in rush the attackers go for the station where they have seen the fewest defenders, and when a push runs out
+    of people they **regroup with the respawned players and go again as a wave**;
   - defenders split over both sites; when a bomb is armed they converge on it and the nearest free defender defuses;
   - lone **rogues** (1 per team in bomb, 3 in rush) take the long way round to come in from behind;
   - they know the map's **doorways** and keep their guns on them, share and **predict** enemy positions, and **clear rooms** as a squad (stack beside the door, cover it, go in together — or sometimes just rush in);

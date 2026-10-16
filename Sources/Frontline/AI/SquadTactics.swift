@@ -6,6 +6,7 @@ import CoreGraphics
 extension SquadCoordinator {
     func updateTactics() {
         let world = ctx.world
+        checkWave()
         plan(attackPlan, team: world.attackers, target: attackGoal(), from: spawnCenter(world.attackers),
              timeout: AIConfig.gatherTimeout)
         plan(retakePlan, team: world.defenders, target: retakeGoal(), from: teamCentroid(world.defenders),
@@ -19,7 +20,30 @@ extension SquadCoordinator {
         if world.anyPlanted { return nil }
         switch world.mode {
         case .bomb: return attackTarget
-        case .rush: return world.bombs.first { $0.isIdle }?.site
+        case .rush:
+            let idle = world.bombs.filter { $0.isIdle }.compactMap { $0.site }
+            // Keep pushing the current station while it stands; otherwise pick the one the fewest defenders were seen at.
+            if let current = attackPlan.target, idle.contains(where: { $0 === current }) { return current }
+            let sightings = services.intel.predictions(for: world.attackers, world: world)
+            return idle.min { defenders(near: $0, sightings) < defenders(near: $1, sightings) }
+        }
+    }
+
+    private func defenders(near site: BombSite, _ sightings: [CGPoint]) -> Int {
+        sightings.filter { $0.distance(to: site.center) < 600 }.count
+    }
+
+    /// Rush: a push that has run out of people is called off, so the respawned attackers regroup and
+    /// go again together as a new wave instead of trickling in.
+    private func checkWave() {
+        let world = ctx.world
+        guard world.mode == .rush, !world.anyPlanted, attackPlan.phase == .execute,
+              let target = attackPlan.target, world.time - attackPlan.since > AIConfig.waveTimeout else { return }
+        let near = world.soldiers.filter {
+            $0.isAlive && $0.team == world.attackers && $0.position.distance(to: target.center) < 650
+        }.count
+        if near < AIConfig.waveMinimum {
+            attackPlan.reset(target: nil, stage: nil, now: world.time)
         }
     }
 
@@ -39,6 +63,7 @@ extension SquadCoordinator {
             }
             plan.reset(target: target, stage: stage, now: now)
             for squad in teamSquads { squad.stagePoint = plan.phase == .gather ? stage : nil }
+            objectiveTimer = 0
         }
         guard plan.phase == .gather, let stage = plan.stage, let target = plan.target else { return }
         let bots = teamSquads.flatMap { $0.alive }

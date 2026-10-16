@@ -8,7 +8,7 @@ final class SquadCoordinator {
     unowned let ctx: BattleContext
     private(set) var squads: [Squad] = []
     private var timer: CGFloat = 0
-    private var objectiveTimer: CGFloat = 0
+    var objectiveTimer: CGFloat = 0
     /// Changes whenever a bomb is armed, defused or destroyed, to retarget everyone at once.
     private var bombSignature = 0
     /// The site the attackers go for this round (bomb mode).

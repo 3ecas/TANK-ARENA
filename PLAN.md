@@ -139,4 +139,10 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
   - the support radius is now 1500 so the other site rotates in.
 - Office map scaled to 2400×1520, with extra partitions splitting the halls and the middle into smaller rooms. It is still mirrored; site radius is 130.
 - Review fixes: defender squads never merge in rush; attackers with no tickets are not counted as pending; destroyed station rings are dimmed; `Bomb.armerId` so the arming bar only shows for the one arming; a duplicate desk is removed.
+- Smarter rush bots:
+  - objective-player target priority (`AIConfig.objectiveTargetBonus`);
+  - defenders hold the entrances of their site room (`Squad.doorSpot`, from `Chokepoints`);
+  - anti-arm runs (`AIConfig.antiArmReach`);
+  - attackers choose the station with the fewest defender sightings;
+  - wave regrouping when a push has fewer than 3 attackers left near the target 14 s after going in.
 

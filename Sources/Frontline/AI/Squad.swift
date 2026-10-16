@@ -111,6 +111,19 @@ final class Squad {
         return zone.center + CGPoint(angle: angle) * (zone.radius * 0.55)
     }
 
+    /// Defending a site: a spot just inside one of the site room's entrances, covering it (members share
+    /// the entrances out). Nil when no entrance is close to the site.
+    func doorSpot(for member: SoldierAI, doors: [Chokepoint]) -> CGPoint? {
+        guard let site = objective, let index = alive.firstIndex(where: { $0 === member }) else { return nil }
+        let entrances = doors.filter { $0.position.distance(to: site.center) < AIConfig.siteDoorRange }
+            .sorted { $0.position.distance(to: site.center) < $1.position.distance(to: site.center) }
+        guard !entrances.isEmpty else { return nil }
+        let door = entrances[(index + id) % entrances.count]
+        let inward = (site.center - door.position).normalized
+        let side = inward.perpendicular * CGFloat((index % 3) - 1) * 45
+        return door.position + inward * AIConfig.doorHoldDistance + side
+    }
+
     /// Spot around a staging point (squads use different angles so the team spreads out).
     func stageSpot(for member: SoldierAI, around stage: CGPoint) -> CGPoint? {
         guard let index = alive.firstIndex(where: { $0 === member }) else { return nil }

@@ -13,6 +13,13 @@ extension SoldierAI {
         for bomb in world.bombs {
             if soldier.team == world.attackers {
                 if attackerDuty(bomb, enemyInSight: enemyInSight, dt: dt) { return true }
+            } else if bomb.isIdle, bomb.armerId != nil {
+                // An attacker is arming a station: the nearest free defender goes to stop it.
+                if !hasRecentThreat && soldier.position.distance(to: bomb.position) < AIConfig.antiArmReach
+                    && isClosestBot(of: world.defenders, to: bomb.position) {
+                    walk(to: bomb.position, dt: dt)
+                    return true
+                }
             } else if bomb.isPlanted {
                 let distance = soldier.position.distance(to: bomb.position)
                 if distance <= BombConfig.defuseRadius && !enemyInSight {

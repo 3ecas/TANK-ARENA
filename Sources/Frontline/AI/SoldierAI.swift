@@ -140,13 +140,19 @@ final class SoldierAI {
         var bestScore = CGFloat.greatestFiniteMagnitude
         for enemy in services.vision.visibleEnemies(for: soldier) {
             let exposed = services.vision.isUnaware(enemy, of: soldier)
-            let score = enemy.position.distance(to: soldier.position) - (exposed ? AIConfig.exposedTargetBonus : 0)
+            var score = enemy.position.distance(to: soldier.position) - (exposed ? AIConfig.exposedTargetBonus : 0)
+            if isPlayingObjective(enemy) { score -= AIConfig.objectiveTargetBonus }
             if score < bestScore {
                 bestScore = score
                 best = (enemy, exposed)
             }
         }
         return best
+    }
+
+    /// The enemy carrying, planting, arming or defusing a bomb: shoot that one first.
+    private func isPlayingObjective(_ enemy: Soldier) -> Bool {
+        ctx.world.bombs.contains { $0.carrierId == enemy.id || $0.armerId == enemy.id || $0.defuserId == enemy.id }
     }
 
     /// Primary unless it is completely out of ammo.

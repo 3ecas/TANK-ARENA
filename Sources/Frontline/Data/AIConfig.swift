@@ -80,6 +80,16 @@ enum AIConfig {
     static let retakeHurry: CGFloat = 22
     static let executeUtilityChance: CGFloat = 0.6
     static let executeRushTime: CGFloat = 12
+    /// Smarter objective play: enemies carrying / arming / defusing count this much closer as targets;
+    /// defenders hold entrances within `siteDoorRange` of their site, `doorHoldDistance` inside them;
+    /// the nearest free defender within `antiArmReach` runs to a station being armed;
+    /// rush attackers regroup when fewer than `waveMinimum` of them are near the target `waveTimeout` s after going in.
+    static let objectiveTargetBonus: CGFloat = 400
+    static let siteDoorRange: CGFloat = 420
+    static let doorHoldDistance: CGFloat = 110
+    static let antiArmReach: CGFloat = 900
+    static let waveTimeout: CGFloat = 14
+    static let waveMinimum = 3
     /// Chance a squad just pushes through a doorway without stacking (always when time is short).
     static let rushChance: CGFloat = 0.3
     static let rushTimeLeft: CGFloat = 35

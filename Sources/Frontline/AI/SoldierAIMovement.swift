@@ -56,6 +56,10 @@ extension SoldierAI {
             let leaderPosition = squad.leader?.soldier.position ?? soldier.position
             // Near the zone: spread out inside it to capture and hold.
             if leaderPosition.distance(to: zone.center) < zone.radius * 1.6 {
+                if soldier.team == ctx.world.defenders && !ctx.world.anyPlanted,
+                   let spot = squad.doorSpot(for: self, doors: services.chokepoints.points) {
+                    return nav.nearestWalkable(spot)
+                }
                 return squad.zoneSpot(for: self).map { nav.nearestWalkable($0) }
             }
             if squad.leader === self {
