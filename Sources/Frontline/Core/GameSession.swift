@@ -21,7 +21,7 @@ final class GameSession {
 
     /// The player is always on blue; `playerAttacks` decides whether blue attacks or defends.
     init(mode: GameMode, playerAttacks: Bool) {
-        let world = BattleWorld(layout: MapLayout.office(for: mode), mode: mode, attackers: playerAttacks ? .blue : .red)
+        let world = BattleWorld(layout: MapLayout.office(), mode: mode, attackers: playerAttacks ? .blue : .red)
         let bus = EventBus()
         let ctx = BattleContext(world: world, bus: bus)
         let damage = DamageSystem(ctx: ctx)

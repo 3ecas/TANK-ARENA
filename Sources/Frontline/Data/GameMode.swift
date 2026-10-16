@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// The two ways to play, both on a generated office floor. The player's side (attack or defence) is random.
+/// The two ways to play, both on the Office map. The player's side (attack or defence) is random.
 enum GameMode {
     /// 5 vs 5, one life: attackers carry one bomb and plant it on A or B; 45 s fuse; defenders defuse.
     case bomb
@@ -27,13 +27,6 @@ enum GameMode {
         switch self {
         case .bomb: return 0
         case .rush: return 100_000
-        }
-    }
-
-    var style: OfficeStyle {
-        switch self {
-        case .bomb: return OfficeConfig.bombStyle
-        case .rush: return OfficeConfig.rushStyle
         }
     }
 }

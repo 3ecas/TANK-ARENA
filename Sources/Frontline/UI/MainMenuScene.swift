@@ -12,7 +12,7 @@ final class MainMenuScene: SKScene {
 
     init(size: CGSize, router: SceneRouter) {
         self.router = router
-        let map = ArenaMap(layout: MapLayout.office(for: .bomb))
+        let map = ArenaMap(layout: MapLayout.office())
         background = SKSpriteNode(texture: ArenaPainter.texture(for: map),
                                   size: CGSize(width: map.size.width * 1.4, height: map.size.height * 1.4))
         super.init(size: GameConfig.viewSize)

@@ -117,3 +117,15 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - `AI/TeamIntel`: shared enemy sightings with velocity extrapolation. `SoldierAIAwareness` decides where an idle bot looks (predicted enemy, or the doorway it would use, or rotating openings facing the enemy side), glances at doorways while walking, and aims at the predicted position of a lost target.
 - `AI/SquadClearing`: advancing squads find the next uncleared doorway on their nav path, stack beside it (`Squad.stackSlot`), wait for everyone, hold for 1–1.8 s and go in. There is a 30% chance to rush, and they always rush when the bomb is planted or the attackers are short of time.
 
+## Revision 11: Office only, Bomb + Rush
+- Removed the Compound and Caves maps, the cave generator and the office generator. One hand-made **Office** map (`Data/MapConfig`, 3000×1900) is used by both modes. It has few large rooms and is mirrored top/bottom, so A and B are the same distance from each spawn.
+- `Data/GameMode`: `.bomb` (5v5, no respawns, carried bomb) and `.rush` (16v16, respawns after 8 s, 120 attacker tickets, one station per site). The player's side is random (`SceneRouter.startGame`).
+- `BattleWorld.bombs` holds one bomb in bomb mode, or one `Bomb(station:)` per site in rush. `BombSystem` handles:
+  - carrying, dropping, picking up and planting;
+  - rush arming (`BombState.idle`, any attacker within `armRadius` holding E);
+  - the fuse and defusing (a defused rush station goes back to idle);
+  - the explosion.
+- `MatchSystem`: rush is won by destroying both stations, or by the defenders when the attackers have no tickets and nobody alive.
+- AI: `SquadCoordinator.assignRushObjective`, the arming duty in `SoldierAIBomb`, and 3 rogues per team in rush.
+- HUD: rush tickets and station status, the arm / defuse prompt, station views in `SiteRenderer`, and station state on the minimap.
+

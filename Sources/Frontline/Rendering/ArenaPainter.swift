@@ -1,7 +1,6 @@
 import SpriteKit
 
-/// Paints the generated office floor into one texture: carpet, spawn pads, site pads, partition walls and desks.
-/// Each round has a new layout, so only the latest texture is kept.
+/// Paints the office floor into one texture: carpet, spawn pads, site pads, partition walls and desks.
 @MainActor
 enum ArenaPainter {
     static let scale: CGFloat = 0.6

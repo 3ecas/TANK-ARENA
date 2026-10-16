@@ -24,6 +24,10 @@ Double-click **`Play Frontline.command`** in Finder. It opens Terminal, builds t
 game window. The first build takes a minute or two; after that the game is in `dist/Frontline.app`, which you can
 double-click directly (or drag into Applications).
 
+**Playing without Terminal:** Terminal is only needed to *build*. Once built, open the `dist` folder and drag
+**Frontline.app** into **Applications** (or onto the Dock); from then on just click it to play. Run
+`Play Frontline.command` again only after you pull a new version of the game, then drag the new app over the old one.
+
 > Don't double-click `scripts/build_app.sh`: Finder opens `.sh` files in a text editor instead of running them.
 > If macOS blocks the `.command` file the first time, right-click it → **Open**.
 
@@ -45,53 +49,44 @@ For development you can also run `swift build` and then `swift run Frontline`.
 Double-click `dist/Frontline.app`, or drag it into `/Applications`.
 (If you copy the app to another Mac, the first launch may need right-click → **Open**, because the app is ad-hoc signed.)
 
-In the main menu pick **Attack / Defend** and **Compound / Office / Caves** (Enter replays the last choice).
+In the main menu pick **Bomb (5 vs 5)** or **Rush (16 vs 16)** (Enter replays the last mode). Your side is random.
 The camera follows your soldier and leans toward the mouse pointer (half-way, at most 280 points), so you can look further in the direction you aim; it is not limited by the map edges. Resizing the window or going full screen only scales the picture: you always see the same 1000×1000 area.
 The game runs in a **square window**; in full screen (Cmd+F) it stays square with black bars on the sides.
 
-### Rules: bomb defusal (5 vs 5)
+### Modes
 
-- In the main menu pick **Attack** or **Defend** and a map (**Compound**, **Office** or **Caves**). You are always blue,
-  with 4 bot teammates against 5 bots.
-- **One life per round**, no respawns.
-- The attackers carry **one bomb** (you have it when attacking). Take it to **site A or B** and **hold E** inside
-  the site for 3 s to plant it. Planting or defusing roots you in place.
-- Once planted, the bomb **explodes after 45 seconds** and the attackers win (the blast kills anyone close).
-  A defender standing next to it can **hold E for 5 s to defuse** it.
-- If the bomb carrier dies, the bomb drops on the floor; any attacker can walk over it to pick it up.
-- **Attackers win** if the bomb explodes or all defenders are dead.
-  **Defenders win** if they defuse the bomb, kill all attackers before the plant, or the **2:00 round timer**
-  runs out before a plant. After the plant the timer stops: the defenders must defuse.
+Both modes are played on **Office**, a hand-made indoor map (3000×1900) with few, large rooms. It is balanced:
+the floor is mirrored top/bottom, so sites A and B are exactly as far from each spawn. Attackers start in the
+west lobby, whose three doors lead into the north hall, the open-plan middle and the south hall. Defenders start in
+the east room, with doors straight into both site rooms. You are put on **attack or defence at random** and are always blue.
+
+**Bomb — 5 vs 5, one life**
+- The attackers carry **one bomb** (you have it when you attack). Take it to **site A or B** and **hold E** for 3 s
+  inside the site to plant it. It **explodes after 45 s**; a defender next to it can **hold E for 5 s** to defuse.
+- If the carrier dies the bomb drops; any attacker can pick it up by walking over it.
+- Attackers win if the bomb explodes or all defenders die. Defenders win if they defuse it, kill all attackers
+  before the plant, or the **2:00** round timer runs out with no plant.
+
+**Rush — 16 vs 16, respawns**
+- Sites A and B each hold a **station**. **Any attacker** can arm either one by standing next to it and **holding E**
+  for 3 s. An armed station explodes after 45 s; defenders can defuse it (5 s), and it can then be armed again.
+  **Destroy both stations** to win.
+- Everyone respawns after **8 s**. Every attacker respawn costs one of the attackers' **120 tickets**; when they
+  run out and the last attacker falls, the defenders win.
+
+### Rules (both modes)
+
 - Every soldier has **100 HP**, a random **primary** (Assault Rifle, SMG or Shotgun), a **pistol**, **one grenade** (Frag, Flashbang or Stun) and a **knife**.
-- Walls, crates and rock block movement, bullets, grenade blasts and line of sight. Soldiers of different teams don't collide with each other.
+- Walls and desks block movement, bullets, grenade blasts and line of sight. Soldiers of different teams don't collide with each other.
 - **View range** ~640 points, **field of view** ~120° for everyone; the fog follows only your own eyes and has a soft edge.
 - **Range line:** a dashed line from your soldier to the max range of the weapon in hand (rifle 1000, pistol 800, SMG 700, shotgun 430).
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds. **Stun** slows and stops shooting.
 - Bots ("medium-hard"):
-  - the attackers move as one squad to a site picked at random each round, the carrier plants as soon as it is inside the site with no enemy in sight, and the nearest attacker picks up a dropped bomb;
-  - the defenders split into pairs guarding A and B; after a plant everyone converges on the bomb and the nearest defender defuses when no enemy is in sight;
-  - one lone **rogue** per team takes the long way round to come in from behind;
-  - they know the map's **doorways and entrances** (found automatically on every map) and keep their guns on them:
-    holding bots watch the openings facing the enemy side, switching every few seconds, and walking bots check
-    doorways as they pass;
-  - every sighting is **shared with the team** and extrapolated from the enemy's movement, so bots aim where an
-    enemy should be now, or at the doorway it would come through;
-  - squads **clear rooms**: they stack up beside the next doorway on their path, wait for everyone, cover the
-    opening, then go in together. Sometimes they just push straight in — always when the bomb is ticking or the
-    attackers are short of time;
-  - they share sightings, push / hold / fall back, use cover, and punish enemies with their backs turned.
-
-### Maps
-
-- **Compound:** a closed indoor map (2400×1600) of rooms, corridors and doorways. Attackers start in the west room,
-  defenders in the east room between the sites. Three routes: the long north corridor to A, the mid hall with short
-  connectors to A and B, and the south tunnels to B.
-- **Office:** an irregular floor generated new every round, nothing mirrored. The floor is split again and
-  again by walls at random positions into rooms of every size, each wall with one or two doorways (so every room
-  is reachable), with desks as cover. The two bomb sites are placed at random each round, far apart: A in the
-  upper right, B in the lower middle.
-- **Caves:** a new cave system every round, built from a noise function, with the same spawns and sites; every
-  passage is at least two soldiers wide and unreachable layouts are regenerated.
+  - attackers move in squads to their target site; the carrier plants (bomb) or the nearest free attacker arms a station (rush) when no enemy is in sight; the nearest free attacker grabs a dropped bomb;
+  - defenders split over both sites; when a bomb is armed they converge on it and the nearest free defender defuses;
+  - lone **rogues** (1 per team in bomb, 3 in rush) take the long way round to come in from behind;
+  - they know the map's **doorways** and keep their guns on them, share and **predict** enemy positions, and **clear rooms** as a squad (stack beside the door, cover it, go in together — or sometimes just rush in);
+  - they push / hold / fall back, use cover, and punish enemies with their backs turned.
 
 ### Controls
 
@@ -104,7 +99,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 | **1 / 2 / Q** | Primary / pistol / swap |
 | **G** | Throw your grenade at the cursor |
 | **F** | Knife (hitting someone from behind is an instant kill) |
-| **E** (hold) | Plant the bomb (attacker carrying it, inside a site) / defuse it (defender, next to it) |
+| **E** (hold) | Plant the bomb (bomb mode, inside a site) / arm a station (rush) / defuse (defender, next to an armed bomb) |
 | **Tab** (hold) | Scoreboard |
 | **Esc** | Pause menu |
 | **Cmd+F** / green button | Toggle full screen |
