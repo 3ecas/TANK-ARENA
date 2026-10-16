@@ -30,6 +30,7 @@ final class BombSystem {
         guard let carrier = ctx.world.soldier(carrierId), carrier.isAlive else {
             bomb.state = .dropped
             bomb.plantProgress = 0
+            bomb.armerId = nil
             ctx.bus.publish(.bombDropped(position: bomb.position))
             return
         }

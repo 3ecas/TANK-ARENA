@@ -160,7 +160,7 @@ final class SquadCoordinator {
         guard squad.objective !== zone else { return }
         squad.objective = zone
         squad.flankPoint = nil
-        guard flank, let origin = squad.centroid, abs(zone.center.x - origin.x) > AIConfig.flankMinDistance else { return }
+        guard flank, squad.stagePoint == nil, let origin = squad.centroid, abs(zone.center.x - origin.x) > AIConfig.flankMinDistance else { return }
         let size = ctx.world.map.size
         let edgeY = squad.role == 2 ? size.height - AIConfig.flankEdgeMargin : AIConfig.flankEdgeMargin
         let nav = ctx.world.nav

@@ -12,7 +12,7 @@ extension SquadCoordinator {
             cancelStack(squad)
             return
         }
-        let currentGoal = squad.flankPoint ?? squad.objective?.center
+        let currentGoal = squad.stagePoint ?? squad.flankPoint ?? squad.objective?.center
         if let door = squad.stackDoor, let point = squad.stackPoint {
             let leaderDistance = leader.soldier.position.distance(to: point)
             // Bomb ticking, new goal, or pulled away: drop the stack and go.

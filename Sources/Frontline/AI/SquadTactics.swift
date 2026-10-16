@@ -7,7 +7,8 @@ extension SquadCoordinator {
     func updateTactics() {
         let world = ctx.world
         checkWave()
-        plan(attackPlan, team: world.attackers, target: attackGoal(), from: spawnCenter(world.attackers),
+        plan(attackPlan, team: world.attackers, target: attackGoal(),
+             from: teamCentroid(world.attackers) ?? spawnCenter(world.attackers),
              timeout: AIConfig.gatherTimeout)
         plan(retakePlan, team: world.defenders, target: retakeGoal(), from: teamCentroid(world.defenders),
              timeout: AIConfig.retakeGatherTimeout)
@@ -62,7 +63,11 @@ extension SquadCoordinator {
                 stage = TeamPlan.stagingPoint(from: origin, to: target.center, distance: AIConfig.stageDistance, nav: world.nav)
             }
             plan.reset(target: target, stage: stage, now: now)
-            for squad in teamSquads { squad.stagePoint = plan.phase == .gather ? stage : nil }
+            for squad in teamSquads {
+                squad.stagePoint = plan.phase == .gather ? stage : nil
+                // Gathering with the team replaces any flank route.
+                if squad.stagePoint != nil { squad.flankPoint = nil }
+            }
             objectiveTimer = 0
         }
         guard plan.phase == .gather, let stage = plan.stage, let target = plan.target else { return }
@@ -99,7 +104,7 @@ extension SquadCoordinator {
         return living.reduce(CGPoint.zero) { $0 + $1.position } / CGFloat(living.count)
     }
 
-    /// True while the team is still gathering for a push (room clearing then is skipped: no stacking).
+    /// True during the first seconds after the team goes in (squads then push through doors without stacking).
     func isExecuting(_ team: Team) -> Bool {
         let plan = team == ctx.world.attackers ? attackPlan : retakePlan
         return plan.target != nil && plan.phase == .execute && ctx.world.time - plan.since < AIConfig.executeRushTime

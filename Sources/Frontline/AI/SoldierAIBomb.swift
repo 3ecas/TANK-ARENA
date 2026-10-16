@@ -60,7 +60,7 @@ extension SoldierAI {
                 return true
             }
             // The nearest free attacker within reach goes to arm it.
-            guard !hasRecentThreat, distance < AIConfig.armReach,
+            guard !hasRecentThreat, distance < AIConfig.armReach, squad?.stagePoint == nil,
                   isClosestBot(of: world.attackers, to: bomb.position) else { return false }
             walk(to: bomb.position, dt: dt)
             return true
