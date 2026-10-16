@@ -25,7 +25,11 @@ final class SquadCoordinator {
             let rogues = Array(allBots.filter { $0.soldier.id != carrierId }.suffix(rogueCount))
             for bot in rogues { bot.isRogue = true }
             let teamBots = allBots.filter { !$0.isRogue }
-            let size = team == ctx.world.attackers ? AIConfig.squadSize : AIConfig.defenderSquadSize
+            // Attackers move as one squad; defenders split evenly over the sites.
+            let siteCount = Swift.max(1, ctx.world.sites.count)
+            let size = team == ctx.world.attackers
+                ? AIConfig.squadSize
+                : Swift.max(1, Int((CGFloat(teamBots.count) / CGFloat(siteCount)).rounded(.up)))
             let count = Int((CGFloat(teamBots.count) / CGFloat(size)).rounded(.up))
             for squadIndex in 0..<count {
                 let squad = Squad(id: nextId, team: team, role: squadIndex)
@@ -151,7 +155,10 @@ final class SquadCoordinator {
 
     /// Squads with only a couple of soldiers left join the nearest living squad.
     private func mergeWeakSquads() {
+        let world = ctx.world
         for squad in squads where !squad.members.isEmpty {
+            // Before the plant, defender squads never merge, so no site is left unguarded.
+            if squad.team == world.defenders && !world.bomb.isPlanted { continue }
             let living = squad.alive.count
             let pending = squad.members.filter { $0.soldier.isAwaitingRespawn }.count
             guard living + pending <= AIConfig.mergeThreshold, living > 0 || pending > 0 else { continue }

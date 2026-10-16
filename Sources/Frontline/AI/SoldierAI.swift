@@ -69,6 +69,7 @@ final class SoldierAI {
             think()
         }
         soldier.wantsToInteract = false
+        soldier.isEngaged = hasRecentThreat
         if bombDuty(dt: dt) { return }
         if hasRecentThreat, let threat = threatPosition {
             combat(threat: threat, dt: dt)

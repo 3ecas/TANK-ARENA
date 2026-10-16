@@ -24,7 +24,7 @@ final class WorldRenderer {
         grenadeLayer = grenade
         effectLayer = effect
         effects = EffectsRenderer(session: session, effectLayer: effect, decalLayer: decal)
-        siteRenderer = SiteRenderer(sites: session.world.sites)
+        siteRenderer = SiteRenderer(sites: session.world.sites, playerTeam: session.player.team)
         buildTree()
     }
 
@@ -46,7 +46,8 @@ final class WorldRenderer {
     }
 
     func update(dt: CGFloat) {
-        siteRenderer.update(dt: dt, world: session.world, isShown: { [unowned self] in self.isShown($0) })
+        siteRenderer.update(dt: dt, world: session.world, isShown: { [unowned self] in self.isShown($0) },
+                            canSee: { [unowned self] in self.canSee($0) })
         rangeIndicator.update(player: session.player, map: session.world.map)
         syncSoldiers()
         syncGrenades()
@@ -58,6 +59,13 @@ final class WorldRenderer {
         guard soldier.isAlive else { return false }
         if soldier.team == session.player.team || session.viewer == nil { return true }
         return session.vision.visibleToViewer.contains(soldier.id)
+    }
+
+    /// Whether the viewer has a line of sight to a point within view range (used for a dropped bomb).
+    func canSee(_ point: CGPoint) -> Bool {
+        guard let viewer = session.viewer else { return false }
+        return viewer.position.distance(to: point) <= GameConfig.visionRange
+            && session.world.map.hasLineOfSight(viewer.position, point)
     }
 
     private func syncSoldiers() {

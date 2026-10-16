@@ -11,7 +11,10 @@ final class SiteRenderer {
     private let light = SKShapeNode(circleOfRadius: 4)
     private var blink: CGFloat = 0
 
-    init(sites: [BombSite]) {
+    private let playerTeam: Team
+
+    init(sites: [BombSite], playerTeam: Team) {
+        self.playerTeam = playerTeam
         for site in sites {
             let ring = SKShapeNode(circleOfRadius: site.radius)
             ring.lineWidth = 5
@@ -41,7 +44,7 @@ final class SiteRenderer {
         root.addChild(bombNode)
     }
 
-    func update(dt: CGFloat, world: BattleWorld, isShown: (Soldier) -> Bool) {
+    func update(dt: CGFloat, world: BattleWorld, isShown: (Soldier) -> Bool, canSee: (CGPoint) -> Bool) {
         let bomb = world.bomb
         blink += dt
         for (ring, site) in zip(rings, world.sites) {
@@ -59,7 +62,8 @@ final class SiteRenderer {
             bombNode.position = carrier.position + CGPoint(x: -14, y: -16)
             light.isHidden = true
         case .dropped:
-            bombNode.isHidden = false
+            // Attackers always know where their bomb lies; defenders only when they can see it.
+            bombNode.isHidden = !(world.attackers == playerTeam || canSee(bomb.position))
             bombNode.position = bomb.position
             light.isHidden = true
         case .planted:

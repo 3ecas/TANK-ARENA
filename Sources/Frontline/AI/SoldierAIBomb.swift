@@ -12,13 +12,15 @@ extension SoldierAI {
         let enemyInSight = targetId != nil
         if soldier.team == world.attackers {
             if bomb.carrierId == soldier.id {
-                if !enemyInSight, let site = world.sites.first(where: { $0.contains(soldier.position) }),
-                   soldier.position.distance(to: site.center) < site.radius * 0.7 {
+                if !enemyInSight, world.sites.contains(where: { $0.contains(soldier.position) }) {
                     holdStill(interact: true)
                     return true
                 }
-                // Without a squad to follow, carry the bomb to a site alone.
-                guard squad == nil, !hasRecentThreat, let site = world.sites.first else { return false }
+                guard !hasRecentThreat else { return false }
+                // Near the target (or with no squad to follow): walk straight onto the site.
+                let target = squad?.objective ?? nearestSite()
+                guard let site = target else { return false }
+                guard squad == nil || soldier.position.distance(to: site.center) < site.radius * 1.8 else { return false }
                 walk(to: site.center, dt: dt)
                 return true
             }
@@ -28,7 +30,7 @@ extension SoldierAI {
             }
         } else if bomb.isPlanted {
             let distance = soldier.position.distance(to: bomb.position)
-            if distance <= BombConfig.defuseRadius * 0.8 && !enemyInSight {
+            if distance <= BombConfig.defuseRadius && !enemyInSight {
                 holdStill(interact: true)
                 return true
             }
@@ -59,11 +61,15 @@ extension SoldierAI {
         }
     }
 
-    /// Whether this bot is the living bot of `team` nearest to `point` (the player is left out,
-    /// so bots never wait for the player to do the job).
+    private func nearestSite() -> BombSite? {
+        ctx.world.sites.min { $0.center.distance(to: soldier.position) < $1.center.distance(to: soldier.position) }
+    }
+
+    /// Whether this bot is the nearest free (not fighting) living bot of `team` to `point`. The player is
+    /// left out, so bots never wait for the player to do the job.
     private func isClosestBot(of team: Team, to point: CGPoint) -> Bool {
         let nearest = ctx.world.soldiers
-            .filter { $0.isAlive && $0.team == team && !$0.isPlayer }
+            .filter { $0.isAlive && $0.team == team && !$0.isPlayer && !$0.isEngaged }
             .min { $0.position.distance(to: point) < $1.position.distance(to: point) }
         return nearest === soldier
     }

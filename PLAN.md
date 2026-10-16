@@ -101,6 +101,7 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
 - `Entities/Bomb` (carried / dropped / planted / defused / exploded) and `Entities/BombSite`.
 - `Systems/BombSystem`: carry, drop, pick-up, plant and defuse on the use key (holding it roots the soldier), fuse and explosion damage.
 - `Systems/MatchSystem`: explosion or all defenders dead = attackers win; defuse, all attackers dead before the plant, or time out = defenders win.
+- Review fixes: carriers walk onto the site and plant anywhere inside it; bomb jobs go to the nearest bot that is not fighting (`Soldier.isEngaged`); defender squads split evenly over the sites and never merge before the plant; a dropped bomb is hidden from defenders unless in sight.
 - New indoor map "Compound": designed on a 60×40 grid of 40-point cells and checked for reachability, then frozen into wall and crate rectangles in `MapConfig`. Caves reuse the same spawns and sites.
 - AI:
   - `SoldierAIBomb` covers the carrier planting, the retrieval of a dropped bomb, and the closest defender defusing.

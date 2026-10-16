@@ -40,6 +40,8 @@ final class Soldier {
     var firePressed = false
     /// Holding the use key: plants the bomb inside a site (attacker carrier) or defuses it (defender).
     var wantsToInteract = false
+    /// Set by bot AI while it is fighting, so bomb jobs go to a free teammate instead.
+    var isEngaged = false
 
     var timeSinceShot: CGFloat = 10
     var kills = 0
