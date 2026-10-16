@@ -4,11 +4,25 @@ import CoreGraphics
 /// enemies its team has seen, or the openings around it (favouring the enemy side), switching every few seconds.
 /// While walking it glances at doorways it passes instead of staring straight ahead.
 extension SoldierAI {
+    /// Cheap per-frame answer: the stacked doorway, or the point picked on the last think step.
     func watchPoint(squad: Squad?) -> CGPoint? {
         if let squad = squad, let door = squad.stackDoor, let point = squad.stackPoint {
             let intoRoom = (door.position - point).normalized
             return door.position + intoRoom * 150
         }
+        return cachedWatch
+    }
+
+    func glancePoint() -> CGPoint? { cachedGlance }
+
+    /// Recomputes where to look (called on each think step, not every frame).
+    func refreshAwareness() {
+        guard !hasRecentThreat else { return }
+        cachedWatch = computeWatchPoint()
+        cachedGlance = computeGlancePoint()
+    }
+
+    private func computeWatchPoint() -> CGPoint? {
         let world = ctx.world
         let openings = services.chokepoints.visible(from: soldier.position, within: AIConfig.watchRange, map: world.map)
         if let enemy = services.intel.predictions(for: soldier.team, world: world).first {
@@ -36,7 +50,7 @@ extension SoldierAI {
     }
 
     /// A doorway close by and not behind the bot, to check while walking past.
-    func glancePoint() -> CGPoint? {
+    private func computeGlancePoint() -> CGPoint? {
         let direction = soldier.moveDir
         guard direction.lengthSquared > 0.01 else { return nil }
         let heading = direction.normalized

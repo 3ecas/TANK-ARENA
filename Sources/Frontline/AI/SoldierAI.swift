@@ -27,6 +27,9 @@ final class SoldierAI {
     var threatPosition: CGPoint?
     var threatTime: CGFloat = -100
     var threatVelocity: CGPoint = .zero
+    /// Where to look while idle / walking, refreshed on each think step (line-of-sight checks are not cheap).
+    var cachedWatch: CGPoint?
+    var cachedGlance: CGPoint?
     var aimOffset: CGPoint = .zero
     var strafeSign: CGFloat = 1
     var strafeTimer: CGFloat = 0
@@ -68,6 +71,7 @@ final class SoldierAI {
         if thinkTimer <= 0 {
             thinkTimer = AIConfig.thinkInterval * CGFloat.random(in: 0.8...1.2)
             think()
+            refreshAwareness()
         }
         soldier.wantsToInteract = false
         soldier.isEngaged = hasRecentThreat

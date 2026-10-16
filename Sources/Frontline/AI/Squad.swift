@@ -26,7 +26,9 @@ final class Squad {
     /// Room clearing: the doorway the squad is stacked on, where it waits, and when it goes in.
     var stackDoor: Chokepoint?
     var stackPoint: CGPoint?
-    var stackSince: CGFloat = 0
+    /// When the leader reached the stack point (the wait starts then), and the goal the doorway was picked for.
+    var stackArrived: CGFloat?
+    var stackGoal: CGPoint?
     var stackGoAt: CGFloat?
     /// Doorways already cleared (position, time).
     var clearedDoors: [(CGPoint, CGFloat)] = []

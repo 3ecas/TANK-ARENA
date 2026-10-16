@@ -12,24 +12,33 @@ extension SquadCoordinator {
             cancelStack(squad)
             return
         }
+        let currentGoal = squad.flankPoint ?? squad.objective?.center
         if let door = squad.stackDoor, let point = squad.stackPoint {
-            if leader.soldier.position.distance(to: point) > 450 {
+            let leaderDistance = leader.soldier.position.distance(to: point)
+            // Bomb ticking, new goal, or pulled away: drop the stack and go.
+            if world.bomb.isPlanted || currentGoal != squad.stackGoal || leaderDistance > 450 {
                 cancelStack(squad)
             } else if let goAt = squad.stackGoAt {
                 if now >= goAt {
                     squad.clearedDoors.append((door.position, now))
                     cancelStack(squad)
                 }
-            } else {
-                let ready = squad.alive.allSatisfy { $0.soldier.position.distance(to: point) < 160 }
-                if ready || now - squad.stackSince > AIConfig.stackMaxWait {
+            } else if let arrived = squad.stackArrived {
+                // Wait for the members that are actually coming (not far stragglers or ones in their own fight).
+                let ready = squad.alive.allSatisfy { member in
+                    let distance = member.soldier.position.distance(to: point)
+                    return distance < 160 || distance >= AIConfig.stragglerRadius || member.soldier.isEngaged
+                }
+                if ready || now - arrived > AIConfig.stackMaxWait {
                     let hold = AIConfig.stackHold
                     squad.stackGoAt = now + CGFloat.random(in: hold)
                 }
+            } else if leaderDistance < 30 {
+                squad.stackArrived = now
             }
             return
         }
-        guard let goal = squad.flankPoint ?? squad.objective?.center,
+        guard let goal = currentGoal,
               let door = nextDoor(from: leader.soldier.position, to: goal, squad: squad) else { return }
         if shouldRush(squad) {
             squad.clearedDoors.append((door.position, now))
@@ -38,13 +47,16 @@ extension SquadCoordinator {
         let side: CGFloat = (leader.soldier.position - door.position).dot(door.axis) >= 0 ? 1 : -1
         squad.stackDoor = door
         squad.stackPoint = world.nav.nearestWalkable(door.position + door.axis * (side * AIConfig.stackDistance))
-        squad.stackSince = now
+        squad.stackGoal = goal
+        squad.stackArrived = nil
         squad.stackGoAt = nil
     }
 
     private func cancelStack(_ squad: Squad) {
         squad.stackDoor = nil
         squad.stackPoint = nil
+        squad.stackGoal = nil
+        squad.stackArrived = nil
         squad.stackGoAt = nil
     }
 
@@ -62,8 +74,11 @@ extension SquadCoordinator {
         var travelled: CGFloat = 0
         var previous = start
         for waypoint in path {
+            let heading = (waypoint - previous).normalized
+            // Only doorways the path goes through (not side doors it walks past).
             let onSegment = services.chokepoints.points.filter { door in
                 Geometry.distance(from: door.position, toSegment: previous, waypoint) < 60
+                    && abs(heading.dot(door.axis)) > 0.7
                     && door.position.distance(to: start) > 80
                     && !squad.clearedDoors.contains { $0.0.distance(to: door.position) < 80 }
             }
