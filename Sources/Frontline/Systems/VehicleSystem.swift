@@ -15,9 +15,15 @@ final class VehicleSystem {
 
     func update(dt: CGFloat) {
         let world = ctx.world
-        for vehicle in world.vehicles where vehicle.isAlive {
+        for vehicle in world.vehicles where vehicle.pilotId != nil {
             guard let pilot = world.soldier(vehicle.pilotId), pilot.isAlive else {
+                world.soldier(vehicle.pilotId)?.vehicleId = nil
                 vehicle.pilotId = nil
+                continue
+            }
+            // Damage only lowers hp; the wreck is handled here (explosion, pilot killed, credit).
+            if vehicle.hp <= 0 {
+                destroy(vehicle, pilot: pilot)
                 continue
             }
             vehicle.cooldown = Swift.max(0, vehicle.cooldown - dt)
@@ -30,9 +36,7 @@ final class VehicleSystem {
             pilot.velocity = .zero
             if pilot.wantsToFire || pilot.firePressed { fire(vehicle, pilot: pilot) }
             pilot.firePressed = false
-            if vehicle.hp <= 0 {
-                destroy(vehicle, pilot: pilot)
-            } else if vehicle.kind == .helicopter {
+            if vehicle.kind == .helicopter {
                 vehicle.timeLeft -= dt
                 if vehicle.timeLeft <= 0 { eject(pilot, from: vehicle) }
             }

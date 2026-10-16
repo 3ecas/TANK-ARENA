@@ -96,7 +96,7 @@ extension SoldierAI {
     /// left out, so bots never wait for the player to do the job.
     private func isClosestBot(of team: Team, to point: CGPoint) -> Bool {
         let nearest = ctx.world.soldiers
-            .filter { $0.isAlive && $0.team == team && !$0.isPlayer && !$0.isEngaged }
+            .filter { $0.isAlive && $0.team == team && !$0.isPlayer && !$0.isEngaged && !$0.isMounted }
             .min { $0.position.distance(to: point) < $1.position.distance(to: point) }
         return nearest === soldier
     }

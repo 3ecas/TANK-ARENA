@@ -134,6 +134,10 @@ final class BattleWorld {
     func purge() {
         grenades.removeAll { $0.isDone }
         vehicles.removeAll { !$0.isAlive }
+        // Safety net: nobody stays "inside" a vehicle that no longer exists.
+        for soldier in soldiers where soldier.vehicleId != nil && vehicle(soldier.vehicleId) == nil {
+            soldier.vehicleId = nil
+        }
         boxes.removeAll { $0.timeLeft <= 0 }
     }
 }

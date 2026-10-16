@@ -19,7 +19,7 @@ final class AbilitySystem {
             guard !soldier.isMounted else { continue }
             // An earned vehicle takes Q where vehicles are allowed; elsewhere Q stays the class ability.
             if let reward = soldier.reward, ctx.world.vehiclesAllowed {
-                if let problem = callProblem(reward, team: soldier.team) {
+                if let problem = callProblem(reward, for: soldier) {
                     ctx.bus.publish(.abilityFailed(soldierId: soldier.id, reason: problem))
                 } else {
                     call(reward, for: soldier)
@@ -31,9 +31,13 @@ final class AbilitySystem {
     }
 
     /// Why a vehicle can't be called in right now (nil = it can).
-    func callProblem(_ kind: VehicleKind, team: Team) -> String? {
+    func callProblem(_ kind: VehicleKind, for soldier: Soldier) -> String? {
         let world = ctx.world
+        let team = soldier.team
         guard world.vehiclesAllowed else { return "Vehicles only in the open sectors (3–5)" }
+        if let outdoor = world.map.outdoorStartX, soldier.position.x < outdoor {
+            return "Get out of the building to call in a vehicle"
+        }
         let limit = kind == .tank ? VehicleConfig.tanksPerTeam : VehicleConfig.helicoptersPerTeam
         let active = world.vehicles.filter { $0.isAlive && $0.team == team && $0.kind == kind }.count
         return active >= limit ? "Your team already has \(limit) \(kind.displayName.lowercased())\(limit > 1 ? "s" : "")" : nil

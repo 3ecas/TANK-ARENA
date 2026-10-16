@@ -8,7 +8,8 @@ extension SoldierAI {
         guard !soldier.isMounted else { return }
         let world = ctx.world
         if let reward = soldier.reward, world.vehiclesAllowed {
-            if !hasRecentThreat {
+            let outside = world.map.outdoorStartX.map { soldier.position.x >= $0 } ?? true
+            if !hasRecentThreat && outside {
                 let limit = reward == .tank ? VehicleConfig.tanksPerTeam : VehicleConfig.helicoptersPerTeam
                 let active = world.vehicles.filter { $0.isAlive && $0.team == soldier.team && $0.kind == reward }.count
                 if active < limit { soldier.wantsAbility = true }

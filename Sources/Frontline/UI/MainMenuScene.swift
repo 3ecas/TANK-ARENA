@@ -7,6 +7,7 @@ final class MainMenuScene: SKScene {
     private let menuLayer = SKNode()
     private let background: SKSpriteNode
     private let controls = ControlsPanel()
+    private var classButtons: [UIButton] = []
     private var clock = GameClock()
     private var time: CGFloat = 0
 
@@ -50,7 +51,7 @@ final class MainMenuScene: SKScene {
             buttons.append(button)
         }
         // Class picker: three toggles, the chosen one highlighted.
-        var classButtons: [UIButton] = []
+        classButtons.removeAll()
         for (index, soldierClass) in SoldierClass.allCases.enumerated() {
             let button = UIButton(title: soldierClass.displayName.uppercased(), size: CGSize(width: 150, height: 40), fontSize: 14)
             button.position = CGPoint(x: CGFloat(index - 1) * 160, y: -66)
@@ -60,7 +61,7 @@ final class MainMenuScene: SKScene {
         for (button, soldierClass) in zip(classButtons, SoldierClass.allCases) {
             button.onClick = { [unowned self] in
                 self.router.playerClass = soldierClass
-                for (other, otherClass) in zip(classButtons, SoldierClass.allCases) { other.isSelected = otherClass == soldierClass }
+                for (other, otherClass) in zip(self.classButtons, SoldierClass.allCases) { other.isSelected = otherClass == soldierClass }
             }
             buttons.append(button)
         }

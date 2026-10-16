@@ -41,15 +41,18 @@ final class DamageSystem {
         if ctx.world.mode == .rush { victim.downedTime = ClassConfig.downedTime }
         if let attacker = attacker, attacker.team != victim.team {
             attacker.kills += 1
-            attacker.killStreak += 1
-            grantReward(attacker)
+            // Vehicle kills don't feed the streak (vehicles come from kills on foot).
+            if !attacker.isMounted {
+                attacker.killStreak += 1
+                grantReward(attacker)
+            }
         }
         ctx.bus.publish(.soldierKilled(victimId: victim.id, killerId: attacker?.id, weaponName: weaponName))
     }
 
     /// Kills in a row earn a tank, then a helicopter (rush only).
     private func grantReward(_ soldier: Soldier) {
-        guard ctx.world.mode == .rush, !soldier.isMounted else { return }
+        guard ctx.world.mode == .rush else { return }
         var earned: VehicleKind?
         if soldier.killStreak == VehicleConfig.helicopterStreak {
             earned = .helicopter

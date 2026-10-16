@@ -146,6 +146,9 @@ final class SoldierAI {
         var best: (Soldier, Bool)?
         var bestScore = CGFloat.greatestFiniteMagnitude
         for enemy in services.vision.visibleEnemies(for: soldier) {
+            // On foot, a helicopter behind a wall is visible but can't be hit: don't waste the fight on it.
+            if !soldier.isMounted, ctx.world.vehicle(of: enemy)?.flies == true,
+               !ctx.world.map.hasLineOfSight(soldier.position, enemy.position) { continue }
             let exposed = !enemy.isMounted && services.vision.isUnaware(enemy, of: soldier)
             var score = enemy.position.distance(to: soldier.position) - (exposed ? AIConfig.exposedTargetBonus : 0)
             if isPlayingObjective(enemy) { score -= AIConfig.objectiveTargetBonus }
@@ -162,7 +165,6 @@ final class SoldierAI {
         ctx.world.bombs.contains { $0.carrierId == enemy.id || $0.armerId == enemy.id || $0.defuserId == enemy.id }
     }
 
-    /// Primary unless it is completely out of ammo.
     /// Primary unless it is out of ammo; engineers take the RPG out against vehicles.
     private func chooseWeapon() {
         let target = ctx.world.soldier(targetId)
