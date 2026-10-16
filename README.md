@@ -78,9 +78,10 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 - **Compound:** a closed indoor map (2400×1600) of rooms, corridors and doorways. Attackers start in the west room,
   defenders in the east room between the sites. Three routes: the long north corridor to A, the mid hall with short
   connectors to A and B, and the south tunnels to B.
-- **Office:** a simple floor generated new every round: a 6×4 grid of rooms with doorways (every room is
-  reachable), the rooms around each spawn opened into one hall, desks with monitors as cover, and the two bomb
-  sites in the middle of rooms on the defenders' side.
+- **Office:** an irregular floor generated new every round, nothing mirrored. The floor is split again and
+  again by walls at random positions into rooms of every size, each wall with one or two doorways (so every room
+  is reachable), with desks as cover. The two bomb sites are placed at random each round, far apart: A in the
+  upper right, B in the lower middle.
 - **Caves:** a new cave system every round, built from a noise function, with the same spawns and sites; every
   passage is at least two soldiers wide and unreachable layouts are regenerated.
 

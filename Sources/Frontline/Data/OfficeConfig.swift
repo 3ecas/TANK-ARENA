@@ -1,24 +1,25 @@
 import CoreGraphics
 
-/// Tuning for the generated "Office" map: a grid of rooms joined by doorways, with desks as cover.
+/// Tuning for the generated "Office" map: the floor is split again and again by walls at random
+/// positions (recursive division), giving irregular rooms of every size joined by doorways.
 enum OfficeConfig {
-    /// Rooms are laid out on this grid (6 x 4 rooms of 400 x 400 on the 2400 x 1600 map).
-    static let columns = 6
-    static let rows = 4
     static let wallThickness: CGFloat = 24
     static let outerWall: CGFloat = 40
     static let doorWidth: CGFloat = 110
-    /// Chance of an extra doorway on a wall that the generator's spanning tree did not already open.
-    static let extraDoorChance: CGFloat = 0.4
-    /// Desks per normal room, and their sizes.
-    static let desksPerRoom: ClosedRange<Int> = 1...3
+    /// No room gets narrower than this.
+    static let minRoom: CGFloat = 200
+    /// Rooms smaller than `stopArea` stop splitting with this chance (keeps some big open rooms).
+    static let stopChance: CGFloat = 0.3
+    static let stopArea: CGFloat = 520 * 520
+    /// Walls longer than this get two doorways.
+    static let twoDoorSpan: CGFloat = 650
+    /// Desks: area kept free along each room's walls, sizes, and clearance around a site centre.
+    static let deskMargin: CGFloat = 70
     static let deskSizes: [CGSize] = [CGSize(width: 90, height: 44), CGSize(width: 44, height: 90),
                                       CGSize(width: 120, height: 44), CGSize(width: 60, height: 60)]
-    /// Bomb sites sit in the middle of a room so no wall cuts through them.
-    static let sites: [ZoneConfig.ZoneSpec] = [
-        ZoneConfig.ZoneSpec(name: "A", center: CGPoint(x: 1800, y: 1400)),
-        ZoneConfig.ZoneSpec(name: "B", center: CGPoint(x: 1800, y: 200)),
+    /// Bomb sites are placed at random inside these areas each round (far apart: A upper right, B lower middle).
+    static let siteAreas: [(name: String, area: CGRect)] = [
+        ("A", CGRect(x: 1750, y: 1250, width: 300, height: 130)),
+        ("B", CGRect(x: 1150, y: 200, width: 300, height: 130)),
     ]
-    /// Desks keep this distance from the room's walls so doorways never get blocked.
-    static let deskMargin: CGFloat = 80
 }

@@ -110,4 +110,4 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
   - The round panel shows the timer or fuse, bomb status and alive counts.
   - A `BombPrompt` hint and progress bar shows while planting or defusing.
   - `SiteRenderer` draws the sites and a blinking bomb; the minimap shows the bomb.
-- Office map (`World/OfficeGenerator`, `Data/OfficeConfig`): grid of rooms, random spanning tree of doorways plus extra doors, spawn rooms merged, desks (`ObstacleKind.desk`) kept away from walls and site centres, and its own room-centred bomb sites. Regenerated every round and verified with the nav flood fill.
+- Office map (`World/OfficeGenerator`, `Data/OfficeConfig`): recursive division with random wall positions (never across spawns, sites or doorways) and 1–2 doorways per wall; random site positions inside two far-apart areas; desks (`ObstacleKind.desk`) clear of walls and site centres. Regenerated every round and verified with the nav flood fill.

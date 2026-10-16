@@ -48,11 +48,11 @@ struct MapLayout {
         let spawns = [MapConfig.attackerSpawn, MapConfig.defenderSpawn]
         for attempt in 0..<UInt64(CaveConfig.maxAttempts) {
             let currentSeed = seed &+ attempt &* 7919
-            var generator = OfficeGenerator(seed: currentSeed, size: MapConfig.size, spawns: spawns,
-                                            sites: OfficeConfig.sites.map { $0.center })
-            let layout = MapLayout(kind: .office, size: MapConfig.size, obstacles: generator.generate(),
+            var generator = OfficeGenerator(seed: currentSeed, size: MapConfig.size, spawns: spawns)
+            let obstacles = generator.generate()
+            let layout = MapLayout(kind: .office, size: MapConfig.size, obstacles: obstacles,
                                    attackerSpawn: MapConfig.attackerSpawn, defenderSpawn: MapConfig.defenderSpawn,
-                                   sites: OfficeConfig.sites, cave: nil, seed: currentSeed)
+                                   sites: generator.sites, cave: nil, seed: currentSeed)
             if layout.isFullyConnected() { return layout }
         }
         return nil
