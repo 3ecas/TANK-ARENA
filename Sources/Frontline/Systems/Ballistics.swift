@@ -4,24 +4,36 @@ import CoreGraphics
 struct BulletHit {
     let point: CGPoint
     let soldierId: Int?
+    let vehicleId: Int?
     let blockedByWall: Bool
 }
 
-/// Hitscan bullet tracing against walls and enemy soldiers.
+/// Hitscan tracing against walls, enemy soldiers (not those inside vehicles) and enemy vehicles.
 @MainActor
 enum Ballistics {
-    static func trace(from start: CGPoint, to end: CGPoint, shooter: Soldier, world: BattleWorld) -> BulletHit {
-        let wallT = world.map.raycast(from: start, to: end)
+    static func trace(from start: CGPoint, to end: CGPoint, shooter: Soldier, world: BattleWorld,
+                      ignoreWalls: Bool = false) -> BulletHit {
+        let wallT = ignoreWalls ? nil : world.map.raycast(from: start, to: end)
         var bestT = wallT ?? 1
         var victimId: Int?
-        for soldier in world.soldiers where soldier.isAlive && soldier.team != shooter.team {
+        var vehicleId: Int?
+        for soldier in world.soldiers where soldier.isAlive && !soldier.isMounted && soldier.team != shooter.team {
             if let t = rayCircle(start, end, center: soldier.position, radius: soldier.radius), t < bestT {
                 bestT = t
                 victimId = soldier.id
+                vehicleId = nil
+            }
+        }
+        for vehicle in world.vehicles where vehicle.isAlive && vehicle.team != shooter.team {
+            if let t = rayCircle(start, end, center: vehicle.position, radius: vehicle.radius), t < bestT {
+                bestT = t
+                vehicleId = vehicle.id
+                victimId = nil
             }
         }
         let point = start.lerp(to: end, t: bestT)
-        return BulletHit(point: point, soldierId: victimId, blockedByWall: victimId == nil && wallT != nil)
+        let blocked = victimId == nil && vehicleId == nil && wallT != nil
+        return BulletHit(point: point, soldierId: victimId, vehicleId: vehicleId, blockedByWall: blocked)
     }
 
     /// Fraction along start-end where the segment first touches the circle.

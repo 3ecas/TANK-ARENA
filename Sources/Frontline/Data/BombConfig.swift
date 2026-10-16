@@ -22,4 +22,6 @@ enum BombConfig {
     static let armRadius: CGFloat = 70
     static let rushTickets = 120
     static let rushRespawnDelay: CGFloat = 8
+    /// Rush: tickets refunded to the attackers for each sector they clear.
+    static let ticketsPerSector = 40
 }

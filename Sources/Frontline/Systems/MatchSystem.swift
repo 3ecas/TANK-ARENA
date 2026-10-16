@@ -3,8 +3,8 @@ import CoreGraphics
 /// How a round ends.
 /// Bomb mode (one life): attackers win if the bomb explodes or every defender is dead; defenders win if it is
 /// defused, if every attacker dies before the plant, or if the round timer runs out with no plant.
-/// Rush: attackers win when both stations are destroyed; defenders win once the attackers are out of tickets
-/// and nobody of theirs is left alive.
+/// Rush: destroying every station of a sector moves the fight to the next one (and refunds tickets); clearing
+/// the last sector wins. Defenders win once the attackers are out of tickets and nobody of theirs is left alive.
 @MainActor
 final class MatchSystem {
     unowned let ctx: BattleContext
@@ -53,7 +53,15 @@ final class MatchSystem {
     private func updateRush() {
         let world = ctx.world
         if world.bombs.allSatisfy({ $0.isExploded }) {
-            finish(.victory(world.attackers))
+            if world.isLastSector {
+                finish(.victory(world.attackers))
+            } else {
+                let cleared = world.currentSector?.name ?? ""
+                world.advanceSector()
+                world.tickets += BombConfig.ticketsPerSector
+                ctx.bus.publish(.sectorAdvanced(name: world.currentSector?.name ?? ""))
+                ctx.bus.publish(.announcement(text: "Sector \(cleared) destroyed — on to sector \(world.currentSector?.name ?? "")!"))
+            }
         } else if world.tickets <= 0 && world.aliveCount(world.attackers) == 0 && !world.anyPlanted {
             finish(.victory(world.defenders))
         }

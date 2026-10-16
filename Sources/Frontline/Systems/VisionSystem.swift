@@ -33,7 +33,13 @@ final class VisionSystem {
             let halfFov = VisionSystem.fieldOfView(for: viewer) / 2
             guard abs(Angle.normalize(delta.angle - viewer.facing)) <= halfFov else { return false }
         }
+        // Helicopters see and are seen over walls.
+        if flies(viewer) || flies(target) { return true }
         return ctx.world.map.hasLineOfSight(viewer.position, target.position)
+    }
+
+    private func flies(_ soldier: Soldier) -> Bool {
+        ctx.world.vehicle(of: soldier)?.flies == true
     }
 
     static func fieldOfView(for soldier: Soldier) -> CGFloat {

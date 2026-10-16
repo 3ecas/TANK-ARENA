@@ -19,7 +19,7 @@ final class RangeIndicator {
     }
 
     func update(player: Soldier, map: ArenaMap) {
-        guard player.isAlive else {
+        guard player.isAlive, !player.isMounted else {
             root.isHidden = true
             return
         }

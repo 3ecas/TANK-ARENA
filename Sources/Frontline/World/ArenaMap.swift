@@ -5,6 +5,10 @@ enum ObstacleKind {
     case wall
     /// Desks: low cover, same collision as walls.
     case desk
+    /// Outdoor building (rush sectors 3–5).
+    case building
+    /// Outdoor cover: sandbags, crates, low walls.
+    case crate
 }
 
 struct Obstacle {
@@ -20,6 +24,8 @@ struct ArenaMap {
     let siteSpecs: [ZoneConfig.ZoneSpec]
     let attackerSpawn: CGRect
     let defenderSpawn: CGRect
+    let sectors: [RushSector]
+    let outdoorStartX: CGFloat?
     let seed: UInt64
     private let index: ObstacleIndex
 
@@ -30,11 +36,21 @@ struct ArenaMap {
         siteSpecs = layout.sites
         attackerSpawn = layout.attackerSpawn
         defenderSpawn = layout.defenderSpawn
+        sectors = layout.sectors
+        outdoorStartX = layout.outdoorStartX
         seed = layout.seed
         index = ObstacleIndex(obstacles: layout.obstacles, size: layout.size)
     }
 
-    var allSpawns: [CGRect] { [attackerSpawn, defenderSpawn] }
+    /// Every spawn pad (all rush sectors).
+    var allSpawns: [CGRect] {
+        sectors.isEmpty ? [attackerSpawn, defenderSpawn] : sectors.flatMap { [$0.attackerSpawn, $0.defenderSpawn] }
+    }
+
+    /// Every site (all rush sectors).
+    var allSites: [ZoneConfig.ZoneSpec] {
+        sectors.isEmpty ? siteSpecs : sectors.flatMap { $0.sites }
+    }
 
     /// Obstacles that may overlap `rect`.
     func obstacles(near rect: CGRect) -> [Obstacle] {

@@ -9,7 +9,7 @@ enum SoundSynth {
         case .rifle: samples = noiseBurst(rate: rate, duration: 0.09, decay: 45, lowpass: 0.35, thump: 0.5)
         case .smg: samples = noiseBurst(rate: rate, duration: 0.07, decay: 55, lowpass: 0.4, thump: 0.35)
         case .pistol: samples = noiseBurst(rate: rate, duration: 0.1, decay: 40, lowpass: 0.45, thump: 0.4)
-        case .shotgun: samples = noiseBurst(rate: rate, duration: 0.22, decay: 18, lowpass: 0.25, thump: 0.9)
+        case .rocket: samples = noiseBurst(rate: rate, duration: 0.35, decay: 9, lowpass: 0.15, thump: 1.0)
         case .explosion: samples = noiseBurst(rate: rate, duration: 1.0, decay: 4, lowpass: 0.05, thump: 1.0)
         case .flash: samples = tone(rate: rate, frequencies: [3200], noteLength: 0.6, volume: 0.25)
         case .stun: samples = sweep(rate: rate, duration: 0.5, from: 900, to: 150, volume: 0.45)

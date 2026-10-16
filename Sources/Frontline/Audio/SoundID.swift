@@ -1,7 +1,7 @@
 import Foundation
 
 enum SoundID: CaseIterable {
-    case rifle, smg, shotgun, pistol
+    case rifle, smg, rocket, pistol
     case explosion, flash, stun, knife, reload, hit, death
     case click, error
 
@@ -9,7 +9,7 @@ enum SoundID: CaseIterable {
     var minInterval: TimeInterval {
         switch self {
         case .rifle, .smg: return 0.03
-        case .pistol, .shotgun: return 0.04
+        case .pistol, .rocket: return 0.04
         case .hit: return 0.05
         default: return 0.06
         }

@@ -51,8 +51,8 @@ final class AudioDirector {
         switch weapon {
         case .assaultRifle: return .rifle
         case .smg: return .smg
-        case .shotgun: return .shotgun
         case .pistol: return .pistol
+        case .rpg: return .rocket
         }
     }
 }

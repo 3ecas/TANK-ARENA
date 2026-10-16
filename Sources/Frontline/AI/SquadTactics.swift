@@ -85,7 +85,7 @@ extension SquadCoordinator {
 
     /// Going in: bots in throwing range lob their grenades onto the site first.
     private func openWithUtility(_ bots: [SoldierAI], at site: BombSite) {
-        for bot in bots where bot.soldier.grenade != nil && !bot.soldier.isPlayer {
+        for bot in bots where bot.soldier.grenadeCount > 0 && !bot.soldier.isPlayer && !bot.soldier.isMounted {
             let distance = bot.soldier.position.distance(to: site.center)
             guard distance <= GrenadeConfig.maxThrowDistance, CGFloat.random(in: 0...1) < AIConfig.executeUtilityChance else { continue }
             let spread = CGPoint(x: CGFloat.random(in: -90...90), y: CGFloat.random(in: -90...90))

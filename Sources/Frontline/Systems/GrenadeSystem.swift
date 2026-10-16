@@ -14,8 +14,9 @@ final class GrenadeSystem {
     /// Throws the soldier's grenade toward `target` (clamped to max distance). Returns false if none left.
     @discardableResult
     func throwGrenade(_ soldier: Soldier, at target: CGPoint) -> Bool {
-        guard soldier.isAlive, !soldier.isStunned, let type = soldier.grenade else { return false }
-        soldier.grenade = nil
+        guard soldier.isAlive, !soldier.isStunned, !soldier.isMounted, soldier.grenadeCount > 0,
+              let type = soldier.grenade else { return false }
+        soldier.grenadeCount -= 1
         let aim = target.limited(from: soldier.position, maxDistance: GrenadeConfig.maxThrowDistance)
         let start = soldier.position + (aim - soldier.position).normalized * (soldier.radius + 4)
         let grenade = Grenade(id: ctx.world.makeId(), type: type, team: soldier.team, ownerId: soldier.id,
@@ -63,7 +64,13 @@ final class GrenadeSystem {
         case .stun: radius = GrenadeConfig.stunRadius
         }
         let thrower = ctx.world.soldier(grenade.ownerId)
-        for soldier in ctx.world.soldiers where soldier.isAlive && soldier.team != grenade.team {
+        if grenade.type == .frag {
+            for vehicle in ctx.world.vehicles where vehicle.isAlive && vehicle.team != grenade.team
+                && vehicle.position.distance(to: grenade.position) <= radius + vehicle.radius {
+                damage.apply(GrenadeConfig.fragVehicleDamage, to: vehicle, from: thrower)
+            }
+        }
+        for soldier in ctx.world.soldiers where soldier.isAlive && !soldier.isMounted && soldier.team != grenade.team {
             let distance = soldier.position.distance(to: grenade.position)
             guard distance <= radius, ctx.world.map.hasLineOfSight(grenade.position, soldier.position) else { continue }
             let closeness = 1 - distance / radius

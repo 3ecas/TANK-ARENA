@@ -7,6 +7,7 @@ final class Soldier {
     let team: Team
     let name: String
     let isPlayer: Bool
+    let soldierClass: SoldierClass
     let radius = GameConfig.soldierRadius
 
     var position: CGPoint
@@ -18,10 +19,11 @@ final class Soldier {
     var respawnTimer: CGFloat = 0
     var spawnProtection: CGFloat = GameConfig.spawnProtection
 
-    // Loadout: primary + pistol, one grenade, knife.
+    // Loadout: primary + pistol (+ RPG for engineers), grenades, knife.
     var weapons: [WeaponState]
     var activeIndex = 0
     var grenade: GrenadeType?
+    var grenadeCount = 1
     var knifeCooldown: CGFloat = 0
     var knifeSwing: CGFloat = 0
     var switchTimer: CGFloat = 0
@@ -42,26 +44,54 @@ final class Soldier {
     var wantsToInteract = false
     /// Set by bot AI while it is fighting, so bomb jobs go to a free teammate instead.
     var isEngaged = false
+    /// Q pressed this frame: call in an earned vehicle, otherwise use the class ability.
+    var wantsAbility = false
+
+    // Class ability, killstreak rewards, vehicles, downed state
+    var abilityCooldown: CGFloat = 0
+    var sprintTime: CGFloat = 0
+    var killStreak = 0
+    /// Vehicle earned by the current killstreak, ready to call in with Q.
+    var reward: VehicleKind?
+    /// The vehicle this soldier is driving (its position follows the vehicle).
+    var vehicleId: Int?
+    /// Rush: seconds left to be revived after going down (0 = not downed).
+    var downedTime: CGFloat = 0
+    var reviveProgress: CGFloat = 0
+    /// Time spent next to an ammo box since the last top-up.
+    var ammoTimer: CGFloat = 0
 
     var timeSinceShot: CGFloat = 10
     var kills = 0
     var deaths = 0
     var lastAttackerId: Int?
 
-    init(id: Int, team: Team, name: String, isPlayer: Bool, position: CGPoint, primary: WeaponID,
-         grenade: GrenadeType) {
+    init(id: Int, team: Team, name: String, isPlayer: Bool, soldierClass: SoldierClass, position: CGPoint,
+         primary: WeaponID, grenade: GrenadeType) {
         self.id = id
         self.team = team
         self.name = name
         self.isPlayer = isPlayer
+        self.soldierClass = soldierClass
         self.position = position
         self.facing = team == .blue ? 0 : .pi
         self.aimPoint = position + CGPoint(x: team == .blue ? 100 : -100, y: 0)
-        self.weapons = [WeaponState(primary), WeaponState(.pistol)]
+        self.weapons = Soldier.loadout(primary: primary, soldierClass: soldierClass)
         self.grenade = grenade
+        grenadeCount = soldierClass.grenades
+    }
+
+    /// Weapons for a class: primary and pistol (assault with extra ammo), plus an RPG for engineers.
+    static func loadout(primary: WeaponID, soldierClass: SoldierClass) -> [WeaponState] {
+        var list = [WeaponState(primary, ammoMultiplier: soldierClass.ammoMultiplier), WeaponState(.pistol)]
+        if soldierClass == .engineer { list.append(WeaponState(.rpg)) }
+        return list
     }
 
     var isAlive: Bool { hp > 0 }
+    /// Down and waiting for a medic (rush).
+    var isDowned: Bool { !isAlive && downedTime > 0 }
+    var isMounted: Bool { vehicleId != nil }
     /// Dead but will come back.
     var isAwaitingRespawn: Bool { !isAlive && respawnsLeft > 0 }
     /// Dead for good.
@@ -74,9 +104,17 @@ final class Soldier {
     /// Fresh loadout and full health (spawn / respawn).
     func resetLoadout(primary: WeaponID, grenade: GrenadeType) {
         hp = GameConfig.maxHp
-        weapons = [WeaponState(primary), WeaponState(.pistol)]
+        weapons = Soldier.loadout(primary: primary, soldierClass: soldierClass)
         activeIndex = 0
         self.grenade = grenade
+        grenadeCount = soldierClass.grenades
+        killStreak = 0
+        reward = nil
+        vehicleId = nil
+        downedTime = 0
+        reviveProgress = 0
+        sprintTime = 0
+        wantsAbility = false
         blindTime = 0
         stunTime = 0
         knifeCooldown = 0

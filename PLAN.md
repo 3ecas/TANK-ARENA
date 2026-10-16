@@ -146,3 +146,26 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
   - attackers choose the station with the fewest defender sightings;
   - wave regrouping when a push has fewer than 3 attackers left near the target 14 s after going in.
 
+## Revision 13: rush sectors, classes, vehicles
+- Rush has its own map, `Data/RushMapConfig` (8000×2000): five `RushSector`s, each with stations, spawns and `allowsVehicles`.
+  - Sectors 1–2: an office building made by recursive division.
+  - Sectors 3–5: open ground with buildings and cover, tank-reachable.
+  - `BattleWorld.advanceSector()` replaces the sites and bombs (`sectorVersion`) when every station of a sector is destroyed. Sector 5 has one station.
+- Classes (`Data/ClassConfig`): assault, medic, engineer.
+  - Assault: ammo ×1.5, speed ×1.1, 2 grenades.
+  - Medic: health box and revives.
+  - Engineer: RPG in slot 3 and ammo box.
+  - `AbilitySystem` handles Q: an earned vehicle first, otherwise the class ability. `SupportSystem` runs supply boxes and downed / revive. Downed lasts 10 s in rush.
+- Weapons: the shotgun is removed. The RPG is a rocket with `blastRadius` and `vehicleDamage`; `Systems/Explosions` handles area damage.
+- Vehicles (`Data/VehicleConfig`, `Entities/Vehicle`, `Systems/VehicleSystem`):
+  - Killstreak rewards: 3 kills earn a tank, 5 a helicopter, limited to 2 tanks and 1 helicopter per team, and only in sectors 3–5.
+  - The pilot rides inside: hidden and immune; the vehicle takes the hits.
+  - Tank: hull and turret, explosive shells, tank-sized `vehicleNav`.
+  - Helicopter: flies and sees over walls, minigun, leaves after 60 s.
+  - Ballistics, explosions and frags damage vehicles.
+- AI:
+  - `SoldierAIVehicle` drives vehicles.
+  - `SoldierAIClass` calls in rewards, uses class abilities and runs medic revives.
+  - Engineers switch to the RPG against vehicles.
+- UI: `AbilityPanel` (class, Q status, streak), a downed notice, sector and tickets in the round panel, `VehicleRenderer` and `SupplyRenderer`, a class picker in the menu, and a wide minimap at the bottom centre for rush.
+

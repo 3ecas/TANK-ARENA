@@ -18,7 +18,9 @@ final class Minimap {
     init(session: GameSession) {
         self.session = session
         let mapSize = session.world.map.size
-        let scale = Minimap.width / mapSize.width
+        // Long rush maps get a wider strip.
+        let width = mapSize.width / mapSize.height > 2.5 ? Minimap.width * 1.5 : Minimap.width
+        let scale = width / mapSize.width
         let size = CGSize(width: mapSize.width * scale, height: mapSize.height * scale)
         self.scale = scale
         self.size = size
@@ -34,10 +36,20 @@ final class Minimap {
         bombDot.strokeColor = .black
         bombDot.zPosition = 1.5
         root.addChild(bombDot)
+        buildMarkers()
+    }
+
+    private var markersVersion = -1
+
+    /// Site markers (rebuilt when a rush sector falls and new stations take over).
+    private func buildMarkers() {
+        for marker in zoneMarkers { marker.removeFromParent() }
+        zoneMarkers.removeAll()
+        markersVersion = session.world.sectorVersion
         for zone in session.world.sites {
-            let marker = SKShapeNode(circleOfRadius: zone.radius * scale)
+            let marker = SKShapeNode(circleOfRadius: Swift.max(4, zone.radius * scale))
             marker.lineWidth = 2
-            marker.position = CGPoint(x: zone.center.x * scale - size.width / 2, y: zone.center.y * scale - size.height / 2)
+            marker.position = toMinimap(zone.center)
             marker.zPosition = 0.5
             root.addChild(marker)
             zoneMarkers.append(marker)
@@ -47,6 +59,7 @@ final class Minimap {
     var mapSize: CGSize { size }
 
     func update(cameraRect: CGRect, renderer: WorldRenderer) {
+        if session.world.sectorVersion != markersVersion { buildMarkers() }
         var used = 0
         for soldier in session.world.soldiers where renderer.isShown(soldier) {
             let node: SKSpriteNode
@@ -61,7 +74,7 @@ final class Minimap {
             used += 1
             node.isHidden = false
             node.color = soldier.isPlayer ? .white : Palette.team(soldier.team)
-            let side: CGFloat = soldier.isPlayer ? 8 : 5
+            let side: CGFloat = soldier.isMounted ? 11 : (soldier.isPlayer ? 8 : 5)
             node.size = CGSize(width: side, height: side)
             node.position = toMinimap(soldier.position)
         }

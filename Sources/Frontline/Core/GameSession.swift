@@ -16,12 +16,15 @@ final class GameSession {
     private let respawns: RespawnSystem
     private let match: MatchSystem
     let bombSystem: BombSystem
+    let abilities: AbilitySystem
+    private let vehicles: VehicleSystem
+    private let support: SupportSystem
     private var bots: [SoldierAI] = []
     private var squads: SquadCoordinator?
 
     /// The player is always on blue; `playerAttacks` decides whether blue attacks or defends.
-    init(mode: GameMode, playerAttacks: Bool) {
-        let world = BattleWorld(layout: MapLayout.office(), mode: mode, attackers: playerAttacks ? .blue : .red)
+    init(mode: GameMode, playerAttacks: Bool, playerClass: SoldierClass) {
+        let world = BattleWorld(layout: MapLayout.make(for: mode), mode: mode, attackers: playerAttacks ? .blue : .red)
         let bus = EventBus()
         let ctx = BattleContext(world: world, bus: bus)
         let damage = DamageSystem(ctx: ctx)
@@ -37,8 +40,11 @@ final class GameSession {
         respawns = RespawnSystem(ctx: ctx)
         match = MatchSystem(ctx: ctx)
         bombSystem = BombSystem(ctx: ctx, damage: damage)
+        abilities = AbilitySystem(ctx: ctx)
+        vehicles = VehicleSystem(ctx: ctx, damage: damage)
+        support = SupportSystem(ctx: ctx)
 
-        BattleSetup.populate(world)
+        BattleSetup.populate(world, playerClass: playerClass)
         guard let player = world.player else { fatalError("Battle has no player") }
         self.player = player
         let services = BotServices(vision: vision, weapons: weapons, grenades: grenades, melee: melee,
@@ -59,9 +65,12 @@ final class GameSession {
         world.time += dt
         squads?.update(dt: dt)
         for bot in bots { bot.update(dt: dt) }
+        abilities.update(dt: dt)
         bombSystem.update(dt: dt)
+        support.update(dt: dt)
         status.update(dt: dt)
         movement.update(dt: dt)
+        vehicles.update(dt: dt)
         weapons.update(dt: dt)
         melee.update(dt: dt)
         grenades.update(dt: dt)

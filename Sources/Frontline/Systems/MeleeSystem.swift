@@ -21,11 +21,11 @@ final class MeleeSystem {
     /// Swings the knife. Returns false while on cooldown.
     @discardableResult
     func swing(_ soldier: Soldier) -> Bool {
-        guard soldier.isAlive, soldier.knifeCooldown <= 0, !soldier.isStunned else { return false }
+        guard soldier.isAlive, !soldier.isMounted, soldier.knifeCooldown <= 0, !soldier.isStunned else { return false }
         soldier.knifeCooldown = GameConfig.knifeCooldown
         soldier.knifeSwing = 0.2
         var hitSomeone = false
-        for enemy in ctx.world.soldiers where enemy.isAlive && enemy.team != soldier.team {
+        for enemy in ctx.world.soldiers where enemy.isAlive && !enemy.isMounted && enemy.team != soldier.team {
             let delta = enemy.position - soldier.position
             guard delta.length <= GameConfig.knifeRange + enemy.radius else { continue }
             let offAngle = abs(Angle.normalize(delta.angle - soldier.facing))

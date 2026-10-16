@@ -12,7 +12,8 @@ final class WeaponSystem {
     }
 
     func update(dt: CGFloat) {
-        for soldier in ctx.world.soldiers where soldier.isAlive {
+        // Soldiers in vehicles use the vehicle's gun instead (VehicleSystem).
+        for soldier in ctx.world.soldiers where soldier.isAlive && !soldier.isMounted {
             soldier.timeSinceShot += dt
             soldier.switchTimer = Swift.max(0, soldier.switchTimer - dt)
             var weapon = soldier.weapons[soldier.activeIndex]
@@ -39,7 +40,7 @@ final class WeaponSystem {
         soldier.weapons[soldier.activeIndex] = weapon
     }
 
-    /// Switches to weapon slot `index` (0 = primary, 1 = pistol). Cancels a reload in progress.
+    /// Switches to weapon slot `index` (0 = primary, 1 = pistol, 2 = RPG). Cancels a reload in progress.
     func switchTo(_ soldier: Soldier, index: Int) {
         guard soldier.weapons.indices.contains(index), index != soldier.activeIndex else { return }
         soldier.weapons[soldier.activeIndex].reloadTimer = 0
@@ -70,7 +71,16 @@ final class WeaponSystem {
             let hit = Ballistics.trace(from: muzzle, to: end, shooter: soldier, world: ctx.world)
             ctx.bus.publish(.shotFired(shooterId: soldier.id, from: muzzle, to: hit.point, weapon: def.id,
                                        hitWall: hit.blockedByWall))
-            if let victim = ctx.world.soldier(hit.soldierId) {
+            if def.blastRadius > 0 {
+                // Rocket: explodes where it hits (pulled back a little so walls don't swallow the blast).
+                let point = hit.point - CGPoint(angle: angle, length: 8)
+                Explosions.blast(at: point, radius: def.blastRadius, damage: def.damage, vehicleDamage: def.vehicleDamage,
+                                 attacker: soldier, weaponName: def.name, ctx: ctx, damage: damage)
+                continue
+            }
+            if let vehicle = ctx.world.vehicle(hit.vehicleId) {
+                damage.apply(def.damage * VehicleConfig.bulletVehicleFactor, to: vehicle, from: soldier)
+            } else if let victim = ctx.world.soldier(hit.soldierId) {
                 let distance = muzzle.distance(to: hit.point)
                 damage.apply(def.damage * falloff(distance: distance, range: def.range), to: victim, from: soldier,
                              weaponName: def.name)

@@ -1,7 +1,8 @@
 import CoreGraphics
 
-/// Top-down shooter controls: WASD to move, mouse to aim, left mouse to shoot,
-/// R reload, 1 / 2 / Q weapons, G grenade, F knife, hold E to plant / defuse the bomb.
+/// Top-down shooter controls: WASD to move, mouse to aim, left mouse to shoot, R reload, 1 / 2 / 3 weapons,
+/// G grenade, F knife, Q ability (or call in an earned vehicle), hold E to plant / arm / defuse / revive.
+/// In a vehicle: WASD drives, the mouse aims the gun, left mouse fires.
 @MainActor
 final class PlayerController {
     let soldier: Soldier
@@ -30,12 +31,17 @@ final class PlayerController {
         soldier.moveDir = movement(input)
         soldier.wantsToFire = input.leftDown && leftClickAvailable
         if input.leftPressed && leftClickAvailable { soldier.firePressed = true }
+        if input.wasPressed(KeyCode.q) { soldier.wantsAbility = true }
+        guard !soldier.isMounted else {
+            soldier.wantsToInteract = false
+            return
+        }
         soldier.wantsToInteract = input.isDown(KeyCode.e)
 
         if input.wasPressed(KeyCode.r) { weapons.reload(soldier) }
         if input.wasPressed(KeyCode.one) { weapons.switchTo(soldier, index: 0) }
         if input.wasPressed(KeyCode.two) { weapons.switchTo(soldier, index: 1) }
-        if input.wasPressed(KeyCode.q) { weapons.switchTo(soldier, index: soldier.activeIndex == 0 ? 1 : 0) }
+        if input.wasPressed(KeyCode.three) { weapons.switchTo(soldier, index: 2) }
         if input.wasPressed(KeyCode.f) { melee.swing(soldier) }
         if input.wasPressed(KeyCode.g) && !grenades.throwGrenade(soldier, at: mouseWorld) {
             onMessage?("No grenade left")

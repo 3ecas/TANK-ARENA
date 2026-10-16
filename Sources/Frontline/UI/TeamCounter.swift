@@ -61,8 +61,10 @@ final class TeamCounter {
 
     /// Rush: attacker tickets and the state of each station.
     private func updateRush(world: BattleWorld, attacking: Bool) {
-        roleLabel.text = attacking ? "RUSH ATTACK — ARM AND DESTROY A AND B" : "RUSH DEFEND — PROTECT STATIONS A AND B"
-        timerLabel.text = "TICKETS \(world.tickets)"
+        let stations = world.sites.map { $0.name }.joined(separator: " AND ")
+        roleLabel.text = attacking ? "RUSH ATTACK — DESTROY \(stations)" : "RUSH DEFEND — PROTECT \(stations)"
+        let sectors = world.map.sectors.count
+        timerLabel.text = "SECTOR \(world.currentSector?.name ?? "?")/\(sectors)   TICKETS \(world.tickets)"
         timerLabel.fontColor = world.tickets < 20 ? Palette.warning : UIStyle.accent
         bombLabel.text = world.bombs.map { bomb -> String in
             let name = bomb.site?.name ?? "?"

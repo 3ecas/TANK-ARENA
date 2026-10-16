@@ -90,6 +90,12 @@ enum AIConfig {
     static let antiArmReach: CGFloat = 900
     static let waveTimeout: CGFloat = 14
     static let waveMinimum = 3
+    /// Vehicles and medics: tanks stop to shoot targets closer than `tankEngageDistance` and park this far
+    /// from their objective; helicopters orbit at this radius; medics go to downed teammates within `reviveReach`.
+    static let tankEngageDistance: CGFloat = 650
+    static let tankHoldDistance: CGFloat = 420
+    static let helicopterOrbit: CGFloat = 260
+    static let reviveReach: CGFloat = 700
     /// Chance a squad just pushes through a doorway without stacking (always when time is short).
     static let rushChance: CGFloat = 0.3
     static let rushTimeLeft: CGFloat = 35

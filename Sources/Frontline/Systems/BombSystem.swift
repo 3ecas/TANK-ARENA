@@ -47,7 +47,7 @@ final class BombSystem {
     private func updateStation(_ bomb: Bomb, dt: CGFloat) {
         let world = ctx.world
         guard let site = bomb.site, let armer = world.soldiers.first(where: {
-            $0.isAlive && $0.team == world.attackers && $0.wantsToInteract
+            $0.isAlive && !$0.isMounted && $0.team == world.attackers && $0.wantsToInteract
                 && $0.position.distance(to: bomb.position) <= BombConfig.armRadius
         }) else {
             bomb.plantProgress = 0
@@ -79,7 +79,7 @@ final class BombSystem {
     private func pickUp(_ bomb: Bomb) {
         let world = ctx.world
         guard let taker = world.soldiers.first(where: {
-            $0.isAlive && $0.team == world.attackers && $0.position.distance(to: bomb.position) <= BombConfig.pickupRadius
+            $0.isAlive && !$0.isMounted && $0.team == world.attackers && $0.position.distance(to: bomb.position) <= BombConfig.pickupRadius
         }) else { return }
         bomb.state = .carried(by: taker.id)
         ctx.bus.publish(.bombPickedUp(soldierId: taker.id))
@@ -116,7 +116,7 @@ final class BombSystem {
     }
 
     private func canDefuse(_ soldier: Soldier, _ bomb: Bomb) -> Bool {
-        soldier.isAlive && soldier.team == ctx.world.defenders && soldier.wantsToInteract
+        soldier.isAlive && !soldier.isMounted && soldier.team == ctx.world.defenders && soldier.wantsToInteract
             && soldier.position.distance(to: bomb.position) <= BombConfig.defuseRadius
     }
 

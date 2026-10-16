@@ -33,9 +33,9 @@ final class MainMenuScene: SKScene {
         addChild(menuLayer)
         let title = UIStyle.label("FRONTLINE", size: 72, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 200)
-        let subtitle = UIStyle.label("Office · Bomb or Rush · random side", size: 18, align: .center)
+        let subtitle = UIStyle.label("Bomb or Rush · random side · pick a class", size: 18, align: .center)
         subtitle.position = CGPoint(x: 0, y: 148)
-        let info = UIStyle.label("Bomb: plant on A or B, one life.  Rush: arm both stations, respawns + tickets.", size: 13,
+        let info = UIStyle.label("Bomb: 5v5 office, one life.  Rush: 16v16 over 5 sectors, vehicles from killstreaks.", size: 13,
                                  color: UIStyle.dimText, align: .center)
         info.position = CGPoint(x: 0, y: 118)
 
@@ -44,16 +44,31 @@ final class MainMenuScene: SKScene {
         for (index, entry) in modes.enumerated() {
             let button = UIButton(title: entry.1, size: CGSize(width: 320, height: 52), fontSize: 20,
                                   color: UIStyle.buttonOwned)
-            button.position = CGPoint(x: 0, y: 60 - CGFloat(index) * 62)
+            button.position = CGPoint(x: 0, y: 64 - CGFloat(index) * 60)
             let mode = entry.0
             button.onClick = { [unowned self] in self.router.startGame(mode: mode) }
             buttons.append(button)
         }
+        // Class picker: three toggles, the chosen one highlighted.
+        var classButtons: [UIButton] = []
+        for (index, soldierClass) in SoldierClass.allCases.enumerated() {
+            let button = UIButton(title: soldierClass.displayName.uppercased(), size: CGSize(width: 150, height: 40), fontSize: 14)
+            button.position = CGPoint(x: CGFloat(index - 1) * 160, y: -66)
+            button.isSelected = soldierClass == router.playerClass
+            classButtons.append(button)
+        }
+        for (button, soldierClass) in zip(classButtons, SoldierClass.allCases) {
+            button.onClick = { [unowned self] in
+                self.router.playerClass = soldierClass
+                for (other, otherClass) in zip(classButtons, SoldierClass.allCases) { other.isSelected = otherClass == soldierClass }
+            }
+            buttons.append(button)
+        }
         let help = UIButton(title: "Controls", size: CGSize(width: 320, height: 42), fontSize: 15)
-        help.position = CGPoint(x: 0, y: -80)
+        help.position = CGPoint(x: 0, y: -124)
         help.onClick = { [unowned self] in self.controls.root.isHidden.toggle() }
         let quit = UIButton(title: "Quit", size: CGSize(width: 320, height: 42), fontSize: 15)
-        quit.position = CGPoint(x: 0, y: -132)
+        quit.position = CGPoint(x: 0, y: -174)
         quit.onClick = { [unowned self] in self.router.quit() }
         for node in ([title, subtitle, info, help, quit] as [SKNode]) + buttons { menuLayer.addChild(node) }
         controls.root.zPosition = 20
@@ -89,17 +104,18 @@ final class ControlsPanel {
         "Mouse ............... aim (soldier faces the cursor)",
         "Left mouse .......... shoot (hold for automatic weapons)",
         "R ................... reload",
-        "1 / 2 / Q ........... primary / pistol / swap",
+        "1 / 2 / 3 ........... primary / pistol / RPG (engineer)",
         "G ................... throw grenade at cursor",
         "F ................... knife (backstab = kill)",
-        "E (hold) ............ plant / defuse the bomb",
+        "Q ................... class ability / call in vehicle",
+        "E (hold) ............ plant · arm · defuse · revive",
         "Tab ................. scoreboard",
         "Esc ................. pause  ·  Cmd+F full screen",
     ]
 
     init() {
         root.isHidden = true
-        root.addChild(UIStyle.panel(size: CGSize(width: 640, height: 330)))
+        root.addChild(UIStyle.panel(size: CGSize(width: 640, height: 350)))
         let title = UIStyle.label("CONTROLS", size: 22, color: UIStyle.accent, bold: true, align: .center)
         title.position = CGPoint(x: 0, y: 135)
         root.addChild(title)

@@ -18,6 +18,10 @@ final class CenterNotices {
         if player.isAlive {
             main.text = ""
             sub.text = ""
+        } else if player.isDowned {
+            main.text = "DOWNED"
+            sub.text = player.reviveProgress > 0 ? "A medic is reviving you…"
+                : "A medic can revive you — \(Int(player.downedTime.rounded(.up)))s"
         } else if player.isAwaitingRespawn {
             if player.respawnTimer > 0 {
                 main.text = "RESPAWNING IN \(Int(player.respawnTimer.rounded(.up)))"

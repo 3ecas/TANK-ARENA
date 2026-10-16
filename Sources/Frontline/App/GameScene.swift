@@ -16,8 +16,8 @@ final class GameScene: SKScene {
     var gameEnded = false
     var mouseScene: CGPoint = .zero
 
-    init(size: CGSize, router: SceneRouter, mode: GameMode, attacking: Bool) {
-        let session = GameSession(mode: mode, playerAttacks: attacking)
+    init(size: CGSize, router: SceneRouter, mode: GameMode, attacking: Bool, playerClass: SoldierClass) {
+        let session = GameSession(mode: mode, playerAttacks: attacking, playerClass: playerClass)
         self.router = router
         self.session = session
         worldRenderer = WorldRenderer(session: session)
@@ -64,7 +64,7 @@ final class GameScene: SKScene {
         let intro: String
         switch session.world.mode {
         case .bomb: intro = attacking ? "ATTACK — plant the bomb on site A or B!" : "DEFEND — stop the bomb!"
-        case .rush: intro = attacking ? "RUSH ATTACK — arm and destroy stations A and B!" : "RUSH DEFEND — protect stations A and B!"
+        case .rush: intro = attacking ? "RUSH ATTACK — destroy the stations of 5 sectors!" : "RUSH DEFEND — hold all 5 sectors!"
         }
         hud.banner.announce(intro, color: UIStyle.accent)
     }
@@ -87,8 +87,9 @@ final class GameScene: SKScene {
         if running { session.update(dt: dt) }
         cameraController.update(dt: dt, follow: cameraTarget())
         worldRenderer.update(dt: running ? dt : 0)
+        let flying = session.viewer.flatMap { session.world.vehicle(of: $0) }?.flies == true
         fog.update(viewer: session.viewer, cameraCenter: cameraController.node.position, viewSize: size,
-                   map: session.world.map)
+                   map: session.world.map, flying: flying)
         let mouseScreen = hud.root.convert(mouseScene, from: self)
         hud.update(dt: dt, cameraRect: cameraController.visibleRect, mouseScreen: mouseScreen, renderer: worldRenderer)
         router.input.endFrame()
@@ -119,6 +120,34 @@ final class GameScene: SKScene {
         case .bombDropped:
             if world.attackers == session.player.team {
                 hud.banner.announce("The bomb has been dropped!", color: Palette.warning)
+            }
+        case .vehicleHit(_, let attackerId):
+            if attackerId == session.player.id { hud.crosshair.showHit() }
+        case .rewardEarned(let id, let kind):
+            if id == session.player.id {
+                let hint = world.vehiclesAllowed ? "press Q to call it in" : "usable in sectors 3–5"
+                hud.banner.announce("\(kind.displayName.uppercased()) earned — \(hint)", color: Palette.heal)
+            }
+        case .vehicleCalled(let id, let kind):
+            if let caller = world.soldier(id), caller.team == session.player.team {
+                hud.banner.announce(caller.isPlayer ? "You're in the \(kind.displayName.lowercased()) — WASD drive, mouse aim, click fire"
+                                                    : "\(caller.name) called in a \(kind.displayName.lowercased())",
+                                    color: Palette.team(caller.team))
+            }
+        case .vehicleDestroyed(_, let position):
+            if cameraController.visibleRect.insetBy(dx: -200, dy: -200).contains(position) {
+                cameraController.shake(magnitude: 14, duration: 0.5)
+            }
+        case .abilityFailed(let id, let reason):
+            if id == session.player.id { showError(reason) }
+        case .abilityUsed(let id, let name):
+            if id == session.player.id { hud.banner.showMessage(name) }
+        case .soldierRevived(let id, let byId):
+            if id == session.player.id {
+                cameraController.snap(to: session.player.position)
+                hud.banner.announce("Revived by \(world.soldier(byId)?.name ?? "a medic")", color: Palette.heal)
+            } else if byId == session.player.id {
+                hud.banner.announce("You revived \(world.soldier(id)?.name ?? "a teammate")", color: Palette.heal)
             }
         case .bombExploded:
             cameraController.shake(magnitude: 22, duration: 0.8)

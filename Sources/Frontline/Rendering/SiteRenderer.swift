@@ -12,8 +12,20 @@ final class SiteRenderer {
     private var blink: CGFloat = 0
     private let playerTeam: Team
 
+    /// Sector the nodes were built for (rush replaces the sites when a sector falls).
+    private var builtVersion = -1
+
     init(world: BattleWorld, playerTeam: Team) {
         self.playerTeam = playerTeam
+        build(world)
+    }
+
+    private func build(_ world: BattleWorld) {
+        root.removeAllChildren()
+        rings.removeAll()
+        letters.removeAll()
+        views.removeAll()
+        builtVersion = world.sectorVersion
         for site in world.sites {
             let ring = SKShapeNode(circleOfRadius: site.radius)
             ring.lineWidth = 5
@@ -39,6 +51,7 @@ final class SiteRenderer {
     }
 
     func update(dt: CGFloat, world: BattleWorld, isShown: (Soldier) -> Bool, canSee: (CGPoint) -> Bool) {
+        if world.sectorVersion != builtVersion { build(world) }
         blink += dt
         for (index, site) in world.sites.enumerated() {
             let armed = world.bombs.contains { $0.isPlanted && $0.site === site }

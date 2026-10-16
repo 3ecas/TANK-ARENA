@@ -3,8 +3,8 @@
 enum MatchSummary {
     static func reason(_ world: BattleWorld) -> String {
         if world.mode == .rush {
-            if world.bombs.allSatisfy({ $0.isExploded }) { return "Both stations destroyed" }
-            return "The attackers ran out of tickets"
+            if world.bombs.allSatisfy({ $0.isExploded }) { return "All 5 sectors destroyed" }
+            return "The attackers ran out of tickets in sector \(world.currentSector?.name ?? "?")"
         }
         switch world.bomb.state {
         case .exploded: return "The bomb exploded"

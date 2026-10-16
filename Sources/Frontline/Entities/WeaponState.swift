@@ -9,11 +9,15 @@ struct WeaponState {
     var reloadTimer: CGFloat = 0
     var cooldown: CGFloat = 0
 
-    init(_ id: WeaponID) {
+    init(_ id: WeaponID, ammoMultiplier: CGFloat = 1) {
         def = WeaponCatalog.def(id)
         magazine = def.magSize
-        reserve = def.reserveAmmo
+        reserve = def.reserveAmmo.map { Int((CGFloat($0) * ammoMultiplier).rounded()) }
+        maxReserve = reserve
     }
+
+    /// Reserve when full (for ammo boxes).
+    let maxReserve: Int?
 
     var isReloading: Bool { reloadTimer > 0 }
     var hasSpareAmmo: Bool { reserve.map { $0 > 0 } ?? true }

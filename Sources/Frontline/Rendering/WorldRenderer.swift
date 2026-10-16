@@ -13,6 +13,8 @@ final class WorldRenderer {
     private let effectLayer: SKNode
     private let siteRenderer: SiteRenderer
     private let rangeIndicator = RangeIndicator()
+    private let vehicleRenderer = VehicleRenderer()
+    private let supplyRenderer = SupplyRenderer()
     private var views: [Int: SoldierView] = [:]
     private var grenadeSprites: [Int: SKSpriteNode] = [:]
 
@@ -38,6 +40,10 @@ final class WorldRenderer {
         root.addChild(siteRenderer.root)
         rangeIndicator.root.zPosition = 9
         root.addChild(rangeIndicator.root)
+        supplyRenderer.root.zPosition = 2
+        root.addChild(supplyRenderer.root)
+        vehicleRenderer.root.zPosition = 12
+        root.addChild(vehicleRenderer.root)
         let layers: [(SKNode, CGFloat)] = [(decalLayer, 1), (unitLayer, 10), (grenadeLayer, 15), (effectLayer, 20)]
         for (layer, z) in layers {
             layer.zPosition = z
@@ -49,6 +55,9 @@ final class WorldRenderer {
         siteRenderer.update(dt: dt, world: session.world, isShown: { [unowned self] in self.isShown($0) },
                             canSee: { [unowned self] in self.canSee($0) })
         rangeIndicator.update(player: session.player, map: session.world.map)
+        vehicleRenderer.update(dt: dt, world: session.world, playerTeam: session.player.team,
+                               isShown: { [unowned self] in self.isShown($0) })
+        supplyRenderer.update(world: session.world, playerTeam: session.player.team)
         syncSoldiers()
         syncGrenades()
         effects.update(dt: dt)
@@ -79,7 +88,9 @@ final class WorldRenderer {
                 unitLayer.addChild(view.root)
                 views[soldier.id] = view
             }
-            let shown = isShown(soldier)
+            // Pilots are drawn as their vehicle; downed teammates stay visible so medics can find them.
+            let downedMate = soldier.isDowned && soldier.team == session.player.team
+            let shown = (isShown(soldier) && !soldier.isMounted) || downedMate
             view.root.isHidden = !shown
             if shown { view.sync(with: soldier) }
         }

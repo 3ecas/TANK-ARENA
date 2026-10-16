@@ -11,7 +11,8 @@ final class FogOfWarRenderer {
         node.zPosition = 50
     }
 
-    func update(viewer: Soldier?, cameraCenter: CGPoint, viewSize: CGSize, map: ArenaMap) {
+    /// - Parameter flying: the viewer is in a helicopter and sees over walls.
+    func update(viewer: Soldier?, cameraCenter: CGPoint, viewSize: CGSize, map: ArenaMap, flying: Bool = false) {
         guard let viewer = viewer, viewer.isAlive, viewSize.width > 1, viewSize.height > 1 else {
             node.isHidden = true
             return
@@ -20,7 +21,7 @@ final class FogOfWarRenderer {
         let polygon = VisibilityPolygon.compute(
             origin: viewer.position, facing: viewer.facing, fieldOfView: VisionSystem.fieldOfView(for: viewer),
             range: GameConfig.visionRange, peripheral: GameConfig.peripheralRadius, map: map,
-            rays: GameConfig.fogRayCount)
+            rays: GameConfig.fogRayCount, ignoreWalls: flying)
         // Screen space: camera centre is the middle of the view.
         let origin = CGPoint(x: cameraCenter.x - viewSize.width / 2, y: cameraCenter.y - viewSize.height / 2)
         let blind = viewer.isBlind

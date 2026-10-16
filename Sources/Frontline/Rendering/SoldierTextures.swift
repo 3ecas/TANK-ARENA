@@ -33,10 +33,10 @@ enum SoldierTextures {
         case .smg:
             ctx.fillRoundedRect(CGRect(x: c.x + 3, y: c.y - 3, width: 16, height: 5), radius: 1, metal)
             ctx.fillRoundedRect(CGRect(x: c.x + 9, y: c.y - 7, width: 3, height: 5), radius: 1, metal)
-        case .shotgun:
-            ctx.fillRoundedRect(CGRect(x: c.x + 2, y: c.y - 3.5, width: 21, height: 6), radius: 2,
-                                Palette.rgb(0.35, 0.24, 0.15))
-            ctx.fillRoundedRect(CGRect(x: c.x + 12, y: c.y - 2.5, width: 12, height: 3), radius: 1, metal)
+        case .rpg:
+            ctx.fillRoundedRect(CGRect(x: c.x - 4, y: c.y - 3.5, width: 30, height: 7), radius: 3,
+                                Palette.rgb(0.33, 0.38, 0.25))
+            ctx.fillCircle(CGPoint(x: c.x + 27, y: c.y), 4.5, Palette.rgb(0.4, 0.42, 0.3))
         case .pistol:
             ctx.fillRoundedRect(CGRect(x: c.x + 6, y: c.y - 2, width: 11, height: 4), radius: 1, metal)
         }

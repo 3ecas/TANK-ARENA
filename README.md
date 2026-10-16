@@ -55,7 +55,7 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
 
 ### Modes
 
-Both modes are played on **Office**, a hand-made indoor map (2400×1520) of compact rooms. It is balanced:
+Bomb mode is played on **Office**, a hand-made indoor map (2400×1520) of compact rooms. It is balanced:
 the floor is mirrored top/bottom, so sites A and B are exactly as far from each spawn. Attackers start in the
 west lobby, with doors into the north rooms, the middle and the south rooms; defenders start in the east room, with
 doors straight into both site rooms. You are put on **attack or defence at random** and are always blue.
@@ -67,19 +67,38 @@ doors straight into both site rooms. You are put on **attack or defence at rando
 - Attackers win if the bomb explodes or all defenders die. Defenders win if they defuse it, kill all attackers
   before the plant, or the **2:00** round timer runs out with no plant.
 
-**Rush — 16 vs 16, respawns**
-- Sites A and B each hold a **station**. **Any attacker** can arm either one by standing next to it and **holding E**
-  for 3 s. An armed station explodes after 45 s; defenders can defuse it (5 s), and it can then be armed again.
-  **Destroy both stations** to win.
+**Rush — 16 vs 16, respawns, 5 sectors** (its own long map, 8000×2000)
+- The attackers fight through **five sectors** from west to east. Each sector has **two stations** (sector 5 has
+  one). **Any attacker** can arm a station by standing next to it and **holding E** for 3 s; it explodes after 45 s
+  unless a defender defuses it (5 s), and a defused station can be armed again. When **every station of a sector**
+  is destroyed, the front moves to the **next sector**: both teams' spawns move forward and the attackers get
+  40 tickets back. Destroy the last station in sector 5 to win.
+- Sectors **1–2** are a close-quarters office building; sectors **3–5** are open ground with scattered buildings
+  and cover, where **vehicles** can be used.
 - Everyone respawns after **8 s**. Every attacker respawn costs one of the attackers' **120 tickets**; when they
   run out and the last attacker falls, the defenders win.
+- **Downed and revived:** in rush a soldier who drops is **downed** for 10 s first. A **medic** holding **E** next
+  to them for 1.6 s revives them at 50 HP; otherwise they bleed out and respawn.
+- **Killstreak vehicles** (sectors 3–5): **3 kills in a row** without dying earn a **tank**, **5** a
+  **helicopter**. Press **Q** to call it in — you drive it (WASD drive, mouse aims the gun, left mouse fires).
+  At most **2 tanks and 1 helicopter per team** at a time. Tanks are tough and fire explosive shells;
+  helicopters fly over walls with a minigun and leave after 60 s. Bullets barely scratch vehicles — use **RPGs**.
+
+### Classes
+
+Pick a class in the main menu (bots get a mix). Everyone has a primary (Assault Rifle or SMG), a pistol and a knife.
+- **Assault:** 50% more ammo, 10% faster, **2 grenades**. Q: **adrenaline** (a short sprint).
+- **Medic:** Q: drops a **health box** that heals teammates around it. Holds **E** on downed teammates to **revive** them.
+- **Engineer:** carries an **RPG** (slot **3**) that wrecks vehicles and blows up infantry. Q: drops an **ammo box**
+  that refills teammates' ammo and grenades.
+Class abilities have an 18 s cooldown. In rush sectors 3–5 an earned vehicle takes over Q until it is called in.
 
 ### Rules (both modes)
 
-- Every soldier has **100 HP**, a random **primary** (Assault Rifle, SMG or Shotgun), a **pistol**, **one grenade** (Frag, Flashbang or Stun) and a **knife**.
+- Every soldier has **100 HP**, a random **primary** (Assault Rifle or SMG), a **pistol**, grenades (Frag, Flashbang or Stun), a **knife** and their class gear.
 - Walls and desks block movement, bullets, grenade blasts and line of sight. Soldiers of different teams don't collide with each other.
 - **View range** ~640 points, **field of view** ~120° for everyone; the fog follows only your own eyes and has a soft edge.
-- **Range line:** a dashed line from your soldier to the max range of the weapon in hand (rifle 1000, pistol 800, SMG 700, shotgun 430).
+- **Range line:** a dashed line from your soldier to the max range of the weapon in hand (rifle 1000, pistol 800, SMG 700, RPG 950).
 - Grenades: **Frag** damages (falls off with distance). **Flashbang** blinds. **Stun** slows and stops shooting.
 - Bots ("medium-hard"):
   - **they push together**: the attackers first gather at a staging point short of their site, wait until most of
@@ -105,10 +124,11 @@ doors straight into both site rooms. You are put on **attack or defence at rando
 | **Mouse** | Aim (your soldier faces the cursor) |
 | **Left mouse** | Shoot (hold for the rifle and SMG; click per shot for the pistol and shotgun) |
 | **R** | Reload (also automatic when the magazine is empty) |
-| **1 / 2 / Q** | Primary / pistol / swap |
+| **1 / 2 / 3** | Primary / pistol / RPG (engineer) |
+| **Q** | Class ability, or call in an earned vehicle (rush sectors 3–5) |
 | **G** | Throw your grenade at the cursor |
 | **F** | Knife (hitting someone from behind is an instant kill) |
-| **E** (hold) | Plant the bomb (bomb mode, inside a site) / arm a station (rush) / defuse (defender, next to an armed bomb) |
+| **E** (hold) | Plant the bomb / arm a station / defuse / revive a downed teammate (medic) |
 | **Tab** (hold) | Scoreboard |
 | **Esc** | Pause menu |
 | **Cmd+F** / green button | Toggle full screen |

@@ -4,13 +4,24 @@ import CoreGraphics
 /// bomb goes to an attacker: the player when attacking, otherwise a random attacking bot.
 @MainActor
 enum BattleSetup {
-    static func populate(_ world: BattleWorld) {
+    /// Bot classes cycle so every team has a mix: assault, medic, engineer, assault, then random.
+    private static func botClass(_ index: Int) -> SoldierClass {
+        switch index % 5 {
+        case 0, 3: return .assault
+        case 1: return .medic
+        case 2: return .engineer
+        default: return SoldierClass.allCases.randomElement() ?? .assault
+        }
+    }
+
+    static func populate(_ world: BattleWorld, playerClass: SoldierClass) {
         for team in Team.playable {
             for index in 0..<world.mode.teamSize {
                 let isPlayer = team == .blue && index == 0
                 let soldier = Soldier(
                     id: world.makeId(), team: team, name: RosterNames.name(team: team, index: index),
-                    isPlayer: isPlayer, position: world.randomSpawnPoint(team),
+                    isPlayer: isPlayer, soldierClass: isPlayer ? playerClass : botClass(index + (team == .blue ? 0 : 1)),
+                    position: world.randomSpawnPoint(team),
                     primary: WeaponCatalog.randomPrimary(), grenade: GrenadeType.allCases.randomElement() ?? .frag)
                 soldier.respawnsLeft = world.mode.respawns
                 soldier.facing = team == world.attackers ? 0 : .pi

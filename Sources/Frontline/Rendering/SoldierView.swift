@@ -44,8 +44,13 @@ final class SoldierView {
             weaponShown = weapon
             body.texture = SoldierTextures.soldier(team: team, weapon: weapon)
         }
-        body.colorBlendFactor = soldier.isStunned ? 0.6 : 0
-        root.alpha = soldier.spawnProtection > 0 ? 0.5 + 0.3 * sin(soldier.spawnProtection * 20) : 1
+        body.colorBlendFactor = soldier.isStunned || soldier.isDowned ? 0.6 : 0
+        if soldier.isDowned {
+            // Lying on the floor, blinking while waiting for a medic.
+            root.alpha = 0.45 + 0.25 * abs(sin(soldier.downedTime * 3))
+        } else {
+            root.alpha = soldier.spawnProtection > 0 ? 0.5 + 0.3 * sin(soldier.spawnProtection * 20) : 1
+        }
         knife.isHidden = soldier.knifeSwing <= 0
         knife.zRotation = soldier.facing + (0.2 - soldier.knifeSwing) * 4
         let fraction = soldier.hpFraction

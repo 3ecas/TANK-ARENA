@@ -6,6 +6,7 @@ final class HUD {
     let root = SKNode()
     let vitals = VitalsPanel()
     let weapons = WeaponPanel()
+    let ability = AbilityPanel()
     let counter = TeamCounter()
     let killFeed = KillFeed()
     let notices = CenterNotices()
@@ -25,7 +26,7 @@ final class HUD {
         scoreboard = Scoreboard(session: session)
         root.zPosition = 100
         let layers: [(SKNode, CGFloat)] = [
-            (flash.node, 0), (vitals.root, 1), (weapons.root, 1), (counter.root, 1), (killFeed.root, 1),
+            (flash.node, 0), (vitals.root, 1), (weapons.root, 1), (ability.root, 1), (counter.root, 1), (killFeed.root, 1),
             (minimap.root, 1), (notices.root, 2), (bombPrompt.root, 2), (banner.root, 2), (crosshair.root, 5), (scoreboard.root, 10),
             (pauseMenu.root, 20), (gameOver.root, 30),
         ]
@@ -43,8 +44,15 @@ final class HUD {
                                         y: -halfH + WeaponPanel.size.height / 2 + 14)
         counter.root.position = CGPoint(x: 0, y: halfH - 48)
         killFeed.root.position = CGPoint(x: halfW - 16, y: halfH - 24)
-        minimap.root.position = CGPoint(x: -halfW + minimap.mapSize.width / 2 + 18,
-                                        y: halfH - minimap.mapSize.height / 2 - 18)
+        ability.root.position = CGPoint(x: -halfW + AbilityPanel.size.width / 2 + 14,
+                                        y: -halfH + VitalsPanel.size.height + AbilityPanel.size.height / 2 + 22)
+        if minimap.mapSize.width > Minimap.width {
+            // Wide rush minimap: bottom centre, between the vitals and weapon panels.
+            minimap.root.position = CGPoint(x: 0, y: -halfH + minimap.mapSize.height / 2 + 18)
+        } else {
+            minimap.root.position = CGPoint(x: -halfW + minimap.mapSize.width / 2 + 18,
+                                            y: halfH - minimap.mapSize.height / 2 - 18)
+        }
         banner.root.position = CGPoint(x: 0, y: halfH - 110)
         banner.messageOffset = -(size.height - 110) + 160
     }
@@ -53,6 +61,7 @@ final class HUD {
         let player = session.player
         vitals.update(soldier: player)
         weapons.update(soldier: player)
+        ability.update(soldier: player, world: session.world)
         counter.update(world: session.world, playerTeam: session.player.team)
         killFeed.update(dt: dt)
         notices.update(player: player, spectating: player.isAlive ? nil : session.viewer)

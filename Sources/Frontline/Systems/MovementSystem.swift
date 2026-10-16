@@ -12,9 +12,11 @@ final class MovementSystem {
     func update(dt: CGFloat) {
         let world = ctx.world
         let bounds = world.map.bounds.insetBy(dx: GameConfig.soldierRadius, dy: GameConfig.soldierRadius)
-        let alive = world.soldiers.filter { $0.isAlive }
+        // Pilots ride their vehicle (VehicleSystem moves them).
+        let alive = world.soldiers.filter { $0.isAlive && !$0.isMounted }
         for soldier in alive {
-            var speed = GameConfig.walkSpeed * soldier.activeWeapon.def.speedMultiplier
+            var speed = GameConfig.walkSpeed * soldier.activeWeapon.def.speedMultiplier * soldier.soldierClass.speedMultiplier
+            if soldier.sprintTime > 0 { speed *= ClassConfig.sprintMultiplier }
             if soldier.isStunned { speed *= 1 - GrenadeConfig.stunSlow }
             soldier.velocity = soldier.moveDir.clampedLength(1) * speed
             soldier.position = (soldier.position + soldier.velocity * dt).clamped(to: bounds)

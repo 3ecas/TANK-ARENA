@@ -12,7 +12,8 @@ final class RespawnSystem {
 
     func update(dt: CGFloat) {
         let world = ctx.world
-        for soldier in world.soldiers where soldier.isAwaitingRespawn {
+        // Downed soldiers wait for a medic first; the respawn countdown starts once they bleed out.
+        for soldier in world.soldiers where soldier.isAwaitingRespawn && soldier.downedTime <= 0 {
             soldier.respawnTimer -= dt
             guard soldier.respawnTimer <= 0 else { continue }
             if world.mode == .rush && soldier.team == world.attackers {

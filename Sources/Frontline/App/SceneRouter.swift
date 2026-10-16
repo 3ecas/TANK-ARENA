@@ -9,6 +9,8 @@ final class SceneRouter {
     let sound = SoundEngine()
     /// Mode of the last battle (Play Again / Enter reuse it).
     private(set) var lastMode: GameMode = .bomb
+    /// Class picked in the main menu.
+    var playerClass: SoldierClass = .assault
 
     init(view: GameView, input: InputManager) {
         self.view = view
@@ -26,7 +28,8 @@ final class SceneRouter {
         input.reset()
         let chosen = mode ?? lastMode
         lastMode = chosen
-        let scene = GameScene(size: view.bounds.size, router: self, mode: chosen, attacking: Bool.random())
+        let scene = GameScene(size: view.bounds.size, router: self, mode: chosen, attacking: Bool.random(),
+                              playerClass: playerClass)
         view.presentScene(scene, transition: SKTransition.fade(withDuration: 0.5))
     }
 

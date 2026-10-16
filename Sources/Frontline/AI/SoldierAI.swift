@@ -17,6 +17,8 @@ final class SoldierAI {
     unowned let ctx: BattleContext
     let services: BotServices
     let follower = PathFollower()
+    /// Path following with tank-sized clearance.
+    let vehicleFollower = PathFollower()
     weak var squad: Squad?
 
     // Perception and memory
@@ -72,10 +74,15 @@ final class SoldierAI {
             thinkTimer = AIConfig.thinkInterval * CGFloat.random(in: 0.8...1.2)
             think()
             refreshAwareness()
+            considerAbility()
         }
         soldier.wantsToInteract = false
         soldier.isEngaged = hasRecentThreat
-        if bombDuty(dt: dt) { return }
+        if soldier.isMounted {
+            vehicleBrain(dt: dt)
+            return
+        }
+        if bombDuty(dt: dt) || reviveDuty(dt: dt) { return }
         if hasRecentThreat, let threat = threatPosition {
             combat(threat: threat, dt: dt)
         } else {
@@ -139,7 +146,7 @@ final class SoldierAI {
         var best: (Soldier, Bool)?
         var bestScore = CGFloat.greatestFiniteMagnitude
         for enemy in services.vision.visibleEnemies(for: soldier) {
-            let exposed = services.vision.isUnaware(enemy, of: soldier)
+            let exposed = !enemy.isMounted && services.vision.isUnaware(enemy, of: soldier)
             var score = enemy.position.distance(to: soldier.position) - (exposed ? AIConfig.exposedTargetBonus : 0)
             if isPlayingObjective(enemy) { score -= AIConfig.objectiveTargetBonus }
             if score < bestScore {
@@ -156,14 +163,21 @@ final class SoldierAI {
     }
 
     /// Primary unless it is completely out of ammo.
+    /// Primary unless it is out of ammo; engineers take the RPG out against vehicles.
     private func chooseWeapon() {
-        if soldier.activeIndex == 0 && soldier.weapons[0].isEmpty {
+        let target = ctx.world.soldier(targetId)
+        let rpgReady = soldier.weapons.count > 2 && !soldier.weapons[2].isEmpty
+        if target?.isMounted == true && rpgReady {
+            services.weapons.switchTo(soldier, index: 2)
+        } else if soldier.activeIndex == 2 {
+            services.weapons.switchTo(soldier, index: 0)
+        } else if soldier.activeIndex == 0 && soldier.weapons[0].isEmpty {
             services.weapons.switchTo(soldier, index: 1)
         }
     }
 
     private func considerGrenade(at point: CGPoint, distance: CGFloat) {
-        guard soldier.grenade != nil, distance >= AIConfig.grenadeMinDistance,
+        guard soldier.grenadeCount > 0, !soldier.isMounted, distance >= AIConfig.grenadeMinDistance,
               distance <= GrenadeConfig.maxThrowDistance, CGFloat.random(in: 0...1) < AIConfig.grenadeChance
         else { return }
         let error = CGPoint(x: CGFloat.random(in: -40...40), y: CGFloat.random(in: -40...40))

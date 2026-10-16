@@ -14,6 +14,8 @@ enum GrenadeType: CaseIterable {
 
 enum GrenadeConfig {
     static let maxThrowDistance: CGFloat = 520
+    /// Frag damage to a vehicle caught in the blast.
+    static let fragVehicleDamage: CGFloat = 60
     static let throwSpeed: CGFloat = 620
     static let fuse: CGFloat = 1.6
     static let radius: CGFloat = 4

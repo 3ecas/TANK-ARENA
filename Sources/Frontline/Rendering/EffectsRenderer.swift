@@ -48,7 +48,7 @@ final class EffectsRenderer {
         let delta = to - from
         let angle = delta.angle
         pool.spawn(EffectTextures.tracer, at: from.lerp(to: to, t: 0.5),
-                   size: CGSize(width: Swift.max(delta.length, 4), height: weapon == .shotgun ? 1.5 : 2),
+                   size: CGSize(width: Swift.max(delta.length, 4), height: weapon == .rpg ? 5 : 2),
                    alpha: 0.85, life: 0.06, rotation: angle, additive: true)
         pool.spawn(EffectTextures.muzzleFlash, at: from + CGPoint(angle: angle, length: 6),
                    size: CGSize(width: 14, height: 9), life: 0.05, rotation: angle, additive: true)
