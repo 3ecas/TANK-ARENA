@@ -71,6 +71,14 @@ The game runs in a **square window**; in full screen (Cmd+F) it stays square wit
   - the attackers move as one squad to a site picked at random each round, the carrier plants as soon as it is inside the site with no enemy in sight, and the nearest attacker picks up a dropped bomb;
   - the defenders split into pairs guarding A and B; after a plant everyone converges on the bomb and the nearest defender defuses when no enemy is in sight;
   - one lone **rogue** per team takes the long way round to come in from behind;
+  - they know the map's **doorways and entrances** (found automatically on every map) and keep their guns on them:
+    holding bots watch the openings facing the enemy side, switching every few seconds, and walking bots check
+    doorways as they pass;
+  - every sighting is **shared with the team** and extrapolated from the enemy's movement, so bots aim where an
+    enemy should be now, or at the doorway it would come through;
+  - squads **clear rooms**: they stack up beside the next doorway on their path, wait for everyone, cover the
+    opening, then go in together. Sometimes they just push straight in — always when the bomb is ticking or the
+    attackers are short of time;
   - they share sightings, push / hold / fall back, use cover, and punish enemies with their backs turned.
 
 ### Maps

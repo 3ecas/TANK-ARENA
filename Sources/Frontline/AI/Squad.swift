@@ -23,6 +23,13 @@ final class Squad {
     var objective: BombSite?
     /// Waypoint on the edge of the map the squad passes through first to flank the objective.
     var flankPoint: CGPoint?
+    /// Room clearing: the doorway the squad is stacked on, where it waits, and when it goes in.
+    var stackDoor: Chokepoint?
+    var stackPoint: CGPoint?
+    var stackSince: CGFloat = 0
+    var stackGoAt: CGFloat?
+    /// Doorways already cleared (position, time).
+    var clearedDoors: [(CGPoint, CGFloat)] = []
     /// Time after which an unreached flank point is abandoned.
     var flankDeadline: CGFloat = 0
     /// Squad role inside its team: 1 = defends the home zone, others attack.
@@ -98,6 +105,15 @@ final class Squad {
         let count = Swift.max(1, alive.count)
         let angle = CGFloat(index) / CGFloat(count) * 2 * .pi + CGFloat(id)
         return zone.center + CGPoint(angle: angle) * (zone.radius * 0.55)
+    }
+
+    /// Place in the stack next to a doorway: two files behind the leader, away from the opening.
+    func stackSlot(for member: SoldierAI, point: CGPoint, door: Chokepoint) -> CGPoint? {
+        guard let index = alive.firstIndex(where: { $0 === member }), index > 0 else { return nil }
+        let away = (point - door.position).normalized
+        let row = CGFloat((index + 1) / 2)
+        let side: CGFloat = index % 2 == 0 ? 1 : -1
+        return point + away * (30 * row) + away.perpendicular * (40 * side)
     }
 
     /// Formation slot behind the leader: two columns, staggered rows.

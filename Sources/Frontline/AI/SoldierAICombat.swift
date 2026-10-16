@@ -10,7 +10,7 @@ extension SoldierAI {
             attackExposed(target, dt: dt)
             return
         }
-        soldier.aimPoint = target.map { $0.position + aimOffset } ?? threat
+        soldier.aimPoint = target.map { $0.position + aimOffset } ?? predictedThreat(threat)
         shootIfPossible(target)
 
         let mode = coverMode()
@@ -158,4 +158,6 @@ struct BotServices {
     let grenades: GrenadeSystem
     let melee: MeleeSystem
     let cover: CoverFinder
+    let chokepoints: Chokepoints
+    let intel: TeamIntel
 }

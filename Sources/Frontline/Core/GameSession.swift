@@ -42,9 +42,10 @@ final class GameSession {
         guard let player = world.player else { fatalError("Battle has no player") }
         self.player = player
         let services = BotServices(vision: vision, weapons: weapons, grenades: grenades, melee: melee,
-                                   cover: CoverFinder(map: world.map))
+                                   cover: CoverFinder(map: world.map),
+                                   chokepoints: Chokepoints(map: world.map), intel: TeamIntel())
         bots = world.soldiers.filter { !$0.isPlayer }.map { SoldierAI(soldier: $0, ctx: ctx, services: services) }
-        squads = SquadCoordinator(ctx: ctx, bots: bots)
+        squads = SquadCoordinator(ctx: ctx, bots: bots, services: services)
     }
 
     /// The soldier whose eyes the player sees through (themselves, or a teammate when eliminated).

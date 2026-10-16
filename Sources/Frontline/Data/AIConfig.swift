@@ -44,6 +44,32 @@ enum AIConfig {
     static let waypointTimeout: CGFloat = 20
     /// Rogues aim for a point this far behind the enemy front line.
     static let rogueBehindDistance: CGFloat = 320
+    // MARK: Doorways, prediction and room clearing
+
+    /// Doorway detection: probe spacing, max opening width, width that counts as a room, probe distance, merge radius.
+    static let chokeProbeStep: CGFloat = 20
+    static let chokeMaxWidth: CGFloat = 140
+    static let chokeOpenWidth: CGFloat = 260
+    static let chokeLookAhead: CGFloat = 60
+    static let chokeMergeRadius: CGFloat = 90
+    /// How long a shared enemy sighting is remembered, and how far ahead (seconds) its movement is extrapolated.
+    static let intelMemory: CGFloat = 8
+    static let predictionHorizon: CGFloat = 1.5
+    /// Idle bots watch openings within this distance, switching every `watchSwitchTime` seconds.
+    static let watchRange: CGFloat = 700
+    static let watchSwitchTime: CGFloat = 3
+    /// Moving bots glance at openings they pass within this distance.
+    static let glanceRange: CGFloat = 260
+    /// Squads stack up on a doorway this far ahead on their path, this far from it, and hold before entering.
+    static let stackLookAhead: CGFloat = 320
+    static let stackDistance: CGFloat = 100
+    static let stackHold: ClosedRange<CGFloat> = 1.0...1.8
+    static let stackMaxWait: CGFloat = 4
+    /// Chance a squad just pushes through a doorway without stacking (always when time is short).
+    static let rushChance: CGFloat = 0.3
+    static let rushTimeLeft: CGFloat = 35
+    /// A doorway the squad has cleared is not stacked on again for this long.
+    static let clearedMemory: CGFloat = 25
     /// Seconds between control-zone objective reviews.
     static let objectiveInterval: CGFloat = 4
     static let squadSize = 5

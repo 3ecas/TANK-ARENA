@@ -13,8 +13,11 @@ final class SquadCoordinator {
     /// The site the attackers go for this round.
     private let attackTarget: BombSite?
 
-    init(ctx: BattleContext, bots: [SoldierAI]) {
+    let services: BotServices
+
+    init(ctx: BattleContext, bots: [SoldierAI], services: BotServices) {
         self.ctx = ctx
+        self.services = services
         attackTarget = ctx.world.sites.randomElement()
         var nextId = 1
         let carrierId = ctx.world.bomb.carrierId
@@ -63,6 +66,7 @@ final class SquadCoordinator {
         }
         for squad in squads where !squad.members.isEmpty {
             decideStance(squad)
+            updateRoomClearing(squad)
             if let flank = squad.flankPoint, let leader = squad.leader,
                leader.soldier.position.distance(to: flank) < AIConfig.flankReachedDistance
                 || ctx.world.time > squad.flankDeadline {

@@ -21,7 +21,9 @@ extension SoldierAI {
             return
         }
         moveToward(goal, dt: dt)
-        if soldier.moveDir.lengthSquared > 0.01 {
+        if let glance = glancePoint() {
+            soldier.aimPoint = glance
+        } else if soldier.moveDir.lengthSquared > 0.01 {
             soldier.aimPoint = soldier.position + soldier.moveDir * 200
         }
     }

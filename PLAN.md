@@ -111,3 +111,9 @@ The game was reworked from a MOBA into a top-down team shooter, as requested:
   - A `BombPrompt` hint and progress bar shows while planting or defusing.
   - `SiteRenderer` draws the sites and a blinking bomb; the minimap shows the bomb.
 - Office map (`World/OfficeGenerator`, `Data/OfficeConfig`): recursive division with random wall positions (never across spawns, sites or doorways) and 1–2 doorways per wall; random site positions inside two far-apart areas; desks (`ObstacleKind.desk`) clear of walls and site centres. Regenerated every round and verified with the nav flood fill.
+
+## Revision 10: smarter bots indoors
+- `AI/Chokepoints`: doorways and entrances detected once per map by probing for spots that are narrow across between walls or rock, with a wide area just beyond. Crates and desks are ignored.
+- `AI/TeamIntel`: shared enemy sightings with velocity extrapolation. `SoldierAIAwareness` decides where an idle bot looks (predicted enemy, or the doorway it would use, or rotating openings facing the enemy side), glances at doorways while walking, and aims at the predicted position of a lost target.
+- `AI/SquadClearing`: advancing squads find the next uncleared doorway on their nav path, stack beside it (`Squad.stackSlot`), wait for everyone, hold for 1–1.8 s and go in. There is a 30% chance to rush, and they always rush when the bomb is planted or the attackers are short of time.
+

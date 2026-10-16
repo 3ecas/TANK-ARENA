@@ -11,12 +11,20 @@ extension SoldierAI {
         travelGoal = goal
         guard let destination = goal, soldier.position.distance(to: destination) > 24 else {
             soldier.moveDir = .zero
-            if let contact = squad.contactPoint, squad.stance != .advance { soldier.aimPoint = contact }
+            if let contact = squad.contactPoint, squad.stance != .advance {
+                soldier.aimPoint = contact
+            } else if let watch = watchPoint(squad: squad) {
+                soldier.aimPoint = watch
+            }
             return
         }
         moveToward(destination, dt: dt)
         if let contact = squad.contactPoint, squad.stance == .push || squad.stance == .hold {
             soldier.aimPoint = contact
+        } else if squad.stackDoor != nil, let watch = watchPoint(squad: squad) {
+            soldier.aimPoint = watch
+        } else if let glance = glancePoint() {
+            soldier.aimPoint = glance
         } else if soldier.moveDir.lengthSquared > 0.01 {
             soldier.aimPoint = soldier.position + soldier.moveDir * 200
         }
@@ -26,6 +34,11 @@ extension SoldierAI {
         switch squad.stance {
         case .advance:
             let nav = ctx.world.nav
+            // Stacked on a doorway: line up beside it before going in together.
+            if let point = squad.stackPoint, let door = squad.stackDoor {
+                if squad.leader === self { return point }
+                return squad.stackSlot(for: self, point: point, door: door).map { nav.nearestWalkable($0) }
+            }
             if let flank = squad.flankPoint {
                 if squad.leader === self { return squad.isGathered ? flank : nil }
                 return squad.formationPosition(for: self).map { nav.nearestWalkable($0) }

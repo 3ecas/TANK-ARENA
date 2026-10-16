@@ -26,6 +26,7 @@ final class SoldierAI {
     var reactionTimer: CGFloat = 0
     var threatPosition: CGPoint?
     var threatTime: CGFloat = -100
+    var threatVelocity: CGPoint = .zero
     var aimOffset: CGPoint = .zero
     var strafeSign: CGFloat = 1
     var strafeTimer: CGFloat = 0
@@ -107,7 +108,9 @@ final class SoldierAI {
             targetId = enemy.id
             targetExposed = exposed
             threatPosition = enemy.position
+            threatVelocity = enemy.velocity
             threatTime = now
+            services.intel.report(by: soldier.team, enemy: enemy, time: now)
             squad?.reportContact(enemy.position, time: now)
             let distance = enemy.position.distance(to: soldier.position)
             // An unaware target gives time for a calmer, more accurate shot.
